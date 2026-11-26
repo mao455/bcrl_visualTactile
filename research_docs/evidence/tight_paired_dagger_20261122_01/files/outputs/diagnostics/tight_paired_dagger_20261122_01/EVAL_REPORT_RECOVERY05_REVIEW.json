@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "activation_blockers": [],
+  "observed_utc": 1795401472.9527113,
+  "review_mode": "Read-only source plus CPU-only isolated fixtures; no live checkpoint reads, GPU, Kit, external-process signals or production/config changes",
+  "source_sha256": {
+    "tools/tight_paired_evaluate.py": "538e12bb71beaf7dde3fb3f83e1fd19f3bd35defa521d28c952857d6cf519717",
+    "outputs/diagnostics/tight_paired_dagger_20261122_01/presealed_guard.py": "39569316f9ec58a6bce58f7452cd9a9464c017e3f673b7db81bc41ccde55c1cf",
+    "outputs/diagnostics/tight_paired_dagger_20261122_01/final_report_assembler.py": "1eca4843d9e7e2d1ac6287b220bf8d429fe36458cb58ddcf63a63e9ab2611b2f",
+    "outputs/diagnostics/tight_paired_dagger_20261122_01/run_main_recovery05.py": "3edbb158e0845cc4f51bfee0e27e1552c79fc8455613d8e610a40036a5e9002f"
+  },
+  "validation": {
+    "command": "taskset -c 8-9 env OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 /home/CNS2025331827/miniconda3/envs/isaaclab/bin/python -m pytest -q tests/test_paired_evaluate.py outputs/diagnostics/tight_paired_dagger_20261122_01/test_final_report_assembler.py outputs/diagnostics/tight_paired_dagger_20261122_01/test_presealed_guard.py",
+    "passed": 19,
+    "failed": 0,
+    "cpu_seconds_reported": 2.17,
+    "warning": "One requests dependency warning; no test failure"
+  },
+  "findings": [
+    {
+      "id": "evaluate_nonzero_stops_driver",
+      "severity": "operational_caveat_not_activation_blocker",
+      "details": "Driver requires rc==0 at every stage. A worker/software failure stops the project before automatic summarize, including never-started later waves. This is fail-closed and does not silently drop denominators or certify success.",
+      "required_followup": "If it occurs, preserve the failed attempt; independently determine exact consumed versus never-started registered waves. Continue only the never-started waves in a new bound attempt with the same frozen four policies/seeds/noise; do not rerun consumed failed waves. Run the registered full-denominator summary after closure and retain every missing/software-invalid/unverified case as primary failure. Do not claim all256 physically ran based on summary. No pre-freeze source change is necessary to permit activation."
+    },
+    {
+      "id": "protocol_aggregate_missing_cases",
+      "severity": "report_wording_caveat",
+      "details": "Summary primary_protocol_verified checks absence of protocol_missing only. Missing/software-incomplete cases receive no protocol_missing entries, so this aggregate can be true even when outcomes are missing. Per-row strict_primary_admissible and primary success remain false, and software/missing/initial checks are separately exported.",
+      "required_followup": "Never use primary_protocol_verified alone to assert all256 protocol verified. Report all_software_complete plus observed_paired_starts_passed==64 plus all rows strict_primary_admissible and exact reconstruction/receipt totals; list software incomplete, missing, illegal and initial-unverified cases. Draft report currently does not use this flag."
+    },
+    {
+      "id": "report_is_draft",
+      "severity": "manual_scientific_review_required",
+      "details": "Assembler correctly marks draft_ready_for_root_review. Its automatic next-action choice only compares pre/post-subgoal failure totals and must be checked against current development evidence before final publication. The funnel table header says new while it includes all four policy rows; final prose can use complete policy instead.",
+      "required_followup": "Root must finalize the one next action, directly answer whether each improved and both met50%, report uncertainty without nominal-target ranking, and preserve overall-intervention causal limitation."
+    }
+  ],
+  "verified_contracts": [
+    "same sealed64 families and four frozen complete students; fixed epoch60; development descriptive only",
+    "expert construction/action disabled; native120/60/5Hz and complete controller/each-frame visual history audited",
+    "full registered denominator includes missing/software-incomplete/illegal/unverified outcomes as primary failures; per-initial and rollout tables retain64/256",
+    "Wilson absolute intervals and200000 family-paired bootstrap A-B/new-parent intervals; success retained/gained/lost crosschecked against CSV",
+    "presealed actual selected checkpoint SHA/age, equal successful updates, own frontend/rear binding, >=50 legal tick/native-entry exposure and pool ownership checks",
+    "recovery collection report explicitly preserves96/48 opportunities,47 verified/1 unverified pair,15 consumed+81 continued, incomplete not no-trigger; expert recovery never autonomy",
+    "cost report separates observed closed-owner wall unions, per-component timers and discarded uncommitted updates; no unsupported GPU-hour estimate"
+  ],
+  "interpretation": "No activation blocker found in reviewed evaluator/presealed/report sources. Passing this review neither starts work nor certifies results or live runtime closure."
+}

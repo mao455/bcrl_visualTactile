@@ -10,13 +10,17 @@ def run(output, *, allow_heldout=False):
     from visuotactile import native_evaluation
     from tools.tight_fresh_batch_run import run
     plan=read(output/'plan.json');assert plan['kind']=='autonomous'
+    if plan['batch'].get('queue_profile'):
+        if any(case.get('video',True) for case in plan['cases']):
+            raise ValueError('Queued autonomous numerical evaluation requires explicit video=False')
+        return run(output,allow_heldout=allow_heldout)
     assert len(plan['cases'])==plan['batch']['lanes'],'One case per video lane; no reuse'
     original=MultiPolicyController.act;original_exit=native_evaluation.exit_completed_kit_worker
     videos={};spent=0.;flushed=False
     def act(self,packet,diagnostics,active):
         nonlocal spent
         before=time.perf_counter();ids=[i for i,x in enumerate(active) if x and plan['cases'][i].get('video',True)]
-        rgb=packet['image'][ids,:,:3].detach().cpu()
+        rgb=packet['image'][ids,:,:3].detach().cpu() if ids else None
         for j,lane in enumerate(ids):
             case=plan['cases'][lane];tick=int(packet['step_id'][lane])
             if lane not in videos:
@@ -35,7 +39,9 @@ def run(output, *, allow_heldout=False):
             if complete:
                 result=read(output/case['name']/'result.json');assert row['frames']==result['steps']
                 row.update(case=case['name'],success=result.get('success'),result=str(output/case['name']/'result.json'))
-                row['decode']=verify_video(video.path,row['frames']);rows.append(row)
+                if plan.get('video_full_decode', False):
+                    row['decode']=verify_video(video.path,row['frames'])
+                rows.append(row)
         atomic_json(output/'videos.json',dict(complete=complete,rows=rows,recording_seconds=spent,
             policy_unchanged=True,frame_source='Actual pre-action RGB observation, all control steps, no reset/terminal substitution'))
         flushed=True

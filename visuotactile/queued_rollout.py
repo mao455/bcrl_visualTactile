@@ -16,7 +16,7 @@ import torch
 
 from .batched_rollout import (lane_metadata,finish_lane,trace_row,expert_actor_input,_PendingCapture)
 from .batched_controller import lane_tree
-from .batch_recording import snapshot,lane_arrays
+from .batch_recording import snapshot,lane_arrays,recorded_observation
 from .gpu_batch_controller import MultiPolicyController,PROFILE as GPU_PROFILE
 from .training_resources import atomic_json
 from .recording import flatten,BufferedNumericWriter,post_observation
@@ -185,6 +185,7 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan,*,capture_pool
     rows=[[] for _ in range(n)];plans=[[] for _ in range(n)];previous=[None]*n
     directories=[None]*n;recorders=[None]*n;numerics=[None]*n;writers=[None]*n
     daggers=[None]*n;triggers=[None]*n;initials=[None]*n;lane_started=[None]*n
+    observers=[None]*n
     lane_batches=[None]*n;assigned=[]
     batch=dict(version=PROFILE,lanes=n,vision_microbatch=plan['batch']['vision_microbatch'],
         physics_seed=plan['batch']['seed'],event_seed=plan['batch']['seed']+100000,
@@ -228,7 +229,14 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan,*,capture_pool
             hook=player.model.register_forward_hook(capture_raw)
         def admit_lane(lane,case):
             directory=output/case['name'];directory.mkdir();directories[lane]=directory
+            from .paired_execution import verify_registered_layout
+            verify_registered_layout(env,[case],directory,lane_indices=[lane])
+            if plan.get('observe_only'):
+                from .adaptive_takeover import AdaptiveTrigger,profile as adaptive_profile
+                observers[lane]=AdaptiveTrigger(adaptive_profile('alignment',never_entered_only=True,observe_only=True),10**9)
             slots[lane]=case;controller.assign(lane,case['role']);lane_started[lane]=time.perf_counter()
+            from .paired_execution import reset_registered_sampler
+            reset_registered_sampler(controller.lanes[lane].base,plan,directory,identity=case['name'])
             reset_expert_lanes(player,[lane],n)
             rows[lane]=[];plans[lane]=[];previous[lane]=None
             admission=clearance(env,lane=lane);initial=env._diagnostics()
@@ -318,6 +326,7 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan,*,capture_pool
                             schedule=observe_transition(triggers[lane],local_ticks[lane],local)
                             if schedule is not None:bridge.schedule_takeover(lane,schedule)
                     else:c.observe_execution(local)
+                    if observers[lane] is not None:observe_transition(observers[lane],local_ticks[lane],local)
                 t=time.perf_counter()
                 if capture:
                     template=next(iter(locals_.values()))['dagger']
@@ -327,7 +336,7 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan,*,capture_pool
                     return torch.cat([get(controller.lanes[i]) if i in locals_ else torch.zeros_like(template) for i in range(n)])
                 diagkeys=controller.lanes[next(iter(locals_))].residual_diagnostics
                 diag={k:combine(lambda c:c.residual_diagnostics[k].reshape(1) if c.residual_diagnostics[k].ndim==0 else c.residual_diagnostics[k]) for k in diagkeys}
-                shared=snapshot(dict(obs={k:v for k,v in packet.items() if torch.is_tensor(v)},
+                shared=snapshot(dict(obs=recorded_observation(packet,capture=capture),
                     transition=dict(tr,**(dict(observation_after=post_observation(env.research_packet,terminated|truncated)) if capture else {})),
                     terminated=terminated,truncated=truncated,controller=dict(nominal=combine(lambda c:c.nominal),
                         delta=combine(lambda c:c.delta),residual_diagnostics=diag)))
@@ -352,6 +361,7 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan,*,capture_pool
                     cutoff=case.get('grasp_evaluation_ticks')
                     censored=not done[lane] and cutoff is not None and tick+1>=cutoff
                     if done[lane] or censored:
+                        if observers[lane] is not None:atomic_json(directories[lane]/'observe_only_trigger.json',observers[lane].receipt())
                         if plan.get('record_sampler_rng'):
                             from .sampler_audit import record as record_sampler_rng
                             record_sampler_rng(directories[lane],c.base,'end',identity=case['name'],

@@ -1,0 +1,92 @@
+[
+  {
+    "wave": 0,
+    "role": "mixed",
+    "controller_s": 57.88791820593178,
+    "environment_s": 91.17931269807741,
+    "expert_s": 4.495402753353119,
+    "record_submit_s": 47.301458925008774,
+    "finish_audit_s": 190.56487710028887,
+    "reset_refill_s": 0.0,
+    "active_lane_steps": 2226,
+    "allocated_lane_steps": 2404,
+    "refills": 0,
+    "finished_before_queue_empty": 0,
+    "capture_writer": {
+      "max_pending_bytes": 134217728,
+      "max_queue": 64,
+      "reserved_bytes": 0,
+      "peak_reserved_bytes": 129643688,
+      "peak_queued_or_copying": 6,
+      "byte_scope": "owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch",
+      "worker_alive": true,
+      "failed": false,
+      "verification_workers": 0,
+      "prestarted_verifiers": false,
+      "verification_max_pending": 4,
+      "verification_pending": 0,
+      "verification_peak_pending": 0,
+      "verification_submitted": 0,
+      "verification_completed": 0,
+      "verification_failed": 0,
+      "verification_slot_wait_s": 0.0,
+      "verification_process_pids": [],
+      "verification_scope": "Bound includes queued and running closed-file tasks; only paths/metadata sent. Spawned verifier decode buffers/RSS are separate from payload byte budget."
+    },
+    "seconds": 399.5474064438604,
+    "cases": 4,
+    "control_ticks": 2226,
+    "vision_execution": {
+      "version": "gpu_observation_history_control_v1",
+      "roles": {
+        "A": {
+          "version": "current_observation_lane_microbatch_v1",
+          "vision_microbatch": 2,
+          "images_per_kernel": 6,
+          "forward_features_calls": 0,
+          "real_lanes": 2226,
+          "padding_lanes": 0,
+          "real_images": 6678,
+          "processed_images": 0,
+          "controller_calls": 601,
+          "external_shared_vision": true,
+          "consumed_observations_per_lane": [
+            601,
+            601,
+            423,
+            601
+          ],
+          "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+        }
+      },
+      "calls": 1202,
+      "real_lanes": 2226,
+      "processed_images": 7212,
+      "padding_lanes": 178
+    },
+    "render_transitions": [
+      {
+        "lane": 2,
+        "enabled": false,
+        "utc": 1795682646.3260376
+      },
+      {
+        "lane": 2,
+        "enabled": true,
+        "utc": 1795682919.5374556
+      }
+    ],
+    "camera_reactivation": [],
+    "aggregate_control_ticks_per_second": 5.571303840543815,
+    "active_lane_fraction": 0.9259567387687188,
+    "render_reuse": {
+      "render_calls": 609,
+      "render_seconds": 25.876545493956655,
+      "redundant_reader_renders_avoided": 600,
+      "reader_renders_required": 2,
+      "invalidations": 8
+    },
+    "admission_s": 4.5551994778215885,
+    "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+  }
+]

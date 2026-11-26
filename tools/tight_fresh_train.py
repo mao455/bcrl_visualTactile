@@ -126,7 +126,8 @@ def predict_on_native_clock(model, conditions, anchors):
 
 
 @torch.no_grad()
-def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_visual_io=None,grasp_phase_report=False,episode_loader=None):
+def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_visual_io=None,grasp_phase_report=False,episode_loader=None,
+        diagnostics=None,diagnostic_epoch=0,diagnostic_update=0,diagnostic_split="validation"):
     from visuotactile.frozen_visual_io import validate_profile as validate_visual_io
     frozen_visual_io=validate_visual_io(frozen_visual_io)
     if offline_planning is not None:
@@ -157,6 +158,9 @@ def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_v
             planning_seconds=time.perf_counter()-began
         pred=bounded_targets(pred.flatten(0,1),rec['joint_limits']).reshape_as(pred)
         truth,valid=labels(rec,a,24);mask=valid[:,:12];e=(pred[:,:12]-truth[:,:12])[mask]
+        if diagnostics is not None:
+            diagnostics.dp_evaluation(diagnostic_epoch,diagnostic_update,diagnostic_split,i,a,
+                pred[:,:12]-truth[:,:12],mask)
         errors.append(e.cpu());normalized.append((e*model.action_scale).cpu())
         if grasp_phase_report:
             absolute_ticks=a[:,None]+torch.arange(12,device=a.device)[None]
@@ -380,6 +384,11 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         validation='all six fixed families DDIM16 commit12; fixed train2 diagnostics',hand_geometry=geometry,
         normalization_identity=model.contract['normalization_identity'],input_builder='canonical_joint_state_v1',
         source_sha256={str(p):sha256(p) for folder in ['visuotactile','tools'] for p in sorted(Path(folder).rglob('*.py'))})
+    from visuotactile.paired_curve_diagnostics import load as load_curve_diagnostics,Recorder,export_dp_visit_losses
+    curve_diagnostics=load_curve_diagnostics(root)
+    if curve_diagnostics is not None:
+        if batch_profile is None:raise ValueError('Paired DP diagnostics require full-trajectory batch path')
+        config['family_phase_diagnostics']=curve_diagnostics
     if visit_profile:
         config.update(training_sampling=visit_profile,training_sampling_sha256=sha256(root/'training_sampling.json'),
             exposure='Full real history once per visit; random legal starts with original anchor-count budget; actual visits, optimizer/EMA updates and distinct times recorded separately.')
@@ -541,8 +550,17 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         atomic_json(out/'configuration.json',config)
     started=time.perf_counter()
     stage_io_start=io_snapshot()
-    def evaluate(identities):
+    curves=(Recorder(out,data,component='DP',role=role,action_scale=model.action_scale)
+        if curve_diagnostics is not None else None)
+    if curves is not None:curves.epoch=begin_epoch
+    def evaluate(identities,diagnostic_split=None):
+        if not identities and data.get('paired_pool') is not None:
+            return dict(episodes=[],selection=None,arm_rmse_rad=None,hand_rmse_rad=None,
+                supervised_ticks=0,reason='No own new correction was actually captured; shared full and original data still train')
         io_options={} if visual_io is None else dict(frozen_visual_io=visual_io)
+        if curves is not None:
+            io_options.update(diagnostics=curves,diagnostic_epoch=curves.epoch,diagnostic_update=updates,
+                diagnostic_split=diagnostic_split or ('validation' if identities==data['splits']['validation'] else 'train_evaluation'))
         if hotset is not None:io_options['episode_loader']=hotset
         if offline_planning is None:return metrics(averaged,records,identities,**io_options)
         return metrics(averaged,records,identities,offline_planning=offline_planning,check=lease.check,**io_options)
@@ -550,13 +568,14 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         with lease.block():
             initial=dict(validation=evaluate(data['splits']['validation']),
                 train=evaluate(data['splits']['train'][:2]),
-                correction=evaluate(data['aggregation']['new_training_ids']))
+                correction=evaluate(data['aggregation']['new_training_ids'],'correction_evaluation'))
             if auxiliary:
                 initial['visual_auxiliary']=dict(
                     validation=auxiliary_metrics(averaged,records,data['splits']['validation'],pose_contexts,auxiliary),
                     train=auxiliary_metrics(averaged,records,data['splits']['train'][:2],pose_contexts,auxiliary))
         atomic_json(out/'initial_metrics.json',initial)
     for epoch in range(begin_epoch,epochs):
+        if curves is not None:curves.epoch=epoch+1
         if matched_rates is not None:
             for group in opt.param_groups:group['lr']=matched_rates[role][epoch]
         order=episode_deck(data['splits']['train'],multiplicities,generator);losses=[]
@@ -605,7 +624,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                                     geometry_sampling_profile=visit_profile['geometry'])
                             update_started=time.perf_counter()
                             result=execute_update(model,opt,ema,objective,identities,
-                                [records[identity] for identity in identities],episodes,noise,check=lease.check,**visit_options)
+                                [records[identity] for identity in identities],episodes,noise,check=lease.check,
+                                **(dict(diagnostics=curves,diagnostic_epoch=epoch+1,diagnostic_update=updates+1) if curves is not None else {}),
+                                **visit_options)
                             update_host_s=time.perf_counter()-update_started
                             if visual_io is not None:
                                 for visit_row,episode in zip(result['visits'],episodes):
@@ -717,6 +738,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
             val=evaluate(data['splits']['validation']);tr=evaluate(data['splits']['train'][:2])
             pose_metrics_report=(dict(validation=auxiliary_metrics(averaged,records,data['splits']['validation'],pose_contexts,auxiliary),
                 train=auxiliary_metrics(averaged,records,data['splits']['train'][:2],pose_contexts,auxiliary)) if auxiliary else None)
+        if curves is not None:
+            curves.export(updates)
+            export_dp_visit_losses(out,data)
         report=dict(epoch=epoch+1,updates=updates,loss=sum(losses)/len(losses),train=tr,validation=val,
             seconds=time.perf_counter()-started,anchors_seen=anchors_seen,target_ticks=target_ticks,utc=time.time())
         if extension:
@@ -741,7 +765,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
             report.update(visual_auxiliary=pose_metrics_report,auxiliary_exposure=copy.deepcopy(pose_exposure))
         if sampling:report['sampling_exposure']=dict(sampling_exposure)
         if continuation and epoch+1==epochs:
-            with lease.block():report['correction']=evaluate(data['aggregation']['new_training_ids'])
+            with lease.block():report['correction']=evaluate(data['aggregation']['new_training_ids'],'correction_evaluation')
         history.append(report)
         selection_eligible=(not extension or extension['policy']['version']!='fixed56_long_budget_v1'
             or epoch+1>=extension['policy']['maximum_epochs']-96)
@@ -789,6 +813,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         check=Ledger(ledger.legal,selected['effective_exposure_state']).summary(selected['sampling_exposure'])
         if not check['eligible']:raise ValueError('Selected DP does not satisfy minimum actual exposure')
         finished['selected_effective_exposure']=check
+    if curves is not None:curves.export(updates,plot=True)
     atomic_json(out/'finished.json',finished)
 
 

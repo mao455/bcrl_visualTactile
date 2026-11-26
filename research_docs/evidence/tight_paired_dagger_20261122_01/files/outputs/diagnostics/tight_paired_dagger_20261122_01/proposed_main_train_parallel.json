@@ -1,0 +1,34 @@
+{
+  "version": "tight_project_job_v1",
+  "operation": "train",
+  "resource_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/main_train",
+  "stages": [
+    {
+      "entry": "paired_frontend",
+      "args": [
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning",
+        "--role",
+        "A"
+      ]
+    },
+    {
+      "entry": "paired_frontend",
+      "args": [
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning",
+        "--role",
+        "B"
+      ]
+    },
+    {
+      "entry": "paired_rear_parallel",
+      "args": [
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning",
+        "--registration",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/parallel_rear_registration.json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,353 @@
+{
+  "policies": {
+    "A_new": {
+      "denominator": 8,
+      "complete": 8,
+      "strict_success": 1,
+      "success_rate": 0.125,
+      "wilson95": [
+        0.02241749145005667,
+        0.4708881822128535
+      ],
+      "held12": 4,
+      "near_held": 4,
+      "first15mm": 3,
+      "first_subgoal": 1,
+      "never_stall": 1,
+      "categories": {
+        "grasp_not_held": 4,
+        "post_subgoal": 1,
+        "entered_unconfirmed": 2,
+        "held_near_never_gate": 1
+      }
+    },
+    "B_new": {
+      "denominator": 8,
+      "complete": 8,
+      "strict_success": 0,
+      "success_rate": 0.0,
+      "wilson95": [
+        0,
+        0.32440756488388023
+      ],
+      "held12": 5,
+      "near_held": 4,
+      "first15mm": 0,
+      "first_subgoal": 0,
+      "never_stall": 4,
+      "categories": {
+        "held_not_near": 1,
+        "grasp_not_held": 3,
+        "held_near_never_gate": 4
+      }
+    },
+    "A_parent": {
+      "denominator": 8,
+      "complete": 8,
+      "strict_success": 1,
+      "success_rate": 0.125,
+      "wilson95": [
+        0.02241749145005667,
+        0.4708881822128535
+      ],
+      "held12": 5,
+      "near_held": 5,
+      "first15mm": 2,
+      "first_subgoal": 1,
+      "never_stall": 3,
+      "categories": {
+        "grasp_not_held": 3,
+        "post_subgoal": 1,
+        "held_near_never_gate": 3,
+        "entered_unconfirmed": 1
+      }
+    },
+    "B_parent": {
+      "denominator": 8,
+      "complete": 8,
+      "strict_success": 1,
+      "success_rate": 0.125,
+      "wilson95": [
+        0.02241749145005667,
+        0.4708881822128535
+      ],
+      "held12": 7,
+      "near_held": 6,
+      "first15mm": 4,
+      "first_subgoal": 3,
+      "never_stall": 1,
+      "categories": {
+        "held_not_near": 1,
+        "held_near_never_gate": 2,
+        "entered_unconfirmed": 1,
+        "grasp_not_held": 1,
+        "post_subgoal": 3
+      }
+    },
+    "A_old_only": {
+      "denominator": 8,
+      "complete": 8,
+      "strict_success": 0,
+      "success_rate": 0.0,
+      "wilson95": [
+        0,
+        0.32440756488388023
+      ],
+      "held12": 4,
+      "near_held": 4,
+      "first15mm": 3,
+      "first_subgoal": 1,
+      "never_stall": 2,
+      "categories": {
+        "grasp_not_held": 4,
+        "post_subgoal": 1,
+        "held_near_never_gate": 1,
+        "entered_unconfirmed": 2
+      }
+    },
+    "A_with_corrections": {
+      "denominator": 8,
+      "complete": 8,
+      "strict_success": 0,
+      "success_rate": 0.0,
+      "wilson95": [
+        0,
+        0.32440756488388023
+      ],
+      "held12": 6,
+      "near_held": 6,
+      "first15mm": 1,
+      "first_subgoal": 1,
+      "never_stall": 5,
+      "categories": {
+        "grasp_not_held": 2,
+        "post_subgoal": 1,
+        "held_near_never_gate": 5
+      }
+    },
+    "B_old_only": {
+      "denominator": 8,
+      "complete": 8,
+      "strict_success": 0,
+      "success_rate": 0.0,
+      "wilson95": [
+        0,
+        0.32440756488388023
+      ],
+      "held12": 5,
+      "near_held": 4,
+      "first15mm": 3,
+      "first_subgoal": 3,
+      "never_stall": 1,
+      "categories": {
+        "held_not_near": 1,
+        "grasp_not_held": 3,
+        "post_subgoal": 3,
+        "held_near_never_gate": 1
+      }
+    },
+    "B_with_corrections": {
+      "denominator": 8,
+      "complete": 8,
+      "strict_success": 1,
+      "success_rate": 0.125,
+      "wilson95": [
+        0.02241749145005667,
+        0.4708881822128535
+      ],
+      "held12": 3,
+      "near_held": 3,
+      "first15mm": 2,
+      "first_subgoal": 1,
+      "never_stall": 1,
+      "categories": {
+        "grasp_not_held": 5,
+        "post_subgoal": 1,
+        "entered_unconfirmed": 1,
+        "held_near_never_gate": 1
+      }
+    }
+  },
+  "comparisons": {
+    "A_before_new_minus_actual_parent": {
+      "n": 8,
+      "a_success": 1,
+      "b_success": 1,
+      "difference_pp": 0.0,
+      "bootstrap95_pp": [
+        -37.5,
+        37.5
+      ],
+      "retained": 0,
+      "added": 1,
+      "lost": 1,
+      "both_failed": 6,
+      "degenerate_all_zero_differences": false,
+      "conservative_simultaneous95_pp": null,
+      "interpretation": "Pair resamples by existing development family; reused for correction, not independent test; a zero-width all-zero interval does not prove equivalence"
+    },
+    "A_correction_minus_before": {
+      "n": 8,
+      "a_success": 0,
+      "b_success": 1,
+      "difference_pp": -12.5,
+      "bootstrap95_pp": [
+        -37.5,
+        0.0
+      ],
+      "retained": 0,
+      "added": 0,
+      "lost": 1,
+      "both_failed": 7,
+      "degenerate_all_zero_differences": false,
+      "conservative_simultaneous95_pp": null,
+      "interpretation": "Pair resamples by existing development family; reused for correction, not independent test; a zero-width all-zero interval does not prove equivalence"
+    },
+    "A_old_only_minus_before": {
+      "n": 8,
+      "a_success": 0,
+      "b_success": 1,
+      "difference_pp": -12.5,
+      "bootstrap95_pp": [
+        -37.5,
+        0.0
+      ],
+      "retained": 0,
+      "added": 0,
+      "lost": 1,
+      "both_failed": 7,
+      "degenerate_all_zero_differences": false,
+      "conservative_simultaneous95_pp": null,
+      "interpretation": "Pair resamples by existing development family; reused for correction, not independent test; a zero-width all-zero interval does not prove equivalence"
+    },
+    "A_correction_minus_old_only": {
+      "n": 8,
+      "a_success": 0,
+      "b_success": 0,
+      "difference_pp": 0.0,
+      "bootstrap95_pp": [
+        0.0,
+        0.0
+      ],
+      "retained": 0,
+      "added": 0,
+      "lost": 0,
+      "both_failed": 8,
+      "degenerate_all_zero_differences": true,
+      "conservative_simultaneous95_pp": [
+        -36.941664755281934,
+        36.941664755281934
+      ],
+      "interpretation": "Pair resamples by existing development family; reused for correction, not independent test; a zero-width all-zero interval does not prove equivalence"
+    },
+    "B_before_new_minus_actual_parent": {
+      "n": 8,
+      "a_success": 0,
+      "b_success": 1,
+      "difference_pp": -12.5,
+      "bootstrap95_pp": [
+        -37.5,
+        0.0
+      ],
+      "retained": 0,
+      "added": 0,
+      "lost": 1,
+      "both_failed": 7,
+      "degenerate_all_zero_differences": false,
+      "conservative_simultaneous95_pp": null,
+      "interpretation": "Pair resamples by existing development family; reused for correction, not independent test; a zero-width all-zero interval does not prove equivalence"
+    },
+    "B_correction_minus_before": {
+      "n": 8,
+      "a_success": 1,
+      "b_success": 0,
+      "difference_pp": 12.5,
+      "bootstrap95_pp": [
+        0.0,
+        37.5
+      ],
+      "retained": 0,
+      "added": 1,
+      "lost": 0,
+      "both_failed": 7,
+      "degenerate_all_zero_differences": false,
+      "conservative_simultaneous95_pp": null,
+      "interpretation": "Pair resamples by existing development family; reused for correction, not independent test; a zero-width all-zero interval does not prove equivalence"
+    },
+    "B_old_only_minus_before": {
+      "n": 8,
+      "a_success": 0,
+      "b_success": 0,
+      "difference_pp": 0.0,
+      "bootstrap95_pp": [
+        0.0,
+        0.0
+      ],
+      "retained": 0,
+      "added": 0,
+      "lost": 0,
+      "both_failed": 8,
+      "degenerate_all_zero_differences": true,
+      "conservative_simultaneous95_pp": [
+        -36.941664755281934,
+        36.941664755281934
+      ],
+      "interpretation": "Pair resamples by existing development family; reused for correction, not independent test; a zero-width all-zero interval does not prove equivalence"
+    },
+    "B_correction_minus_old_only": {
+      "n": 8,
+      "a_success": 1,
+      "b_success": 0,
+      "difference_pp": 12.5,
+      "bootstrap95_pp": [
+        0.0,
+        37.5
+      ],
+      "retained": 0,
+      "added": 1,
+      "lost": 0,
+      "both_failed": 7,
+      "degenerate_all_zero_differences": false,
+      "conservative_simultaneous95_pp": null,
+      "interpretation": "Pair resamples by existing development family; reused for correction, not independent test; a zero-width all-zero interval does not prove equivalence"
+    },
+    "after_A_minus_B": {
+      "n": 8,
+      "a_success": 0,
+      "b_success": 1,
+      "difference_pp": -12.5,
+      "bootstrap95_pp": [
+        -37.5,
+        0.0
+      ],
+      "retained": 0,
+      "added": 0,
+      "lost": 1,
+      "both_failed": 7,
+      "degenerate_all_zero_differences": false,
+      "conservative_simultaneous95_pp": null,
+      "interpretation": "Pair resamples by existing development family; reused for correction, not independent test; a zero-width all-zero interval does not prove equivalence"
+    },
+    "before_A_minus_B": {
+      "n": 8,
+      "a_success": 1,
+      "b_success": 0,
+      "difference_pp": 12.5,
+      "bootstrap95_pp": [
+        0.0,
+        37.5
+      ],
+      "retained": 0,
+      "added": 1,
+      "lost": 0,
+      "both_failed": 7,
+      "degenerate_all_zero_differences": false,
+      "conservative_simultaneous95_pp": null,
+      "interpretation": "Pair resamples by existing development family; reused for correction, not independent test; a zero-width all-zero interval does not prove equivalence"
+    }
+  },
+  "bootstrap_replicates": 200000,
+  "seed": 20261127,
+  "original64_reused": false,
+  "denominator_per_policy": 8
+}

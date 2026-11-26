@@ -1,0 +1,169 @@
+{
+  "schema": "runtime_stall58_readonly20_v1",
+  "utc": 1795653752.820552,
+  "scope": "Lifecycle, resource, exception, process identity only; no scientific outcomes opened",
+  "pretermination_snapshot": {
+    "observation_utc": 1795653678.2017756,
+    "provenance": "Independent read-only tools output in runtime_stall58 agent turn, before root termination",
+    "identity": {
+      "pid": 3623625,
+      "birth": 1795512753.75,
+      "pgid": 3623625,
+      "sid": 3623625,
+      "cwd": "/home/CNS2025331827/docs/bc+rl_RSS",
+      "status": "running",
+      "cpu_times": {
+        "user": 15872.21,
+        "system": 137939.54,
+        "children_user": 0.0,
+        "children_system": 0.16,
+        "iowait": 0.0
+      },
+      "threads": 125
+    },
+    "group": [
+      {
+        "pid": 3623625,
+        "birth": 1795512753.75,
+        "ppid": 3319405,
+        "status": "running",
+        "cmdline": [
+          "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+          "-m",
+          "outputs.diagnostics.tight_paired_dagger_20261122_01.run_test_continuation15",
+          "worker",
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave58"
+        ]
+      },
+      {
+        "pid": 3624080,
+        "birth": 1795512768.14,
+        "ppid": 3623625,
+        "status": "zombie",
+        "cmdline": null
+      }
+    ],
+    "resource_snapshot": {
+      "utc": 1795653661.3007338,
+      "paused": false,
+      "reason": "shared_capacity_available",
+      "capacity_ready": true,
+      "schedule_conflicts": [],
+      "gpu_free_mib": 17762.0,
+      "ram_available_bytes": 36292616192,
+      "external_gpu_processes": []
+    }
+  },
+  "last_progress": {
+    "tick": 325,
+    "active": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "active_count": 4,
+    "remaining_tasks": 0,
+    "closed_results": 0,
+    "verifying": 0,
+    "active_lane_steps": 1304,
+    "utc": 1795512919.2643666
+  },
+  "seconds_stalled_to_pretermination_observation": 140758.9374089241,
+  "exception_traceback": "Traceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/run_test_continuation15.py\", line 393, in <module>\n    if __name__=='__main__':main()\n                            ^^^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/run_test_continuation15.py\", line 387, in main\n    elif args.mode=='worker':require(args.output is not None,'Explicit original wave required');worker(args.output)\n                                                                                                ^^^^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/run_test_continuation15.py\", line 197, in worker\n    try:f.worker(output)\n        ^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/test_fragment13.py\", line 451, in worker\n    native_worker(output)\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_paired_evaluate.py\", line 281, in worker\n    with no_expert_scope(output,4): run(output,allow_heldout=freeze['cohort']=='test')\n                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_evaluate.py\", line 45, in run\n    try:run(output,allow_heldout=allow_heldout)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_fresh_batch_run.py\", line 325, in run\n    finished,profile=run_queue(env,player,lease,output,cases,plan['pairs'],saved,dino,plan,capture_pool=capture_pool)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/site-packages/torch/utils/_contextlib.py\", line 116, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/visuotactile/queued_rollout.py\", line 291, in run_queue\n    with lease.block():\n  File \"/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/contextlib.py\", line 137, in __enter__\n    return next(self.gen)\n           ^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/visuotactile/state_resources.py\", line 219, in block\n    if row['ram_available_bytes']<limits['min_ram_gib']*1024**3:raise RuntimeError('RAM reserve')\n                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: RAM reserve\n",
+  "actual_owner_exit": {
+    "utc": 1795653703.8472836,
+    "stage": 41,
+    "index": 58,
+    "command": [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "outputs.diagnostics.tight_paired_dagger_20261122_01.run_test_continuation15",
+      "worker",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave58"
+    ],
+    "returncode": -9,
+    "child_reaped": true,
+    "process_started": true,
+    "queue_aborted": false,
+    "startup_stopped": false,
+    "software_completed": false,
+    "consumed": true,
+    "rerun": false,
+    "next_only_if_pristine": true,
+    "policy_sha256": "65087cb74307292874a8f1e269c060ad93b728c72db330453c8c5f8db97627b4"
+  },
+  "subsequent_owner_status": {
+    "stage": 42,
+    "command": [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "outputs.diagnostics.tight_paired_dagger_20261122_01.run_test_continuation15",
+      "worker",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave59"
+    ],
+    "pid": 1230031,
+    "utc": 1795653704.115295
+  },
+  "exact_old_worker_present_now": false,
+  "evidence": [
+    {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/project_stage_41.log",
+      "bytes": 32725,
+      "sha256": "d3b2f33510ba4f6fc148deec5a13a2f2ba0028094157d5c5993db0a69c3a8034",
+      "mtime": 1795513024.7135828
+    },
+    {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave58/batch_progress.json",
+      "bytes": 219,
+      "sha256": "f3ce515b64ba7286d4371147e0bd0da30a8cbfd8e058f081a45562a11eda2119",
+      "mtime": 1795512919.264648
+    },
+    {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/stage_exits/wave58.json",
+      "bytes": 702,
+      "sha256": "574dac5e5549d9658ea5bd4b94b1fa080c2b8dcccaea36f1fead3cf2a13208d8",
+      "mtime": 1795653703.8499835
+    },
+    {
+      "path": "outputs/diagnostics/tight_paired_dagger_20261122_01/run_test_continuation15.py",
+      "bytes": 26391,
+      "sha256": "2b99c3383172ed654c78dafe29074ffe52a9c9bf1768e0f1d69d4194a52aa192",
+      "mtime": 1795488957.0207384
+    },
+    {
+      "path": "visuotactile/state_resources.py",
+      "bytes": 21219,
+      "sha256": "a88840c5137ec4efc19f2615b33297def9d5a1bcbbc09360934840951cd88f74",
+      "mtime": 1795023281.4614387
+    },
+    {
+      "path": "tools/tight_fresh_batch_run.py",
+      "bytes": 27487,
+      "sha256": "d0cdeb33c1a10796aaa5ac19b7455734803818d7d595c5324b6edf25ef761369",
+      "mtime": 1795263222.006297
+    }
+  ],
+  "stack_access_limitations": [
+    "py-spy not found in PATH or searched known binary/audit paths",
+    "/proc/3623625/syscall denied; /proc/3623625/stack denied",
+    "No signal, ptrace attach, process/source mutation performed by this reviewer"
+  ],
+  "findings": [
+    "Scientific control loop raised RAM reserve before any closed result in this wave.",
+    "39 hours without progress and then-available capacity support a post-exception exit or finalization stall; exact native stall frame was not obtained.",
+    "Before root termination, exact group contained only own worker and its zombie descendant.",
+    "Frozen owner reaped wave58 as nonzero softwareunfinished, startup_stoppedfalse, consumedtrue, rerunfalse, and naturally dispatched original59."
+  ],
+  "recovery_scope_verified": {
+    "wave58": "Preserve partial files and softwareunfinished status in existing denominator",
+    "no_startup_stop": true,
+    "child_reaped": true,
+    "queue_not_aborted": true,
+    "no_retry": true,
+    "next_original_wave59": true
+  }
+}

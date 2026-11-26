@@ -1,0 +1,94 @@
+{
+  "utc": 1795447363.092787,
+  "status": "partial_A_completed_B_untouched_no_real_retry",
+  "source_sha256": "4897cc98750f3d2ffba0b2a51e7fa348345a539cf1120f2d9b51310c44b73da9",
+  "failure_receipt_sha256": "df2de52d1957e0662236bd473449975ef4413578888d44c59176756488281933",
+  "actual_rows": [
+    {
+      "role": "A",
+      "best": {
+        "dev": 66306,
+        "ino": 76717985,
+        "size": 1166342029,
+        "nlink": 2,
+        "mtime_ns": 1795427987459695647,
+        "ctime_ns": 1795446844713477133,
+        "allocated_bytes": 1166389248
+      },
+      "last": {
+        "dev": 66306,
+        "ino": 76717985,
+        "size": 1166342029,
+        "nlink": 2,
+        "mtime_ns": 1795427987459695647,
+        "ctime_ns": 1795446844713477133,
+        "allocated_bytes": 1166389248
+      },
+      "same_inode": true,
+      "matches_failure_A_after": true,
+      "matches_prepared_B_before": null,
+      "temporary_links": []
+    },
+    {
+      "role": "B",
+      "best": {
+        "dev": 66306,
+        "ino": 77384431,
+        "size": 1166094885,
+        "nlink": 1,
+        "mtime_ns": 1795443257247477709,
+        "ctime_ns": 1795443257247477709,
+        "allocated_bytes": 1166135296
+      },
+      "last": {
+        "dev": 66306,
+        "ino": 77384404,
+        "size": 1166094885,
+        "nlink": 1,
+        "mtime_ns": 1795443254222329982,
+        "ctime_ns": 1795443254312334377,
+        "allocated_bytes": 1166114816
+      },
+      "same_inode": false,
+      "matches_failure_A_after": null,
+      "matches_prepared_B_before": true,
+      "temporary_links": []
+    }
+  ],
+  "real_payload_reads_this_diagnosis": 0,
+  "real_leases_this_diagnosis": 0,
+  "real_alias_replacements_this_diagnosis": 0,
+  "root_attempt_summary": {
+    "A": "only last pathname replaced; original best inode and both path bytes retained; recorded after stat still exact",
+    "B": "all prepared stat fields still exact; no temporary link remains",
+    "status": "failed_with_prior_completed_rows_preserved",
+    "error": "ValueError('Reader requested an exclusive leased checkpoint; no further replacement')",
+    "A_old_last_allocated_bytes": 1166372864,
+    "reclaimed_free_space_attribution": "No fresh free-space delta attributed to this action because concurrent writes exist."
+  },
+  "tiny_findings": {
+    "original_combined_path_reproduced_A_only": "Probe01, five Probe04 subprocesses, and syscall Trace01",
+    "trace": "After own rename(temp,last), SI_KERNEL SIGIO is observed and old unlinked target fd F_GETLEASE becomes F_RDLCK; retained best stays F_WRLCK. os.link stage checks pass.",
+    "alternative_minimal_trials": "Other tiny shapes, including 24 two-pair runs, passed; therefore do not claim every rename necessarily changes lease state.",
+    "conclusion": "The error conflates any SIGIO and any lease-state change with an external reader. The controlled reproduction exposes a lease lifecycle assumption after alias replacement; external reader presence is unproven.",
+    "B_phase": "Actual B stat equals prepared fields. Original source checks all leases before linking B, so prior A target lease break can stop B before any B namespace change."
+  },
+  "small_fix_proposal_only": {
+    "proposal": "Treat leases as owned resources per inode. Keep retained best leases active; immediately before atomic replacement explicitly retire, close and remove only the outgoing last inode descriptor from the active lease and cleanup sets. Never globally ignore SIGIO.",
+    "tiny_validation": "Five isaaclab combined A/B fixtures passed with no SIGIO and exact bytes, test02. The first proposal double-unlocked a retired fd and failed cleanup, preserved as test01.",
+    "limitation": "A reader racing after outgoing lease retirement may retain the immutable old identical inode; immediate space recovery is not guaranteed. Requires new source identity and independent root review before any real B-only continuation."
+  },
+  "artifact_sha256": {
+    "CLOSED_MAIN_DP_DEDUP08_SELF_LEASE_PROBE01.json": "1ba352b1dd6cc284a8d7380803bd5044d991a882f03a1108d0cac4f955e21654",
+    "CLOSED_MAIN_DP_DEDUP08_SELF_LEASE_PROBE02.json": "ddd2a965cd0119bdcb608cfaf1ba0955883673f0b74c6aaa84b4cfef1e930f37",
+    "CLOSED_MAIN_DP_DEDUP08_SELF_LEASE_PROBE03.json": "bcff7def94bede5094c31af5aff4f5656d1c8c7d2a8a1aeba7fdf27d9594f7bb",
+    "CLOSED_MAIN_DP_DEDUP08_SELF_LEASE_PROBE04.json": "730620e2d2b0c23552bd14b5906351a71eda4d7d56c3cded55e5b1f7411983a1",
+    "CLOSED_MAIN_DP_DEDUP08_SELF_LEASE_PROBE05.json": "49e40819eca5dc5e209e4315c2cbf918ac3928c1735188a8b1ca15e58bdcae5b",
+    "CLOSED_MAIN_DP_DEDUP08_SELF_LEASE_PROBE06.json": "5dfa3196a544a8045d79eed0fb45f43069f40d92dd43aa861c6966c6f40e98e7",
+    "CLOSED_MAIN_DP_DEDUP08_SELF_LEASE_TRACE01.json": "c7552206c0f3e2cd93191a312561c60a319a82b0c951c5573e6fb4541cb28521",
+    "CLOSED_MAIN_DP_DEDUP08_SELF_LEASE_TRACE01.txt": "81d7d980a4d95e985830d8cf07a528e68a752f177e4596571a7521b6c3c55660",
+    "CLOSED_MAIN_DP_DEDUP08_SELF_LEASE_FIX_PROPOSAL_TEST01.json": "1a5d4168ea97bdfe2a7aa1fdf47a4f17cb34e0d74484e0001336458a2691ec0e",
+    "CLOSED_MAIN_DP_DEDUP08_SELF_LEASE_FIX_PROPOSAL_TEST02.json": "55da2b03d6a77a1ba42b4446da4a0cfc8de462849c79022987882d98037e012a"
+  },
+  "next_scope": "No real B retry. Root may separately decide whether further dedup is needed. Final evidence must retain A completion and B abort."
+}

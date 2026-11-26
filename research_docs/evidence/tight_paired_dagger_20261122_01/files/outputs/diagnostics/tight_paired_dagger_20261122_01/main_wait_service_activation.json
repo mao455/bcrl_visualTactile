@@ -1,0 +1,25 @@
+{
+  "utc": 1795401380.7586772,
+  "command": [
+    "systemd-run",
+    "--user",
+    "--unit=tight-paired-main-recovery05",
+    "--property=WorkingDirectory=/home/CNS2025331827/docs/bc+rl_RSS",
+    "--property=Nice=10",
+    "--property=IOSchedulingClass=idle",
+    "--property=CPUAffinity=8-15",
+    "--property=RuntimeMaxSec=283190",
+    "--property=TimeoutStopSec=180",
+    "--property=KillMode=control-group",
+    "--setenv=PYTHONPATH=/home/CNS2025331827/docs/bc+rl_RSS:/home/CNS2025331827/docs/bc+rl_RSS/rl_games",
+    "--setenv=RESEARCH_CPUS=8-23",
+    "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/wait_then_main_recovery05.py"
+  ],
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "Running as unit: tight-paired-main-recovery05.service; invocation ID: f390d3fe83144e16bf2c2e3aed40d7c6\n",
+  "review_sha256": "4aa4f9e7d4fddaf9098d5076fa3e3c1bf252933c8816fe26a0ff3b65cfbe7f9d",
+  "tests_root": 134,
+  "scope": "CPU wait only until exact collection closure; then one immutable complete main round; no retries"
+}

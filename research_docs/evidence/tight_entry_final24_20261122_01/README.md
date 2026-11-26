@@ -12,9 +12,11 @@
 只用 Python 标准库即可离线复核轻量交付物：
 
 ```bash
-python research_docs/evidence/tight_entry_final24_20261122_01/verify_published.py
+python scripts/tight_entry_final24_20261122/verify_published.py
 ```
 
 此命令校验 `published_sha256.json` 中全部文件哈希、96 次结果与配对计数、50 条历史／334 个合法槽及零训练／DAgger。不会运行策略或仿真。实际执行命令和环境保存在 job、owner 日志与源码快照中；已完成的主评测无需重启。
 
 本轮固定推理噪声 seed7091，起止生成器状态核验完整；可观测初态配对不等于隐藏物理状态或未来环境随机流相同。资源信息为采样证据。所有主评测均软件完成，原生超时和任务失败保留为失败。
+
+已确认重复的源码快照已退役；原文件身份、唯一当前路径与历史 Git blob 见 [退役源码映射](retired_source_paths.json)。旧科学数据及原 SHA 清单保持，核验入口按映射读取原 Git blob。

@@ -1,0 +1,97 @@
+{
+  "identity": "full_s28910015_attempt00",
+  "family": "expanded_paired20261122_s28910015",
+  "seed": 28910015,
+  "split": "train",
+  "cohort": "fresh",
+  "event_seed": 29010015,
+  "collision_gate": "live_collision_mesh_bounds_v1",
+  "narrow_reset": {
+    "fixed_start_pose": [
+      -0.030916124300662935,
+      -0.010184201235801724,
+      0.6303707348542126,
+      0.12410728640971866,
+      0.8907462690210765,
+      -0.3782746828656451,
+      0.2192643154142745
+    ],
+    "table_reset_z": 0.38042962453347057,
+    "table_reset_z_range": 0.0,
+    "reset_dof_pos_random_interval_arm": 0.0075,
+    "reset_dof_pos_random_interval_fingers": 0.0075,
+    "reset_dof_vel_random_interval": 0.03,
+    "hole_x_range": [
+      0.04569395383595109,
+      0.04569395383595109
+    ],
+    "hole_y_range": [
+      -0.03595265275577618,
+      -0.03595265275577618
+    ]
+  },
+  "layout": {
+    "version": "peg_spacing_reset_v1",
+    "distance_m": 0.1,
+    "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+  },
+  "software_complete": true,
+  "legal": true,
+  "success": true,
+  "reasons": {
+    "fall": false,
+    "max_successes": true,
+    "hand_far": false,
+    "dropped": false,
+    "timeout": false
+  },
+  "steps": 308,
+  "native_lift": false,
+  "native_subgoals": 2,
+  "native_alignment": true,
+  "actor_normalization_max_error": 0.0,
+  "environment_sha256": "34417701d1ca4298508ea5b9541ecaf8002471f8be1c1f823f3ce48c826d07a0",
+  "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+  "action_exhausted": false,
+  "simulation_step_hz": 60,
+  "physics_hz": 120,
+  "plan_hz": 60,
+  "ever_complete_success": true,
+  "first_success_tick": 308,
+  "termination_tick": 308,
+  "duration_sim_s": 5.133333331279999,
+  "tick_index": "1-based completed control transitions",
+  "post_success_actions": 0,
+  "action_control_mode": "native_command_clipped_pre_delay",
+  "actuator_target_max_error": 0.0,
+  "tracking_rmse_rad": 0.059046220034360886,
+  "expert_speed": {
+    "kind": "closed_loop",
+    "arm": 0.5,
+    "hand": 1.0,
+    "phase": "all",
+    "hand_target_cap_rad_s": 2.0
+  },
+  "rl_observation_source": "actual current simulator observations every 60Hz tick",
+  "replay_sequence_ticks": null,
+  "replay_final_hold_ticks": 0,
+  "trajectory_retiming_is_not_state_retiming": true,
+  "dataset_capture": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/experts/full_s28910015_attempt00/demonstration/data.h5",
+    "verified_source_fields": 155,
+    "accepted_success": true,
+    "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990"
+  },
+  "expert_shadow_computed": true,
+  "expert_shadow_placeholder_zero": false,
+  "wall_profile": {
+    "expert_inference_s": 1.0325051108375192,
+    "environment_step_render_s": 20.06393326073885,
+    "numeric_write_s": 0.747990483418107,
+    "compact_append_s": 7.247946036979556,
+    "finalize_verify_s": 5.8639562907628715,
+    "setup_s": 0.16364446887746453,
+    "through_result_s": 35.75779598997906,
+    "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+  }
+}

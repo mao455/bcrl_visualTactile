@@ -97,7 +97,8 @@ def reject_incompatible(root,role,*,pairing=None,io_config=None,auxiliary=None):
 
 
 def execute_update(model,optimizer,ema,objective,identities,records,episodes,noise,*,check=lambda:None,
-        selected_anchors=None,anchor_receipts=None,geometry_generators=None,geometry_sampling_profile=None,diagnostic_gradients=False):
+        selected_anchors=None,anchor_receipts=None,geometry_generators=None,geometry_sampling_profile=None,diagnostic_gradients=False,
+        diagnostics=None,diagnostic_epoch=0,diagnostic_update=0):
     """Exactly one clipped AdamW/EMA transaction for one/two independent visits."""
     import torch
     from .trajectory_batch import supervised_trajectories,trajectory_objective
@@ -119,7 +120,7 @@ def execute_update(model,optimizer,ema,objective,identities,records,episodes,noi
         **(dict(geometry_generator=geometry_generators[index],sampling_profile=geometry_sampling_profile)
         if geometry_sampling_profile is not None and objective.hand_geometry is not None else {}))
         for index,(identity,value) in enumerate(zip(identities,values))]
-    loss,reports,_=trajectory_objective(model,objective,values,noise,contexts)
+    loss,reports,prediction=trajectory_objective(model,objective,values,noise,contexts)
     if not torch.isfinite(loss):raise FloatingPointError('Nonfinite B2 loss')
     influence=None
     if diagnostic_gradients and objective.hand_geometry is not None:
@@ -138,6 +139,8 @@ def execute_update(model,optimizer,ema,objective,identities,records,episodes,noi
     norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
     if not torch.isfinite(norm):raise FloatingPointError('Nonfinite B2 gradient')
     check();optimizer.step();ema.step(model)
+    if diagnostics is not None:
+        diagnostics.dp_training(diagnostic_epoch,diagnostic_update,identities,values,prediction,model)
     visits=[]
     for identity,record,report in zip(identities,records,reports):
         parts={key:float(value.detach()) for key,value in report['parts'].items()}

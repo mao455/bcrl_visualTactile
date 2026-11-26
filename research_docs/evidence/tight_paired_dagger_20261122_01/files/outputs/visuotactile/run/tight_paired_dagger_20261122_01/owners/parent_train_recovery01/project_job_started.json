@@ -1,0 +1,196 @@
+{
+  "job": {
+    "version": "tight_project_job_v1",
+    "operation": "train",
+    "resource_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/parent_train_recovery01",
+    "stages": [
+      {
+        "entry": "paired_frontend",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents",
+          "--role",
+          "A"
+        ]
+      },
+      {
+        "entry": "paired_frontend",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents",
+          "--role",
+          "B"
+        ]
+      },
+      {
+        "entry": "paired_rear_prepare",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents",
+          "--role",
+          "A"
+        ]
+      },
+      {
+        "entry": "backend_cache",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend"
+        ]
+      },
+      {
+        "entry": "paired_rear_train",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend/A"
+        ]
+      },
+      {
+        "entry": "backend_offline",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend/A",
+          "--job",
+          "image",
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend/A/offline"
+        ]
+      },
+      {
+        "entry": "paired_rear_prepare",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents",
+          "--role",
+          "B"
+        ]
+      },
+      {
+        "entry": "backend_cache",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend"
+        ]
+      },
+      {
+        "entry": "paired_rear_train",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend/B"
+        ]
+      },
+      {
+        "entry": "backend_offline",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend/B",
+          "--job",
+          "image",
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend/B/offline"
+        ]
+      }
+    ]
+  },
+  "commands": [
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_paired_learning",
+      "frontend",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents",
+      "--role",
+      "A"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_paired_learning",
+      "frontend",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents",
+      "--role",
+      "B"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_paired_learning",
+      "rear-prepare",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents",
+      "--role",
+      "A"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_finish",
+      "residual_cache",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_paired_learning",
+      "rear-train",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend/A"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "visuotactile.anchor_continue",
+      "residual-offline",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend/A",
+      "--job",
+      "image",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend/A/offline"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_paired_learning",
+      "rear-prepare",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents",
+      "--role",
+      "B"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_finish",
+      "residual_cache",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_paired_learning",
+      "rear-train",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend/B"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "visuotactile.anchor_continue",
+      "residual-offline",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend/B",
+      "--job",
+      "image",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend/B/offline"
+    ]
+  ],
+  "pid": 1882835,
+  "utc": 1795359022.629357,
+  "source_commit": "60e7b1fdd806bc31fb5e5cb2f49189018ba0d4f3"
+}

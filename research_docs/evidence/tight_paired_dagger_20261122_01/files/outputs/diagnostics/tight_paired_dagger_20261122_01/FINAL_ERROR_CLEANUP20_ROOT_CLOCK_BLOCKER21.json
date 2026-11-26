@@ -1,0 +1,80 @@
+{
+  "version": "final_error_cleanup20_root_clock_blocker21_v1",
+  "utc": 1795654474.5624042,
+  "status": "confirmed_runtime_clock_gate_blocker_do_not_activate",
+  "reported_by": "Root source review; independently verified by author readonly against current original wave59",
+  "source_sha256": "a1d7d87325160028e9e3a1176ed9bea96ce7e627e7dc811f59554f4b1dc3a658",
+  "source_line": 174,
+  "gate_expression": "launch['utc']-.1 <= birth <= state['utc']+.1",
+  "actual_identity": {
+    "pid": 1230031,
+    "raw_psutil_birth": 1795653703.22,
+    "cwd": "/home/CNS2025331827/docs/bc+rl_RSS",
+    "cmdline": [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "outputs.diagnostics.tight_paired_dagger_20261122_01.run_test_continuation15",
+      "worker",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave59"
+    ],
+    "ppid": 3319405,
+    "pgid": 1230031,
+    "sid": 1230031
+  },
+  "original_wave": 59,
+  "owner_stage": 42,
+  "immutable_launch_utc": 1795653704.1109762,
+  "owner_status_utc": 1795653704.115295,
+  "dispatch_utc": 1795653704.3643806,
+  "birth_minus_launch_seconds": -0.8909761905670166,
+  "gate_passes": false,
+  "raw_proc_birth_reconstruction": {
+    "integer_btime": 1792940224,
+    "start_ticks": 271347922,
+    "ticks_per_second": 100,
+    "rebuilt_birth": 1795653703.22
+  },
+  "readonly_realtime_boottime_samples": [
+    {
+      "realtime_before": 1795654474.5624046,
+      "clock_boottime": 2714249.668949881,
+      "realtime_after": 1795654474.5624058,
+      "estimated_boot_epoch": 1792940224.8934553
+    },
+    {
+      "realtime_before": 1795654474.5624073,
+      "clock_boottime": 2714249.668951559,
+      "realtime_after": 1795654474.5624075,
+      "estimated_boot_epoch": 1792940224.893456
+    },
+    {
+      "realtime_before": 1795654474.5624077,
+      "clock_boottime": 2714249.668952061,
+      "realtime_after": 1795654474.562408,
+      "estimated_boot_epoch": 1792940224.893456
+    }
+  ],
+  "findings": [
+    "Current exact original worker raw birth is about0.891s earlier than immutable wall-clock launch; source requires no more than0.1s.",
+    "observe() enforces this gate after initialization and real progress are present, before checking the terminal traceback. Thus the unused aid can abort on the real wave even without a qualifying exception.",
+    "The21 synthetic CPU fixtures and inactive source review did not establish actual clock compatibility. Prior source-review receipts remain preserved; this concrete runtime blocker supersedes any actual-readiness interpretation."
+  ],
+  "decision": "Keep optional aid inactive and unregistered. If another complete RAM-reserve exception cleanup hang appears, root can register a concrete exact-current-owned-group cleanup like wave58, with fresh identity/group verification. No change or activation of this source is performed.",
+  "actions": {
+    "helper_source_edited": false,
+    "helper_activated": false,
+    "registration_created": false,
+    "fixtures_repeated": false,
+    "process_signals": 0,
+    "scientific_results_read": false
+  },
+  "bindings": {
+    "outputs/diagnostics/tight_paired_dagger_20261122_01/final_error_cleanup20.py": "a1d7d87325160028e9e3a1176ed9bea96ce7e627e7dc811f59554f4b1dc3a658",
+    "outputs/diagnostics/tight_paired_dagger_20261122_01/test_final_error_cleanup20.py": "aeb51f5360a583aea0f2834277b72ecc86dbe5a72be3b9cd513806b76e4993ff",
+    "outputs/diagnostics/tight_paired_dagger_20261122_01/FINAL_ERROR_CLEANUP20_SELF_REVIEW.json": "48705ee301197cf2217f160c4edfe167f0916f5ab893815afabf096c03f355ca",
+    "outputs/diagnostics/tight_paired_dagger_20261122_01/FINAL_ERROR_CLEANUP20_INDEPENDENT_REVIEW.json": "91fc500cff8f8a2e36bed3d8aacf9547a24d7353f43c08d92561025013d6cecf",
+    "outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/launches/wave59.json": "f6fbd43adadfba21546f3f6b7f891127736d998aba8efecce38fbb2ef3dd6849",
+    "outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/dispatches/wave59.json": "446584e300e10b5fcb8aed0201699692fb35e67b287b90165a3654c6fd0f172c"
+  }
+}

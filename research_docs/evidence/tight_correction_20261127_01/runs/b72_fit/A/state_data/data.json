@@ -1,0 +1,695 @@
+{
+  "visual_pair": true,
+  "visual_stride": 1,
+  "supervision": "q_reached",
+  "contract": {
+    "version": 3,
+    "action": "absolute_joint_position_target_rad",
+    "horizon": 24,
+    "commit": 12,
+    "native_history": 13,
+    "visual_history": 3,
+    "native_hz": 60,
+    "physics_hz": 120,
+    "observation": "actor141_robot178_geometry85_v2",
+    "prediction_type": "sample",
+    "loss": "B",
+    "train_noise_steps": 100,
+    "inference_steps": 16,
+    "history_training": "current_weight_full_prefix_no_grad_then_96_tick_TBPTT",
+    "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+    "persistent_history": "own_GRU256_every_native_tick_true_episode_reset_only",
+    "actor_preprocess": "frozen_expert_RMS140_clip5_group_embedding32",
+    "geometry_hz": 60,
+    "action_contract": "position_rad_v1"
+  },
+  "normalization_identity": "q_reached_fresh_train_only_affine_v1",
+  "splits": {
+    "train": [
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817002",
+      "layout10_train_28817003",
+      "layout10_train_28817004",
+      "layout10_train_28817005",
+      "layout10_train_28817006",
+      "layout10_train_28817007",
+      "layout10_train_28817008",
+      "layout10_train_28817009",
+      "layout10_train_28817010",
+      "layout10_train_28817011",
+      "layout10_train_28817012",
+      "layout10_train_28817013",
+      "layout10_train_28817014",
+      "layout10_train_28817015",
+      "layout10_train_28817016",
+      "layout10_train_28817017",
+      "layout10_train_28817018",
+      "layout10_train_28817019",
+      "layout10_train_28817020",
+      "layout10_train_28817021",
+      "layout10_train_28817022",
+      "layout10_train_28817023",
+      "layout10_train_28817024",
+      "layout10_train_28817025",
+      "layout10_train_28817026",
+      "layout10_train_28817027",
+      "layout10_train_28817028",
+      "layout10_train_28817029",
+      "B72_28817004_expert",
+      "B72_28817008_expert"
+    ],
+    "validation": [
+      "layout10_validation_28818000",
+      "layout10_validation_28818001",
+      "layout10_validation_28818002",
+      "layout10_validation_28818003",
+      "layout10_validation_28818004",
+      "layout10_validation_28818005"
+    ],
+    "test": []
+  },
+  "entries": {
+    "layout10_train_28817000": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817000/demonstration/data.h5",
+      "episode": "layout10_train_28817000",
+      "source_sha256": "b0e7993d3c44494fe3ab4ba94f0736b4bb11fd49d337a922d7f6bf7ed8b9b875",
+      "family": "layout10_train_28817000",
+      "length": 296,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817001": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817001/demonstration/data.h5",
+      "episode": "layout10_train_28817001",
+      "source_sha256": "64216090383aa1730ae2c17f5f5f3c91a5197932e9aaf0daf8bdfc56fc4ed50a",
+      "family": "layout10_train_28817001",
+      "length": 353,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817002": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817002/demonstration/data.h5",
+      "episode": "layout10_train_28817002",
+      "source_sha256": "d3bb0271cffb1dd80b83dfb6e20e4558644feb837cf44cc1ecd7a6c2b4cd1531",
+      "family": "layout10_train_28817002",
+      "length": 371,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817003": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817003/demonstration/data.h5",
+      "episode": "layout10_train_28817003",
+      "source_sha256": "da9d289f22c352083e744714d1bd33b62924f602a169572ce4755cc6b1730909",
+      "family": "layout10_train_28817003",
+      "length": 335,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817004": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817004/demonstration/data.h5",
+      "episode": "layout10_train_28817004",
+      "source_sha256": "5c49a69a0ea6f2034ea0371e54ec228dcb27806cc3054f3e4cb02fde25674502",
+      "family": "layout10_train_28817004",
+      "length": 331,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817005": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817005/demonstration/data.h5",
+      "episode": "layout10_train_28817005",
+      "source_sha256": "e338d68f0a6035fadabb4f091dfee2dad590d2b6039a7af93c7c9322ecc54875",
+      "family": "layout10_train_28817005",
+      "length": 259,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817006": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817006/demonstration/data.h5",
+      "episode": "layout10_train_28817006",
+      "source_sha256": "7b5ccf517fedcc25a30949483d25d491f1ce5d633749b154f2f0b8980f3bc7ef",
+      "family": "layout10_train_28817006",
+      "length": 262,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817007": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817007/demonstration/data.h5",
+      "episode": "layout10_train_28817007",
+      "source_sha256": "dc78073ac8170e1d21494446199e7355556e26be0033118334758cf3d51f852d",
+      "family": "layout10_train_28817007",
+      "length": 570,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817008": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817008/demonstration/data.h5",
+      "episode": "layout10_train_28817008",
+      "source_sha256": "40b8052fd99b8494b281ddd8d506d4f4a6605395440c5d848cc760ac3b05109a",
+      "family": "layout10_train_28817008",
+      "length": 314,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817009": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817009/demonstration/data.h5",
+      "episode": "layout10_train_28817009",
+      "source_sha256": "e26b8ef9f15454cd09573ac0dcff53188593dea4dda8db310a0d85add31dc821",
+      "family": "layout10_train_28817009",
+      "length": 308,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817010": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817010/demonstration/data.h5",
+      "episode": "layout10_train_28817010",
+      "source_sha256": "a177a6ad0fc476933b92ab9748df6cd4fd983e204eae0d385f8c87bd42c75db9",
+      "family": "layout10_train_28817010",
+      "length": 436,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817011": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817011/demonstration/data.h5",
+      "episode": "layout10_train_28817011",
+      "source_sha256": "fe3479530899ed8ade6fd7aafac4c72428540eead6e30646cc756931d536de44",
+      "family": "layout10_train_28817011",
+      "length": 322,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817012": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817012/demonstration/data.h5",
+      "episode": "layout10_train_28817012",
+      "source_sha256": "f436eea00f46df343d1cdc8b6384731bb5fe15160ac441deb9e37196f1d48683",
+      "family": "layout10_train_28817012",
+      "length": 288,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817013": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817013/demonstration/data.h5",
+      "episode": "layout10_train_28817013",
+      "source_sha256": "a1ea70aac551bd9da6e9bdaf247d194b6ea6a9afd520b01191fba59379c9682b",
+      "family": "layout10_train_28817013",
+      "length": 303,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817014": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817014/demonstration/data.h5",
+      "episode": "layout10_train_28817014",
+      "source_sha256": "bc49d4059dd3baabd0ee9f7b3f8b4e4aac68df271867b0c1c8e673a7ca425fa2",
+      "family": "layout10_train_28817014",
+      "length": 321,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817015": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817015/demonstration/data.h5",
+      "episode": "layout10_train_28817015",
+      "source_sha256": "dd3e5ce389f74d30ae519767f96bd538bf08d582d478ebc9fe293e788b20facf",
+      "family": "layout10_train_28817015",
+      "length": 297,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817016": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817016/demonstration/data.h5",
+      "episode": "layout10_train_28817016",
+      "source_sha256": "15d64f3c5dba1139f2fb777a7201452cac57495dc08ba32a12c78882a58aa292",
+      "family": "layout10_train_28817016",
+      "length": 301,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817017": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817017/demonstration/data.h5",
+      "episode": "layout10_train_28817017",
+      "source_sha256": "75298260f08f75fa7814d603db16bcc1011d87c6c6ec42b11a3a179cc3a98f1e",
+      "family": "layout10_train_28817017",
+      "length": 291,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817018": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817018/demonstration/data.h5",
+      "episode": "layout10_train_28817018",
+      "source_sha256": "1074ba9e6094971435dd638bbd903077f9bc6124a68ffc76761a3e6475d1590d",
+      "family": "layout10_train_28817018",
+      "length": 297,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817019": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817019/demonstration/data.h5",
+      "episode": "layout10_train_28817019",
+      "source_sha256": "8800ead39f8f1a01d0b4d7a438307d19783205a3096fbb222c92501ca15c6efb",
+      "family": "layout10_train_28817019",
+      "length": 314,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817020": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817020/demonstration/data.h5",
+      "episode": "layout10_train_28817020",
+      "source_sha256": "272c2580554f6d3160f0caea13da33426c3d3ab23d81a8140519058526a0b45d",
+      "family": "layout10_train_28817020",
+      "length": 292,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817021": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817021/demonstration/data.h5",
+      "episode": "layout10_train_28817021",
+      "source_sha256": "7e788cb9ae4e1ed920855d9af2ac0d6f378f3c279b8673750fd1c1ca52c7b4a1",
+      "family": "layout10_train_28817021",
+      "length": 274,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817022": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817022/demonstration/data.h5",
+      "episode": "layout10_train_28817022",
+      "source_sha256": "5b06bc6c2c70e6401e128ae6ab2f365eb3df6a3e95f9610b14035a5ee03e07bb",
+      "family": "layout10_train_28817022",
+      "length": 303,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817023": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817023/demonstration/data.h5",
+      "episode": "layout10_train_28817023",
+      "source_sha256": "fda1231bbd61bedfb99a588618aa3ff12b3ee44ca9996cfcf1939e06eab19e5c",
+      "family": "layout10_train_28817023",
+      "length": 303,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817024": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817024/demonstration/data.h5",
+      "episode": "layout10_train_28817024",
+      "source_sha256": "6d2a9a2cfde4d5c0add0a1930522393a4860d47cef212174ffc7fa538c53597f",
+      "family": "layout10_train_28817024",
+      "length": 284,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817025": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817025/demonstration/data.h5",
+      "episode": "layout10_train_28817025",
+      "source_sha256": "983645a57f3babee4250153a410937ce74249e873e1a82d2e015948f7e45ae5c",
+      "family": "layout10_train_28817025",
+      "length": 368,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817026": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817026/demonstration/data.h5",
+      "episode": "layout10_train_28817026",
+      "source_sha256": "fefe9421c9aecde4a683d031da00ac1534a681f7398399dec47d4a898aef2dac",
+      "family": "layout10_train_28817026",
+      "length": 297,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817027": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817027/demonstration/data.h5",
+      "episode": "layout10_train_28817027",
+      "source_sha256": "2aab7b16423ac249237dfa4433bc605ead3ed1f68e77988359bace77a34d6598",
+      "family": "layout10_train_28817027",
+      "length": 354,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817028": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817028/demonstration/data.h5",
+      "episode": "layout10_train_28817028",
+      "source_sha256": "8d9914af241164002675f1619cebe66e0c520726718ae2224ec1b8c93cb3efb4",
+      "family": "layout10_train_28817028",
+      "length": 283,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_train_28817029": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_train_28817029/demonstration/data.h5",
+      "episode": "layout10_train_28817029",
+      "source_sha256": "81d5411c987dede82772efb6b13432718257cb8e4684c0c7b91efb4442ff2be2",
+      "family": "layout10_train_28817029",
+      "length": 282,
+      "split": "train",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_validation_28818000": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01/episodes/layout10_validation_28818000/demonstration/data.h5",
+      "episode": "layout10_validation_28818000",
+      "source_sha256": "c17d140ca978d4baea8bb1330a139b3bb99cbec4b343701e36aa0c81762d1cf9",
+      "family": "layout10_validation_28818000",
+      "length": 257,
+      "split": "validation",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_validation_28818001": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01/episodes/layout10_validation_28818001/demonstration/data.h5",
+      "episode": "layout10_validation_28818001",
+      "source_sha256": "6b0d51c2e96556e91292899be5c88da7260c49e92cc5fb6e513eed3dd5515ff4",
+      "family": "layout10_validation_28818001",
+      "length": 307,
+      "split": "validation",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_validation_28818002": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_validation_28818002/demonstration/data.h5",
+      "episode": "layout10_validation_28818002",
+      "source_sha256": "c0dbc5ccd74f49d6f40224119ee62e590e41478c34b3a7cc38df14f6b74b346b",
+      "family": "layout10_validation_28818002",
+      "length": 339,
+      "split": "validation",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_validation_28818003": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_validation_28818003/demonstration/data.h5",
+      "episode": "layout10_validation_28818003",
+      "source_sha256": "45078a40da936633ed87417d8047c56f2c58add5d6dfe8f197d992ba4b7c1c60",
+      "family": "layout10_validation_28818003",
+      "length": 358,
+      "split": "validation",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_validation_28818004": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_validation_28818004/demonstration/data.h5",
+      "episode": "layout10_validation_28818004",
+      "source_sha256": "d2c622d9df5ee9cdb3fc94e8d6969d2522d6ae3cefeced4401b86eb57c7019ca",
+      "family": "layout10_validation_28818004",
+      "length": 343,
+      "split": "validation",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "layout10_validation_28818005": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_01_recovery02/episodes/layout10_validation_28818005/demonstration/data.h5",
+      "episode": "layout10_validation_28818005",
+      "source_sha256": "f82fd2157cb07533c725ca3eb71815022411818a2e1448a1be8281841b705344",
+      "family": "layout10_validation_28818005",
+      "length": 239,
+      "split": "validation",
+      "layout": {
+        "version": "peg_spacing_reset_v1",
+        "distance_m": 0.1,
+        "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+      }
+    },
+    "B72_28817004_expert": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_machine_review_20261126_01/never_gate_pilot07_B72_training/rollouts/B72_28817004_expert/demonstration/data.h5",
+      "episode": "B72_28817004_expert",
+      "length": 327,
+      "source_sha256": "c2f62e638f251e9ba0b5a9a8f38e2e8d603c9cb0bc24828bbc759135e88f3a3c",
+      "family": "layout10_train_28817004",
+      "seed": 28817004,
+      "split": "train",
+      "trajectory_kind": "expert_takeover_v1",
+      "round_index": 1,
+      "source_policy": "historical_B72",
+      "fit_only": true
+    },
+    "B72_28817008_expert": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_machine_review_20261126_01/never_gate_pilot07_B72_training/rollouts/B72_28817008_expert/demonstration/data.h5",
+      "episode": "B72_28817008_expert",
+      "length": 352,
+      "source_sha256": "c558c42f7c98e1031f6f4c388baff8cc6390a5d2aa6b528b9d368e2fc8bb8bae",
+      "family": "layout10_train_28817008",
+      "seed": 28817008,
+      "split": "train",
+      "trajectory_kind": "expert_takeover_v1",
+      "round_index": 1,
+      "source_policy": "historical_B72",
+      "fit_only": true
+    }
+  },
+  "source_data_sha256": "63fed6477c681b0533b3d164f63f7cc0d1d668b8d20b74b12be200d51c20a666",
+  "normalization_scope": "unchanged original training affine; no aggregate refit",
+  "normalization_train_ids": [
+    "layout10_train_28817000",
+    "layout10_train_28817001",
+    "layout10_train_28817002",
+    "layout10_train_28817003",
+    "layout10_train_28817004",
+    "layout10_train_28817005",
+    "layout10_train_28817006",
+    "layout10_train_28817007",
+    "layout10_train_28817008",
+    "layout10_train_28817009",
+    "layout10_train_28817010",
+    "layout10_train_28817011",
+    "layout10_train_28817012",
+    "layout10_train_28817013",
+    "layout10_train_28817014",
+    "layout10_train_28817015",
+    "layout10_train_28817016",
+    "layout10_train_28817017",
+    "layout10_train_28817018",
+    "layout10_train_28817019",
+    "layout10_train_28817020",
+    "layout10_train_28817021",
+    "layout10_train_28817022",
+    "layout10_train_28817023",
+    "layout10_train_28817024",
+    "layout10_train_28817025",
+    "layout10_train_28817026",
+    "layout10_train_28817027",
+    "layout10_train_28817028",
+    "layout10_train_28817029"
+  ],
+  "policy_inputs": [
+    "robot178",
+    "RGB_DINO_patches",
+    "deterministic_depth_grid"
+  ],
+  "privileged_inputs": false,
+  "layout": {
+    "version": "peg_spacing_reset_v1",
+    "distance_m": 0.1,
+    "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+  },
+  "families": {
+    "layout10_train_28817000": "train",
+    "layout10_train_28817001": "train",
+    "layout10_train_28817002": "train",
+    "layout10_train_28817003": "train",
+    "layout10_train_28817004": "train",
+    "layout10_train_28817005": "train",
+    "layout10_train_28817006": "train",
+    "layout10_train_28817007": "train",
+    "layout10_train_28817008": "train",
+    "layout10_train_28817009": "train",
+    "layout10_train_28817010": "train",
+    "layout10_train_28817011": "train",
+    "layout10_train_28817012": "train",
+    "layout10_train_28817013": "train",
+    "layout10_train_28817014": "train",
+    "layout10_train_28817015": "train",
+    "layout10_train_28817016": "train",
+    "layout10_train_28817017": "train",
+    "layout10_train_28817018": "train",
+    "layout10_train_28817019": "train",
+    "layout10_train_28817020": "train",
+    "layout10_train_28817021": "train",
+    "layout10_train_28817022": "train",
+    "layout10_train_28817023": "train",
+    "layout10_train_28817024": "train",
+    "layout10_train_28817025": "train",
+    "layout10_train_28817026": "train",
+    "layout10_train_28817027": "train",
+    "layout10_train_28817028": "train",
+    "layout10_train_28817029": "train",
+    "layout10_validation_28818000": "validation",
+    "layout10_validation_28818001": "validation",
+    "layout10_validation_28818002": "validation",
+    "layout10_validation_28818003": "validation",
+    "layout10_validation_28818004": "validation",
+    "layout10_validation_28818005": "validation"
+  },
+  "aggregation": {
+    "version": "expert_takeover_aggregate_v1",
+    "student_prefix_supervised": false,
+    "new_training_ids": [
+      "B72_28817004_expert",
+      "B72_28817008_expert"
+    ],
+    "old_training_ids": [
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817002",
+      "layout10_train_28817003",
+      "layout10_train_28817004",
+      "layout10_train_28817005",
+      "layout10_train_28817006",
+      "layout10_train_28817007",
+      "layout10_train_28817008",
+      "layout10_train_28817009",
+      "layout10_train_28817010",
+      "layout10_train_28817011",
+      "layout10_train_28817012",
+      "layout10_train_28817013",
+      "layout10_train_28817014",
+      "layout10_train_28817015",
+      "layout10_train_28817016",
+      "layout10_train_28817017",
+      "layout10_train_28817018",
+      "layout10_train_28817019",
+      "layout10_train_28817020",
+      "layout10_train_28817021",
+      "layout10_train_28817022",
+      "layout10_train_28817023",
+      "layout10_train_28817024",
+      "layout10_train_28817025",
+      "layout10_train_28817026",
+      "layout10_train_28817027",
+      "layout10_train_28817028",
+      "layout10_train_28817029"
+    ]
+  },
+  "source_statistics_sha256": "b62c366d37bb554cf88cc970d40fd84ce79b304d6b306c2735925bba2a7e0c34",
+  "diagnostic_only": true,
+  "training_forbidden": false,
+  "authorization": "User20261127 existingB72 isolated optimization; samples stay labeled existingB72"
+}

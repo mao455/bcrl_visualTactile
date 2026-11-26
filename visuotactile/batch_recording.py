@@ -23,3 +23,9 @@ def snapshot(value, memo=None):
 def lane_arrays(value,lane,count):
     if isinstance(value,dict): return {k:lane_arrays(v,lane,count) for k,v in value.items()}
     return value[lane:lane+1] if value.ndim and value.shape[0]==count else value
+
+
+def recorded_observation(packet, *, capture):
+    """Select writer fields before CPU transfer; controllers retain the full packet."""
+    omitted = () if capture else ("image", "depth_m", "depth_valid")
+    return {k:v for k,v in packet.items() if torch.is_tensor(v) and k not in omitted}

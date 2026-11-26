@@ -67,8 +67,21 @@ def _partitions(data):
     return aggregate_family_partitions(data)
 
 
+def configuration_for_layout(domain, seed, layout=None):
+    """Materialize requested peg spacing; metadata alone cannot move an asset."""
+    from .narrow_data import direct_configuration
+    if layout is None:
+        return direct_configuration(domain, seed)
+    from scripts.tight_layout_20261116.pilot import reset_configuration, displacement
+    distance = layout['distance_m']
+    if (layout.get('version') != 'peg_spacing_reset_v1' or layout.get('hole_unchanged') is not True
+            or layout.get('translation_xy_m') != displacement(domain, distance).tolist()):
+        raise ValueError('Reset layout and physical displacement disagree')
+    return reset_configuration(domain, seed, distance)
+
+
 def make_registry(registry_id, domain, seeds, source_manifests, partition_manifest,
-                  frozen_families, *, created_utc, revisit_families=()):
+                  frozen_families, *, created_utc, revisit_families=(), reset_layout=None):
     """Build an immutable registration before any collection directory exists."""
     from .narrow_data import direct_configuration
     if not isinstance(registry_id, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,79}', registry_id):
@@ -124,7 +137,7 @@ def make_registry(registry_id, domain, seeds, source_manifests, partition_manife
     families = {}
     for seed in seeds:
         family = f'expanded_{registry_id}_s{seed}'
-        reset = direct_configuration(domain, seed)
+        reset = configuration_for_layout(domain, seed, reset_layout)
         digest = configuration_digest(reset)
         if seed in used_seeds or digest in hashes or family in existing_families:
             raise ValueError('New initial family duplicates an existing registered seed or physical configuration')
@@ -140,6 +153,7 @@ def make_registry(registry_id, domain, seeds, source_manifests, partition_manife
         families[family] = copy.deepcopy(prior_expanded[family])
     return dict(version=REVISIT_VERSION if revisit_families else VERSION, registry_id=registry_id, created_utc=float(created_utc),
         **(dict(revisited_training_families=list(revisit_families),new_training_family_count=len(seeds),historical_training_outcomes_used_for_revisit=True,new_attempt_outcomes_used=False) if revisit_families else {}),
+        **(dict(reset_layout=copy.deepcopy(reset_layout)) if reset_layout is not None else {}),
         domain=copy.deepcopy(domain), domain_sha256=canonical_digest(domain), families=families,
         source_manifests={role: dict(_file_binding(path), canonical_sha256=canonical_digest(sources[role]))
             for role, path in source_manifests.items()},
@@ -201,7 +215,7 @@ def read_registry(binding, source=None):
     for family, row in registry['families'].items():
         if family in protected or family != row['family'] or row['split'] != 'train':
             raise ValueError('Expansion registry contains a held-out or inconsistent family')
-        expected = direct_configuration(registry['domain'], row['seed'])
+        expected = configuration_for_layout(registry['domain'], row['seed'], registry.get('reset_layout'))
         digest = configuration_digest(expected)
         if expected != row['narrow_reset'] or digest != row['configuration_sha256'] or digest in seen_hashes:
             raise ValueError('Registered new family draw or configuration identity differs')

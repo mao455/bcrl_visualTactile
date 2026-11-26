@@ -1,0 +1,79 @@
+{
+  "version": "host_init19_independent_source_review_v1",
+  "status": "source_and_clock_synthetic_review_passed_no_activation_by_reviewer",
+  "utc": "2026-11-24T07:51:06.064246+00:00",
+  "reviewer": "/root/final13_sources",
+  "parallel_math_reviewer": "/root/final13_sources/clock19_math",
+  "blockers": [],
+  "source_and_fixture_sha256": {
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19.py": "c7374e679a2a67156fc1ce942852cc1aee9978d695e185e94d9870ae7dda56b9",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/test_host_init_capacity19.py": "779c3350916b9b9536a8fe41bde92be214400acdf184a7dc8d104cb332921df6",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/test_independent_host_init_capacity19_review.py": "b3b918d151c620aee3b366abddbf6d6d1e1b438494c213f7a2dfc08a733360f7",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/test_clock19_math_review.py": "b65a45dd3c1772b8b245cb46410d1bd2ae6e1f95c3835cd12294bc07a6594055",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/HOST_INIT_CAPACITY19_SOURCE_HANDOFF.md": "d0d7c3cc01c429a5f12497d06e23cacc6b95be54562d5ea14c75b4aba8f167f5",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity18.py": "7ac5bb977213647e8461fe8fc2e500eea1b48fa557a56dbeca2b3352983c3cc2"
+  },
+  "report_sha256": "0219f4667aff3cac6869957f57794b5ee69bab58ee6341682aefc2fdb6874574",
+  "tests": {
+    "passed": 149,
+    "failed": 0,
+    "seconds": 0.25,
+    "author": 75,
+    "this_independent": 25,
+    "independent_math": 49,
+    "compile_files": 4,
+    "command": "PYTHONDONTWRITEBYTECODE=1 /home/CNS2025331827/miniconda3/envs/isaaclab/bin/python -m pytest -q -p no:cacheprovider outputs/diagnostics/tight_paired_dagger_20261122_01/test_host_init_capacity19.py outputs/diagnostics/tight_paired_dagger_20261122_01/test_independent_host_init_capacity19_review.py outputs/diagnostics/tight_paired_dagger_20261122_01/test_clock19_math_review.py --disable-warnings --maxfail=2"
+  },
+  "ast_parity": {
+    "changed_existing_functions": [
+      "source_guard",
+      "receipt_birth",
+      "identity"
+    ],
+    "added_functions": [
+      "clock_sample",
+      "kernel_birth",
+      "mapped_birth",
+      "valid_utc",
+      "launch_birth"
+    ],
+    "all_other_runtime_functions_equal_to_frozen18": true
+  },
+  "clock_contract": {
+    "raw_pid_birth_identity_preserved": true,
+    "raw_kernel_btime_tick_hz_consistency": true,
+    "identity_rechecked_before_after_mapping": true,
+    "maximum_sample_bracket_seconds": 0.05,
+    "tick_quantization_included": true,
+    "interval_containment_not_intersection": true,
+    "receipt_entire_birth_interval_domain": "[utc-120,utc+0.05]",
+    "launch_entire_birth_interval_domain": "[utc-0.05,utc+120]",
+    "arbitrary_one_second_tolerance": false,
+    "kernel_and_clock_evidence_in_identity": true
+  },
+  "scope": {
+    "source_and_temporary_synthetic_fixtures_only": true,
+    "actual19_lifecycle_read": false,
+    "actual19_processes_queried": false,
+    "main64_outcomes_read": false,
+    "weights_caches_rollout_payloads_read": false,
+    "activation_performed": false,
+    "affinity_or_priority_changed": false,
+    "signals_sent": 0,
+    "original18_preserved": true
+  },
+  "limitations": [
+    "current realtime-minus-BOOTTIME bracket does not prove historical clock offset stability before calibration",
+    "prior wall-clock steps fitting receipt and launch slack may be observationally indistinguishable; no historical anchor was available",
+    "normal Linux NTP frequency adjustment is not itself an offset step",
+    "SIGKILL/hostloss and non-atomic all-thread observations remain inherited limits",
+    "40sec is placement trigger budget; restoration may extend total elapsed",
+    "synthetic source signoff does not establish actual19 activation/restoration or external noninterference"
+  ],
+  "remaining_runtime_requirements": [
+    "root exact registry/review/owner/source binding review before activation",
+    "independent actual19 per-intent restoration or exact worker exit plus helper unit/PID closure review",
+    "preserve18 actual failure and19 attempts; no retry/replacement of original64x4 science opportunities"
+  ],
+  "prior18_actual_failure_review_sha256": "50881fbd8a4e85fd4233ec40cb6fe056aac075ae75ed0e429fc38eb206a188bb"
+}

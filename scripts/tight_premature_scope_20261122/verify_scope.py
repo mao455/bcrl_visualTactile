@@ -8,6 +8,9 @@ import gzip
 import hashlib
 import json
 from pathlib import Path
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
+from scripts.published_source import payload
 import subprocess
 import sys
 
@@ -162,10 +165,10 @@ def main():
         root = Path(__file__).resolve().parents[2]/'research_docs/evidence/tight_premature_scope_20261122_01'
     manifest = read(root/'published_sha256.json')
     for name, expected in manifest.items():
-        assert hashlib.sha256((root/name).read_bytes()).hexdigest() == expected, name
+        assert hashlib.sha256(payload(root,name)).hexdigest() == expected, name
     verify_core(root)
     receipt = read(root/'train_dev/receipt.json')
-    assert hashlib.sha256((root/'source/scripts/tight_premature_scope_20261122/trajectory_audit.py').read_bytes()).hexdigest() == receipt['script_sha256']
+    assert hashlib.sha256(payload(root,'source/scripts/tight_premature_scope_20261122/trajectory_audit.py')).hexdigest() == receipt['script_sha256']
     assert hashlib.sha256((root/'rules_registration.json').read_bytes()).hexdigest() == receipt['rules_sha256']
     closure = read(root/'closure.json')
     assert closure['complete'] and closure['optimizer_updates'] == 0

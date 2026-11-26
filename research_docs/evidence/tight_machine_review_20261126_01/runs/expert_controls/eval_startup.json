@@ -1,0 +1,13 @@
+{
+  "mode": "kit_managed",
+  "ctypes_preload": false,
+  "test_setter_called": false,
+  "reason": "Let Kit initialize OmniClient through its extension lifecycle; inotify admission remains required",
+  "scheduling": {
+    "kit_tasking_threads": 2,
+    "physics_threads": 2,
+    "requested_kit_args": "--/renderer/multiGpu/enabled=false --/plugins/carb.tasking.plugin/threadCount=2 --/persistent/physics/numThreads=2 --/app/extensions/fsWatcherEnabled=false",
+    "explicit_override": false,
+    "scope": "Kit task scheduler only; native control, physics settings, assets and success unchanged"
+  }
+}

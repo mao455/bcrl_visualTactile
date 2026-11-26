@@ -1,0 +1,358 @@
+{
+  "identity": "B_entry_28826003_continue",
+  "family": "cycle_dev_28826003",
+  "seed": 28826003,
+  "event_seed": 28926003,
+  "split": "diagnostic_development",
+  "cohort": "fresh",
+  "collision_gate": "live_collision_mesh_bounds_v1",
+  "narrow_reset": {
+    "fixed_start_pose": [
+      -0.12594172790648897,
+      0.02647906131678993,
+      0.6294670293098125,
+      0.12397108688107437,
+      0.8971532864744457,
+      -0.36920843615618154,
+      0.20840439266694807
+    ],
+    "table_reset_z": 0.380130991122094,
+    "table_reset_z_range": 0.0,
+    "reset_dof_pos_random_interval_arm": 0.0075,
+    "reset_dof_pos_random_interval_fingers": 0.0075,
+    "reset_dof_vel_random_interval": 0.03,
+    "hole_x_range": [
+      0.04361739133864768,
+      0.04361739133864768
+    ],
+    "hole_y_range": [
+      -0.03838764016720564,
+      -0.03838764016720564
+    ]
+  },
+  "layout": {
+    "version": "peg_spacing_reset_v1",
+    "distance_m": 0.1,
+    "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+  },
+  "takeover_tick": 1000000000,
+  "diagnostic_only": true,
+  "source_identity": "B_entry_28826003",
+  "software_complete": true,
+  "legal": true,
+  "success": true,
+  "reasons": {
+    "fall": false,
+    "max_successes": true,
+    "hand_far": false,
+    "dropped": false,
+    "timeout": false
+  },
+  "steps": 258,
+  "native_lift": false,
+  "native_subgoals": 2,
+  "native_alignment": true,
+  "checkpoint_sha256": "21ef1a01a0734ca6890430d1a182d595aff4d47adb884d503946737fcb24380f",
+  "complete_student_policy": {
+    "version": "complete_student_policy_v1",
+    "controller": "ResidualController",
+    "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/training/best.pt",
+    "frontend_sha256": "91a649ebb652635b212be11eadd96a18c38a0a716acaae2ba8cc7276edbbc42d",
+    "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend/B/training/best.pt",
+    "backend_sha256": "21ef1a01a0734ca6890430d1a182d595aff4d47adb884d503946737fcb24380f",
+    "residual_version": "target_residual_transformer60_v1",
+    "supervision": "u_expert",
+    "supervision_inference": null,
+    "modality": "G00",
+    "output": "absolute_joint_position_target_rad",
+    "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+    "execution_adapter": {
+      "version": "expert_reachable_postprocessed_v1",
+      "input_space": "postprocessed_absolute_joint_target_rad",
+      "reference": "actual_pre_action_actuator_target_rad",
+      "control_dt": 0.016666666666666666,
+      "dof_speed_scale": 1.5,
+      "arm_moving_average": 0.1,
+      "hand_moving_average": 0.1,
+      "arm_progress": 0.5,
+      "hand_progress": 1.0,
+      "hand_target_cap_rad_s": 2.0,
+      "roundoff_tolerance_rad": 1e-06,
+      "delay": "already_resolved_in_supervision_no_second_queue"
+    },
+    "zero_correction_is_valid": true
+  },
+  "simulation_step_hz": 60,
+  "physics_hz": 120,
+  "plan_hz": 5,
+  "residual_hz": 60,
+  "action_control_mode": "absolute_joint_position_target_rad",
+  "action_exhausted": false,
+  "ever_complete_success": true,
+  "first_success_tick": 258,
+  "termination_tick": 258,
+  "duration_sim_s": 4.3,
+  "post_success_actions": 0,
+  "tick_index": "1-based completed control transitions",
+  "batch_execution": {
+    "version": "independent_lane_queue_v1",
+    "lanes": 4,
+    "vision_microbatch": 2,
+    "physics_seed": 28826003,
+    "event_seed": 28926003,
+    "native_rng": "Persistent batch event stream; native indexed reset without reseeding other lanes; no hidden-state parity claim",
+    "gpu_pipeline": "gpu_observation_history_control_v1",
+    "lane": 0,
+    "queue_ordinal": 0,
+    "global_start_tick": 0
+  },
+  "actuator_target_max_error": 0.0,
+  "submitted_target_max_error": 0.0,
+  "tracking_rmse_rad": 0.0768342837691307,
+  "residual_version": "target_residual_transformer60_v1",
+  "residual_ticks": 258,
+  "contact_gate_ticks": 157,
+  "contact": {
+    "object_contact": true,
+    "max_fingers": 4,
+    "two_finger_continuous_s": 1.75,
+    "stable_grasp_diagnostic": true,
+    "object_contact_threshold_N": 0.1,
+    "stable_window_s": 0.2,
+    "scope": "filtered normal forces; not native success"
+  },
+  "residual_diagnostics": {
+    "all_ticks": {
+      "ticks": 258,
+      "arm": {
+        "applied_rms_rad": 0.0018498345743864775,
+        "proposed_rms_rad": 0.0035325109492987394,
+        "applied_max_abs_rad": 0.008322715759277344
+      },
+      "hand": {
+        "applied_rms_rad": 0.015403686091303825,
+        "proposed_rms_rad": 0.05008769407868385,
+        "applied_max_abs_rad": 0.14928625524044037
+      }
+    },
+    "observed_contact": {
+      "ticks": 157,
+      "arm": {
+        "applied_rms_rad": 0.0018214305164292455,
+        "proposed_rms_rad": 0.0037838711868971586,
+        "applied_max_abs_rad": 0.005945920944213867
+      },
+      "hand": {
+        "applied_rms_rad": 0.016599107533693314,
+        "proposed_rms_rad": 0.05026177316904068,
+        "applied_max_abs_rad": 0.13734793663024902
+      }
+    },
+    "observed_noncontact": {
+      "ticks": 100,
+      "arm": {
+        "applied_rms_rad": 0.0018597538582980633,
+        "proposed_rms_rad": 0.003097307402640581,
+        "applied_max_abs_rad": 0.008322715759277344
+      },
+      "hand": {
+        "applied_rms_rad": 0.013354030437767506,
+        "proposed_rms_rad": 0.05000309646129608,
+        "applied_max_abs_rad": 0.14928625524044037
+      }
+    },
+    "unknown_contact_ticks": 1,
+    "joint_limit_clip": {
+      "joint_components": 2079,
+      "ticks": 258,
+      "joint_component_fraction": 0.2778668805132318
+    },
+    "tanh_saturation": {
+      "applicable": false,
+      "reason": "Versioned proposal is linear or has a true linear tail; legacy amplitude ratio does not measure saturation"
+    },
+    "observed_contact_loss_regain": {
+      "completed": [
+        {
+          "loss_tick": 72,
+          "regain_tick": 73,
+          "noncontact_ticks": 1,
+          "noncontact_seconds": 0.016666666666666666,
+          "correction_active_ticks": 1
+        },
+        {
+          "loss_tick": 77,
+          "regain_tick": 102,
+          "noncontact_ticks": 25,
+          "noncontact_seconds": 0.4166666666666667,
+          "correction_active_ticks": 25
+        },
+        {
+          "loss_tick": 109,
+          "regain_tick": 110,
+          "noncontact_ticks": 1,
+          "noncontact_seconds": 0.016666666666666666,
+          "correction_active_ticks": 1
+        }
+      ],
+      "completed_count": 3,
+      "interrupted_by_invalid_observation": [],
+      "open_loss_tick": 247,
+      "open_noncontact_ticks": 11,
+      "tick_index": "zero-based pre-action observation tick",
+      "force_threshold_N": 0.1,
+      "definition": "Any finger observed normal resultant >0.1N, valid current observation; gaps require uninterrupted valid observations",
+      "interpretation": "Recontact is a sensor event, not successful recovery; no recovery supervision or causal capability is established"
+    },
+    "legacy_normalized_amplitude": {
+      "threshold": 0.95,
+      "joint_components": 0,
+      "ticks": 0,
+      "maximum_fraction": 0.3448624312877655,
+      "definition": "abs(proposed_delta_normalized)/historical_scales; not a derivative or model bound"
+    },
+    "output_contract": {
+      "version": "reachable_nominal_centered_linear_v1",
+      "span_gain": 1.0
+    }
+  },
+  "expert_shadow_computed": true,
+  "expert_shadow_placeholder_zero": false,
+  "native_inference": {
+    "summary": {
+      "gpu_batched_complete_controller": {
+        "wall_s": {
+          "count": 258,
+          "mean": 0.03041971553940066,
+          "p05": 0.01555387165863067,
+          "p50": 0.019934551557525992,
+          "p95": 0.11938056678045542,
+          "max": 0.46631472511217
+        },
+        "cuda_stream_s": {
+          "count": 258,
+          "mean": 0.030476118596025212,
+          "p05": 0.015524958133697512,
+          "p50": 0.020008447647094727,
+          "p95": 0.11942860717773437,
+          "max": 0.466408447265625
+        }
+      }
+    },
+    "pending_cuda_events": 0,
+    "timing_scope": "Observed call wall times and asynchronous current-CUDA-stream elapsed intervals; no added synchronize/wait; stream intervals include CPU submission gaps, not pure kernel time",
+    "wall_scope": "Native planning includes observation, DINO/depth, history, DDIM and required CPU return; native history-only calls may return before queued CUDA work completes",
+    "excludes": "resource waits, environment stepping/rendering, result serialization",
+    "batch_observed_counts": {
+      "history_updates": 258,
+      "robot_observations": 258,
+      "plans": 22,
+      "backend_updates": 258
+    }
+  },
+  "dagger": {
+    "configuration": {
+      "version": "expert_takeover_position_v1",
+      "expert_speed": {
+        "kind": "closed_loop",
+        "arm": 0.5,
+        "hand": 1.0,
+        "phase": "all",
+        "hand_target_cap_rad_s": 2.0
+      },
+      "diagnostic_takeover": true,
+      "trigger": {
+        "never_entered_only": true,
+        "observe_only": true,
+        "version": "adaptive_stage_recovery_v1",
+        "stage": "alignment",
+        "earliest_contact_tick": 96,
+        "contact_stall_window": 36,
+        "held_window": 12,
+        "confirm_ticks": 2,
+        "transport_travel_m": 0.035,
+        "near_root_m": 0.09,
+        "alignment_window": 36,
+        "alignment_progress_m": 0.0015,
+        "keypoint_floor_m": 0.015,
+        "height_loss_m": 0.004,
+        "relative_slip_m": 0.008,
+        "minimum_elevation_m": 0.005
+      },
+      "takeover_tick": 1000000000,
+      "trajectory_kind": "expert_takeover_v1",
+      "control_source_codes": {
+        "student": 0,
+        "expert": 1
+      },
+      "segment_rule": "Increase at control-source or supervision-validity changes; never join across episode reset",
+      "supervision_rule": "Student prefix and the complete expert-delay queue flush have mask0; clean executed expert suffix only",
+      "q_reached_rule": "Actual same-transition post-integration joint state; never a counterfactual expert response",
+      "expert_delay_rule": "Continuous shadow queue; same single draw retained by the position executor; native queue untouched"
+    },
+    "expert_shadow_queries": 258,
+    "student_ticks": 258,
+    "expert_ticks": 0,
+    "takeover_triggered": false,
+    "expert_valid_ticks": 0,
+    "expert_switch_masked_ticks": 0,
+    "student_autonomous_success": true,
+    "expert_takeover_success": false,
+    "position_executor_continuous": true,
+    "provenance_passed": true,
+    "autonomous_evaluation": false,
+    "admission": "Only verified successful real expert suffixes enter training",
+    "trigger_receipt": {
+      "ever_entered_15mm": true,
+      "first_eligible_completed_tick": null,
+      "configuration": {
+        "never_entered_only": true,
+        "observe_only": true,
+        "version": "adaptive_stage_recovery_v1",
+        "stage": "alignment",
+        "earliest_contact_tick": 96,
+        "contact_stall_window": 36,
+        "held_window": 12,
+        "confirm_ticks": 2,
+        "transport_travel_m": 0.035,
+        "near_root_m": 0.09,
+        "alignment_window": 36,
+        "alignment_progress_m": 0.0015,
+        "keypoint_floor_m": 0.015,
+        "height_loss_m": 0.004,
+        "relative_slip_m": 0.008,
+        "minimum_elevation_m": 0.005
+      },
+      "fallback_tick": 1000000000,
+      "actual_scheduled_takeover_tick": 1000000000,
+      "trigger_completed_tick": null,
+      "first_held_completed_tick": 128,
+      "completed_student_transitions_observed": 258,
+      "settled_height_m": 0.5401309132575989,
+      "reason": "requested_stage_not_reached",
+      "at_trigger": null,
+      "last": {
+        "completed_tick": 258,
+        "stage": "alignment",
+        "held12": false,
+        "fingers": 0,
+        "elevation_m": 0.12510442733764648,
+        "root_m": 0.0013477019965648651,
+        "keypoint_m": 0.0019473981810733676,
+        "height_loss12_m": 0.013815820217132568,
+        "palm_slip12_m": 0.02793346345424652,
+        "travel_xy_m": 0.17032983899116516,
+        "goal_index": 2,
+        "qualifies": false
+      },
+      "diagnostic_only": true,
+      "student_inputs_changed": false,
+      "native_success_changed": false,
+      "no_expert_fallback": true,
+      "phase_alignment": "next action after causal confirmation; original planner phase retained",
+      "limitation": "A collection screen, not a proven harmful error or guaranteed expert recoverability"
+    }
+  },
+  "residual_forward_ticks": 258,
+  "residual_executed_ticks": 258
+}

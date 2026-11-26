@@ -11,7 +11,8 @@ from pathlib import Path
 
 from visuotactile.compact import sha256
 from visuotactile.training_resources import atomic_json
-from visuotactile.fresh_contracts import FRESH_DATA_CONTRACT, FRESH_AGGREGATE_CONTRACT, residual_normalization
+from visuotactile.fresh_contracts import (FRESH_DATA_CONTRACT, FRESH_AGGREGATE_CONTRACT,
+    FRESH_PAIRED_AGGREGATE_CONTRACT, residual_normalization)
 
 
 def read(path):
@@ -20,7 +21,7 @@ def read(path):
 
 def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting=None,
             output_contract=None, continuation_head_reset=None, offline_anchor_batch=None,
-            frozen_visual_io=None):
+            frozen_visual_io=None, paired_group_deck=None):
     import torch
     from visuotactile.position_control import REACHABLE_POSITION_EXECUTION
     from visuotactile.execution_learning import SPAN_PROJECTION_FY_LOSS
@@ -51,8 +52,13 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
         raise FileExistsError('Preserve existing backend; use explicit continuation identity')
     data = read(source / 'state_data/data.json')
     command_data = read(root / 'B/state_data/data.json')
-    if data['splits'] != command_data['splits']:
-        raise ValueError('A/B cohort differs')
+    from visuotactile.paired_training_decks import validate_pool_pair, validate_deck
+    validate_pool_pair(data, command_data, role=role, enabled=paired_group_deck is not None)
+    if paired_group_deck is not None:
+        if epochs != paired_group_deck.get('epochs'):
+            raise ValueError('Paired rear epoch count differs from registered complete decks')
+        paired_group_deck=validate_deck(paired_group_deck,data,
+            data_sha256=sha256(source/'state_data/data.json'),role=role)
     front = source / 'training/best.pt'
     saved = torch.load(front, map_location='cpu', weights_only=False)
     if (saved['updates'] < 1 or saved['contract'].get('visual_stride') != 1
@@ -61,7 +67,8 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
     if saved['configuration']['statistics_sha256'] != sha256(source / 'state_data/statistics.pt'):
         raise ValueError('Selected frontend normalizer differs')
     stats = root / 'B/state_data/statistics.pt'
-    identity=FRESH_AGGREGATE_CONTRACT if data.get('aggregation') else FRESH_DATA_CONTRACT
+    identity=(FRESH_PAIRED_AGGREGATE_CONTRACT if paired_group_deck is not None else
+        FRESH_AGGREGATE_CONTRACT if data.get('aggregation') else FRESH_DATA_CONTRACT)
     v = dict(version=TargetResidual.version, fresh_data_contract=identity,
         groups=[role], source_root=str(source), bases={role: dict(group='G00', modality='G00',
             checkpoint=str(front), sha256=sha256(front))},
@@ -77,6 +84,9 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
         source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
         source_sha256={str(p): sha256(p) for folder in ['visuotactile', 'tools']
             for p in sorted(Path(folder).rglob('*.py'))})
+    from visuotactile.paired_curve_diagnostics import load as load_curve_diagnostics
+    curve_diagnostics=load_curve_diagnostics(root)
+    if curve_diagnostics is not None:v['family_phase_diagnostics']=curve_diagnostics
     from visuotactile.effective_exposure import load as load_exposure
     exposure_policy=load_exposure(root)
     if exposure_policy:
@@ -84,6 +94,8 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
         if epochs!=60:raise ValueError('Registered effective50 rear maximum is60')
         v.update(effective_exposure=exposure_policy,bounded_extension=exposure50_profile('backend'),
             comparison_control_tick_epochs=[],minimum_control_tick_epochs=50)
+    if paired_group_deck is not None:
+        v['paired_group_deck'] = paired_group_deck
     v['residual_normalization_identity'] = residual_normalization(data, v)
     if cache_planning is not None:v['cache_offline_planning_profile']=cache_planning
     if frozen_visual_io is not None:v['frozen_visual_io']=frozen_visual_io
@@ -94,10 +106,20 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
             raise ValueError('Fresh onset comparison requires an explicit aggregate backend continuation')
         v['fresh_recovery_weighting']=fresh_recovery_weighting
     sampling_path = root/'backend_episode_sampling.json'
-    if sampling_path.exists():
+    if paired_group_deck is not None or sampling_path.exists():
         from visuotactile.latest_takeover_sampling import sampling_plan
-        contract, _ = sampling_plan(data, read(sampling_path))
+        contract, _ = sampling_plan(data, paired_group_deck['sampling'] if paired_group_deck is not None else read(sampling_path))
         v['episode_sampling'] = contract
+    if paired_group_deck is not None:
+        if v.get('episode_sampling') != paired_group_deck['sampling']:
+            raise ValueError('Paired backend base replay differs from explicit group deck')
+        v.update(paired_group_deck=paired_group_deck,minimum_control_tick_epochs=epochs,
+            comparison_control_tick_epochs=[epochs])
+        if paired_group_deck['version'] == 'paired_complete_group_decks_finite_v1':
+            from visuotactile.effective_exposure import profile as exposure_profile
+            v['effective_exposure'] = exposure_profile()
+            v['selection'] = 'Explicit finite diagnostic; owner deploys preregistered final update; actual exposure recorded without50step eligibility claim'
+        v.pop('bounded_extension',None)
     if data.get('aggregation'):
         v['dagger_round']=max(e.get('round_index',0) for e in data['entries'].values())
     if command_data['normalization_identity'] != v['residual_normalization_identity']:
@@ -170,12 +192,15 @@ def main():
         help='Explicit offline residual-cache DDIM anchor batch; default retains serial plans')
     parser.add_argument('--frozen-visual-io-json',type=Path,
         help='Explicit current-episode frozen-feature read profile; default retains mmap')
+    parser.add_argument('--paired-group-deck-json',type=Path,
+        help='Explicit own-pool60epoch complete-group deck; absent keeps equal A/B cohort requirement')
     parser.add_argument('--fresh-recovery-weighting-json',type=Path,
         help='Explicit versioned train-only legal-action phase weighting; validation stays unweighted')
     args = parser.parse_args()
     prepare(args.root, args.role, args.epochs, continue_rear=args.continue_rear,offline_anchor_batch=args.offline_anchor_batch,
         fresh_recovery_weighting=read(args.fresh_recovery_weighting_json) if args.fresh_recovery_weighting_json else None,
-        frozen_visual_io=read(args.frozen_visual_io_json) if args.frozen_visual_io_json is not None else None)
+        frozen_visual_io=read(args.frozen_visual_io_json) if args.frozen_visual_io_json is not None else None,
+        paired_group_deck=read(args.paired_group_deck_json) if args.paired_group_deck_json is not None else None)
 
 
 if __name__ == '__main__':

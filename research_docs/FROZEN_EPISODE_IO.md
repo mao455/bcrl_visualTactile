@@ -18,4 +18,4 @@
 
 CPU测试使用真实mmap shard，验证clone的张量、`conv/GroupNorm/SiLU/pool`前向和梯度、随机状态逐位一致；另验证总预算、等待后释放、内存/单片回退、乱序拒绝和后台失败传播。尚未以此入口跑完真实训练周期，**尚无采用或实测加速结论**。
 
-本轮尝试在不改活动worker的条件下建立一次只读单片预取：`session05/io_prefetch_attempt01` 先按原seed和sampling合同重演全部10遍deck，并核对1020条已完成学习记录；核验后发现A已完成全部更新，故helper明确跳过，没有额外大文件读取，也没有为了测速重复训练。`tools.tight_episode_io_probe`保留单片顺序读取/mmap clone/eager三种后续只读比较入口，不drop caches，不预热全库；暖缓存与并行作业混杂须单列。
+本轮尝试在不改活动worker的条件下建立一次只读单片预取：`session05/io_prefetch_attempt01` 先按原seed和sampling合同重演全部10遍deck，并核对1020条已完成学习记录；核验后发现A已完成全部更新，故helper明确跳过，没有额外大文件读取，也没有为了测速重复训练。`tools.tight_episode_io_probe`一次性比较入口已于2026-11-27退役；历史单片顺序读取/mmap clone/eager实现可从提交`60e7b1f`的`tools/tight_episode_io_probe.py`只读恢复，不drop caches，不预热全库；暖缓存与并行作业混杂须单列。

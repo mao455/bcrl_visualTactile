@@ -1,0 +1,14 @@
+# Independent continuation15 compute-accounting source review
+
+Passed with no accounting source blocker. Reviewed `final_compute_recovery15.py` SHA256 `0eea5f07351e56a6b0cab295c7f1eb019e4bc5e2379244b1f2bf813697f9d8a4`. This is a source and synthetic-fixture review; it does not certify actual15 closure, actual costs or scientific outcomes.
+
+- Failed original12 native test owner is a required owner and appears once. Historical13 failed before native dispatch: it contributes one separately bounded driver activation-to-exit interval; helper admission/exit is descriptive within that interval and no extra native13 preflight interval is created.
+- The single native `owners/test_fragment13` path belongs to actual failed14 and is enumerated once through a set, alongside original12 and native owner15. Failed14 retains its driver span and native owner13 failure; actual15 has its own driver and owner spans. Their overlapping intervals merge, so owner and driver overlap does not inflate the certified union.
+- `union` validates finite ordered endpoints and merges overlaps, touching intervals and duplicates. The certified union is a defined subset of recorded native-owner/13–15-driver/standalone intervals, including setup, waits and failures. It is not a claim of exhaustive CPU or GPU work.
+- Original collection with a start but missing exit remains `historical_exit_missing`, with null end/duration and uncertified wall time. It is excluded from the certified interval union; no end time is inferred from a later event.
+- Eight committed epoch60 component budgets are checked against actual deployment/finished metadata: parent total59926 and main total97200 updates. Discarded work is retained separately and earns zero selected age/exposure. The script reads small metadata rather than model tensors; GPU hours are explicitly null, with a reason stating that wall time/CUDA residence cannot establish GPU-active hours.
+- Standalone audits bind only actual registered12/15 logs and capacity-admitted rc0 exits. Failed13/14 helpers remain separate failures. Descriptive strings now consistently refer to actual15.
+
+Validation: the author synthetic test `test_compute_and_assembler_inventory_each_actual_attempt_once` passed independently (`1 passed, 65 deselected`). It checks each native owner once, zero-native13, failed13/14 plus current15 driver intervals, unknown collection exclusion, reconstructed union, update totals and null GPU hours. Additional independent source-import arithmetic checks passed for overlapping, touching and duplicate intervals, and rejected reversed, NaN, infinite and boolean endpoints.
+
+No actual lifecycle/outcome queries, actual `inventory` call, payload reads, GPU work, process signals, runtime activation or runtime/frozen-source edits were performed. Actual final binding, real process closure and final evidence review remain root responsibilities.

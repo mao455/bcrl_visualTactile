@@ -1,3 +1,5 @@
+2026-11-27：一次性Tight探针与25份重复源码快照按[删除清单](evidence/tight_correction_20261127_01/audit/retired_paths.csv)退役；下文创建记录为历史事实，不代表当前可用入口。当前正式运行与结果见[Tight修正报告](TIGHT_CORRECTION_20261127.md)。
+
 ## 2026-11-22 — 原生入口训练及96例开发证据发布
 
 - 实际源码90b0a7c修复首合法标签所属的原生anchor采样，新增成功optimizer step去重入口ledger与选模门；保留真实历史、H24/commit12和原控制规则。视觉microbatch2及sampler/LR事实显式登记。

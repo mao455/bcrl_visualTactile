@@ -1,0 +1,823 @@
+diff --git a/tools/tight_evaluate.py b/tools/tight_evaluate.py
+index c8bbb62..9b6fad6 100644
+--- a/tools/tight_evaluate.py
++++ b/tools/tight_evaluate.py
+@@ -16,7 +16,7 @@ def run(output, *, allow_heldout=False):
+     def act(self,packet,diagnostics,active):
+         nonlocal spent
+         before=time.perf_counter();ids=[i for i,x in enumerate(active) if x and plan['cases'][i].get('video',True)]
+-        rgb=packet['image'][ids,:,:3].detach().cpu()
++        rgb=packet['image'][ids,:,:3].detach().cpu() if ids else None
+         for j,lane in enumerate(ids):
+             case=plan['cases'][lane];tick=int(packet['step_id'][lane])
+             if lane not in videos:
+@@ -35,7 +35,9 @@ def run(output, *, allow_heldout=False):
+             if complete:
+                 result=read(output/case['name']/'result.json');assert row['frames']==result['steps']
+                 row.update(case=case['name'],success=result.get('success'),result=str(output/case['name']/'result.json'))
+-                row['decode']=verify_video(video.path,row['frames']);rows.append(row)
++                if plan.get('video_full_decode', False):
++                    row['decode']=verify_video(video.path,row['frames'])
++                rows.append(row)
+         atomic_json(output/'videos.json',dict(complete=complete,rows=rows,recording_seconds=spent,
+             policy_unchanged=True,frame_source='Actual pre-action RGB observation, all control steps, no reset/terminal substitution'))
+         flushed=True
+diff --git a/tools/tight_fresh_backend.py b/tools/tight_fresh_backend.py
+index dec2175..5bfb64c 100644
+--- a/tools/tight_fresh_backend.py
++++ b/tools/tight_fresh_backend.py
+@@ -11,7 +11,8 @@ from pathlib import Path
+ 
+ from visuotactile.compact import sha256
+ from visuotactile.training_resources import atomic_json
+-from visuotactile.fresh_contracts import FRESH_DATA_CONTRACT, FRESH_AGGREGATE_CONTRACT, residual_normalization
++from visuotactile.fresh_contracts import (FRESH_DATA_CONTRACT, FRESH_AGGREGATE_CONTRACT,
++    FRESH_PAIRED_AGGREGATE_CONTRACT, residual_normalization)
+ 
+ 
+ def read(path):
+@@ -20,7 +21,7 @@ def read(path):
+ 
+ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting=None,
+             output_contract=None, continuation_head_reset=None, offline_anchor_batch=None,
+-            frozen_visual_io=None):
++            frozen_visual_io=None, paired_group_deck=None):
+     import torch
+     from visuotactile.position_control import REACHABLE_POSITION_EXECUTION
+     from visuotactile.execution_learning import SPAN_PROJECTION_FY_LOSS
+@@ -51,8 +52,13 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
+         raise FileExistsError('Preserve existing backend; use explicit continuation identity')
+     data = read(source / 'state_data/data.json')
+     command_data = read(root / 'B/state_data/data.json')
+-    if data['splits'] != command_data['splits']:
+-        raise ValueError('A/B cohort differs')
++    from visuotactile.paired_training_decks import validate_pool_pair, validate_deck
++    validate_pool_pair(data, command_data, role=role, enabled=paired_group_deck is not None)
++    if paired_group_deck is not None:
++        if epochs != 60:
++            raise ValueError('Paired rear requires60 complete registered epochs')
++        paired_group_deck=validate_deck(paired_group_deck,data,
++            data_sha256=sha256(source/'state_data/data.json'),role=role)
+     front = source / 'training/best.pt'
+     saved = torch.load(front, map_location='cpu', weights_only=False)
+     if (saved['updates'] < 1 or saved['contract'].get('visual_stride') != 1
+@@ -61,7 +67,8 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
+     if saved['configuration']['statistics_sha256'] != sha256(source / 'state_data/statistics.pt'):
+         raise ValueError('Selected frontend normalizer differs')
+     stats = root / 'B/state_data/statistics.pt'
+-    identity=FRESH_AGGREGATE_CONTRACT if data.get('aggregation') else FRESH_DATA_CONTRACT
++    identity=(FRESH_PAIRED_AGGREGATE_CONTRACT if paired_group_deck is not None else
++        FRESH_AGGREGATE_CONTRACT if data.get('aggregation') else FRESH_DATA_CONTRACT)
+     v = dict(version=TargetResidual.version, fresh_data_contract=identity,
+         groups=[role], source_root=str(source), bases={role: dict(group='G00', modality='G00',
+             checkpoint=str(front), sha256=sha256(front))},
+@@ -77,6 +84,9 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
+         source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+         source_sha256={str(p): sha256(p) for folder in ['visuotactile', 'tools']
+             for p in sorted(Path(folder).rglob('*.py'))})
++    from visuotactile.paired_curve_diagnostics import load as load_curve_diagnostics
++    curve_diagnostics=load_curve_diagnostics(root)
++    if curve_diagnostics is not None:v['family_phase_diagnostics']=curve_diagnostics
+     from visuotactile.effective_exposure import load as load_exposure
+     exposure_policy=load_exposure(root)
+     if exposure_policy:
+@@ -84,6 +94,8 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
+         if epochs!=60:raise ValueError('Registered effective50 rear maximum is60')
+         v.update(effective_exposure=exposure_policy,bounded_extension=exposure50_profile('backend'),
+             comparison_control_tick_epochs=[],minimum_control_tick_epochs=50)
++    if paired_group_deck is not None:
++        v['paired_group_deck'] = paired_group_deck
+     v['residual_normalization_identity'] = residual_normalization(data, v)
+     if cache_planning is not None:v['cache_offline_planning_profile']=cache_planning
+     if frozen_visual_io is not None:v['frozen_visual_io']=frozen_visual_io
+@@ -94,10 +106,16 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
+             raise ValueError('Fresh onset comparison requires an explicit aggregate backend continuation')
+         v['fresh_recovery_weighting']=fresh_recovery_weighting
+     sampling_path = root/'backend_episode_sampling.json'
+-    if sampling_path.exists():
++    if paired_group_deck is not None or sampling_path.exists():
+         from visuotactile.latest_takeover_sampling import sampling_plan
+-        contract, _ = sampling_plan(data, read(sampling_path))
++        contract, _ = sampling_plan(data, paired_group_deck['sampling'] if paired_group_deck is not None else read(sampling_path))
+         v['episode_sampling'] = contract
++    if paired_group_deck is not None:
++        if v.get('episode_sampling') != paired_group_deck['sampling']:
++            raise ValueError('Paired backend base replay differs from explicit group deck')
++        v.update(paired_group_deck=paired_group_deck,minimum_control_tick_epochs=60,
++            comparison_control_tick_epochs=[60])
++        v.pop('bounded_extension',None)
+     if data.get('aggregation'):
+         v['dagger_round']=max(e.get('round_index',0) for e in data['entries'].values())
+     if command_data['normalization_identity'] != v['residual_normalization_identity']:
+@@ -170,12 +188,15 @@ def main():
+         help='Explicit offline residual-cache DDIM anchor batch; default retains serial plans')
+     parser.add_argument('--frozen-visual-io-json',type=Path,
+         help='Explicit current-episode frozen-feature read profile; default retains mmap')
++    parser.add_argument('--paired-group-deck-json',type=Path,
++        help='Explicit own-pool60epoch complete-group deck; absent keeps equal A/B cohort requirement')
+     parser.add_argument('--fresh-recovery-weighting-json',type=Path,
+         help='Explicit versioned train-only legal-action phase weighting; validation stays unweighted')
+     args = parser.parse_args()
+     prepare(args.root, args.role, args.epochs, continue_rear=args.continue_rear,offline_anchor_batch=args.offline_anchor_batch,
+         fresh_recovery_weighting=read(args.fresh_recovery_weighting_json) if args.fresh_recovery_weighting_json else None,
+-        frozen_visual_io=read(args.frozen_visual_io_json) if args.frozen_visual_io_json is not None else None)
++        frozen_visual_io=read(args.frozen_visual_io_json) if args.frozen_visual_io_json is not None else None,
++        paired_group_deck=read(args.paired_group_deck_json) if args.paired_group_deck_json is not None else None)
+ 
+ 
+ if __name__ == '__main__':
+diff --git a/tools/tight_fresh_train.py b/tools/tight_fresh_train.py
+index 8c1601b..8d5a6f4 100644
+--- a/tools/tight_fresh_train.py
++++ b/tools/tight_fresh_train.py
+@@ -126,7 +126,8 @@ def predict_on_native_clock(model, conditions, anchors):
+ 
+ 
+ @torch.no_grad()
+-def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_visual_io=None,grasp_phase_report=False,episode_loader=None):
++def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_visual_io=None,grasp_phase_report=False,episode_loader=None,
++        diagnostics=None,diagnostic_epoch=0,diagnostic_update=0,diagnostic_split="validation"):
+     from visuotactile.frozen_visual_io import validate_profile as validate_visual_io
+     frozen_visual_io=validate_visual_io(frozen_visual_io)
+     if offline_planning is not None:
+@@ -157,6 +158,9 @@ def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_v
+             planning_seconds=time.perf_counter()-began
+         pred=bounded_targets(pred.flatten(0,1),rec['joint_limits']).reshape_as(pred)
+         truth,valid=labels(rec,a,24);mask=valid[:,:12];e=(pred[:,:12]-truth[:,:12])[mask]
++        if diagnostics is not None:
++            diagnostics.dp_evaluation(diagnostic_epoch,diagnostic_update,diagnostic_split,i,a,
++                pred[:,:12]-truth[:,:12],mask)
+         errors.append(e.cpu());normalized.append((e*model.action_scale).cpu())
+         if grasp_phase_report:
+             absolute_ticks=a[:,None]+torch.arange(12,device=a.device)[None]
+@@ -380,6 +384,11 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
+         validation='all six fixed families DDIM16 commit12; fixed train2 diagnostics',hand_geometry=geometry,
+         normalization_identity=model.contract['normalization_identity'],input_builder='canonical_joint_state_v1',
+         source_sha256={str(p):sha256(p) for folder in ['visuotactile','tools'] for p in sorted(Path(folder).rglob('*.py'))})
++    from visuotactile.paired_curve_diagnostics import load as load_curve_diagnostics,Recorder,export_dp_visit_losses
++    curve_diagnostics=load_curve_diagnostics(root)
++    if curve_diagnostics is not None:
++        if batch_profile is None:raise ValueError('Paired DP diagnostics require full-trajectory batch path')
++        config['family_phase_diagnostics']=curve_diagnostics
+     if visit_profile:
+         config.update(training_sampling=visit_profile,training_sampling_sha256=sha256(root/'training_sampling.json'),
+             exposure='Full real history once per visit; random legal starts with original anchor-count budget; actual visits, optimizer/EMA updates and distinct times recorded separately.')
+@@ -541,8 +550,17 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
+         atomic_json(out/'configuration.json',config)
+     started=time.perf_counter()
+     stage_io_start=io_snapshot()
+-    def evaluate(identities):
++    curves=(Recorder(out,data,component='DP',role=role,action_scale=model.action_scale)
++        if curve_diagnostics is not None else None)
++    if curves is not None:curves.epoch=begin_epoch
++    def evaluate(identities,diagnostic_split=None):
++        if not identities and data.get('paired_pool') is not None:
++            return dict(episodes=[],selection=None,arm_rmse_rad=None,hand_rmse_rad=None,
++                supervised_ticks=0,reason='No own new correction was actually captured; shared full and original data still train')
+         io_options={} if visual_io is None else dict(frozen_visual_io=visual_io)
++        if curves is not None:
++            io_options.update(diagnostics=curves,diagnostic_epoch=curves.epoch,diagnostic_update=updates,
++                diagnostic_split=diagnostic_split or ('validation' if identities==data['splits']['validation'] else 'train_evaluation'))
+         if hotset is not None:io_options['episode_loader']=hotset
+         if offline_planning is None:return metrics(averaged,records,identities,**io_options)
+         return metrics(averaged,records,identities,offline_planning=offline_planning,check=lease.check,**io_options)
+@@ -550,13 +568,14 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
+         with lease.block():
+             initial=dict(validation=evaluate(data['splits']['validation']),
+                 train=evaluate(data['splits']['train'][:2]),
+-                correction=evaluate(data['aggregation']['new_training_ids']))
++                correction=evaluate(data['aggregation']['new_training_ids'],'correction_evaluation'))
+             if auxiliary:
+                 initial['visual_auxiliary']=dict(
+                     validation=auxiliary_metrics(averaged,records,data['splits']['validation'],pose_contexts,auxiliary),
+                     train=auxiliary_metrics(averaged,records,data['splits']['train'][:2],pose_contexts,auxiliary))
+         atomic_json(out/'initial_metrics.json',initial)
+     for epoch in range(begin_epoch,epochs):
++        if curves is not None:curves.epoch=epoch+1
+         if matched_rates is not None:
+             for group in opt.param_groups:group['lr']=matched_rates[role][epoch]
+         order=episode_deck(data['splits']['train'],multiplicities,generator);losses=[]
+@@ -605,7 +624,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
+                                     geometry_sampling_profile=visit_profile['geometry'])
+                             update_started=time.perf_counter()
+                             result=execute_update(model,opt,ema,objective,identities,
+-                                [records[identity] for identity in identities],episodes,noise,check=lease.check,**visit_options)
++                                [records[identity] for identity in identities],episodes,noise,check=lease.check,
++                                **(dict(diagnostics=curves,diagnostic_epoch=epoch+1,diagnostic_update=updates+1) if curves is not None else {}),
++                                **visit_options)
+                             update_host_s=time.perf_counter()-update_started
+                             if visual_io is not None:
+                                 for visit_row,episode in zip(result['visits'],episodes):
+@@ -717,6 +738,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
+             val=evaluate(data['splits']['validation']);tr=evaluate(data['splits']['train'][:2])
+             pose_metrics_report=(dict(validation=auxiliary_metrics(averaged,records,data['splits']['validation'],pose_contexts,auxiliary),
+                 train=auxiliary_metrics(averaged,records,data['splits']['train'][:2],pose_contexts,auxiliary)) if auxiliary else None)
++        if curves is not None:
++            curves.export(updates)
++            export_dp_visit_losses(out,data)
+         report=dict(epoch=epoch+1,updates=updates,loss=sum(losses)/len(losses),train=tr,validation=val,
+             seconds=time.perf_counter()-started,anchors_seen=anchors_seen,target_ticks=target_ticks,utc=time.time())
+         if extension:
+@@ -741,7 +765,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
+             report.update(visual_auxiliary=pose_metrics_report,auxiliary_exposure=copy.deepcopy(pose_exposure))
+         if sampling:report['sampling_exposure']=dict(sampling_exposure)
+         if continuation and epoch+1==epochs:
+-            with lease.block():report['correction']=evaluate(data['aggregation']['new_training_ids'])
++            with lease.block():report['correction']=evaluate(data['aggregation']['new_training_ids'],'correction_evaluation')
+         history.append(report)
+         selection_eligible=(not extension or extension['policy']['version']!='fixed56_long_budget_v1'
+             or epoch+1>=extension['policy']['maximum_epochs']-96)
+@@ -789,6 +813,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
+         check=Ledger(ledger.legal,selected['effective_exposure_state']).summary(selected['sampling_exposure'])
+         if not check['eligible']:raise ValueError('Selected DP does not satisfy minimum actual exposure')
+         finished['selected_effective_exposure']=check
++    if curves is not None:curves.export(updates,plot=True)
+     atomic_json(out/'finished.json',finished)
+ 
+ 
+diff --git a/visuotactile/adaptive_takeover.py b/visuotactile/adaptive_takeover.py
+index 3b4e98f..f6775d3 100644
+--- a/visuotactile/adaptive_takeover.py
++++ b/visuotactile/adaptive_takeover.py
+@@ -5,10 +5,13 @@ VERSION = 'adaptive_stage_recovery_v1'
+ STAGES = ('contact', 'transport', 'alignment', 'instability', 'post_subgoal')
+ 
+ 
+-def profile(stage):
++def profile(stage, *, never_entered_only=False, observe_only=False):
+     if stage not in STAGES:
+         raise ValueError('Unknown adaptive collection stage')
+-    return dict(version=VERSION, stage=stage, earliest_contact_tick=96,
++    options = {}
++    if never_entered_only: options["never_entered_only"] = True
++    if observe_only: options["observe_only"] = True
++    return dict(**options, version=VERSION, stage=stage, earliest_contact_tick=96,
+                 contact_stall_window=36, held_window=12, confirm_ticks=2,
+                 transport_travel_m=.035, near_root_m=.09,
+                 alignment_window=36, alignment_progress_m=.0015,
+@@ -17,7 +20,10 @@ def profile(stage):
+ 
+ 
+ def validate(value, fallback):
+-    if value != profile(value.get('stage')) or fallback != 10**9:
++    if any(type(value.get(k, False)) is not bool for k in ('never_entered_only', 'observe_only')):
++        raise ValueError('Explicit boolean collection options required')
++    if value != profile(value.get('stage'), never_entered_only=value.get('never_entered_only', False),
++                        observe_only=value.get('observe_only', False)) or fallback != 10**9:
+         raise ValueError('Exact adaptive screen and no fixed-time fallback required')
+     return dict(value)
+ 
+@@ -32,6 +38,8 @@ class AdaptiveTrigger:
+         self.candidate = None
+         self.trigger_completed_tick = self.at_trigger = self.last = None
+         self.reason = 'requested_stage_not_reached'
++        self.ever_entered_15mm = False
++        self.first_eligible_completed_tick = None
+ 
+     def observe(self, tick, pose, palm, force, *, keypoint_max_distance_m,
+                 goal_index_before, goal_index_after, goal_pose_before, goal_pose_after):
+@@ -51,6 +59,8 @@ class AdaptiveTrigger:
+                    key=float(keypoint_max_distance_m), root=float(np.linalg.norm(pose[:3]-goal[:3])),
+                    goal=int(goal_index_before),
+                    changed=int(goal_index_before) != int(goal_index_after) or not np.array_equal(goal_pose_before, goal_pose_after))
++        # Match native float32 keypoint distance and inclusive 15 mm gate.
++        self.ever_entered_15mm = bool(self.ever_entered_15mm or (row["goal"] == 0 and np.float32(row["key"]) <= np.float32(.015)))
+         self.rows.append(row); n = len(self.rows); p = self.configuration
+         if n == 48:
+             self.height = float(np.median([r['z'] for r in self.rows[24:48]]))
+@@ -77,12 +87,18 @@ class AdaptiveTrigger:
+                           instability=instability,
+                           post_subgoal=row['goal'] >= 1 and elevated and row['fingers'] >= 1)
+         stage = p['stage']; qualifies = unchanged and conditions[stage]
++        if p.get('never_entered_only', False):
++            qualifies = qualifies and not self.ever_entered_15mm
+         self.last = dict(completed_tick=n, stage=stage, held12=held, fingers=row['fingers'],
+                          elevation_m=row['z']-self.height, root_m=row['root'], keypoint_m=row['key'],
+                          height_loss12_m=loss, palm_slip12_m=slip, travel_xy_m=travel,
+                          goal_index=row['goal'], qualifies=bool(qualifies))
+         self.confirm = self.confirm+1 if qualifies else 0
+         if self.confirm >= p['confirm_ticks']:
++            if self.first_eligible_completed_tick is None:
++                self.first_eligible_completed_tick = n
++            if p.get('observe_only', False):
++                return None
+             self.trigger_completed_tick = self.scheduled_tick = n
+             self.at_trigger = dict(self.last)
+             self.reason = 'completed_student_'+stage
+@@ -90,7 +106,11 @@ class AdaptiveTrigger:
+         return None
+ 
+     def receipt(self):
+-        return dict(configuration=self.configuration, fallback_tick=self.fallback_tick,
++        options = {}
++        if self.configuration.get("never_entered_only") or self.configuration.get("observe_only"):
++            options = dict(ever_entered_15mm=self.ever_entered_15mm,
++                           first_eligible_completed_tick=self.first_eligible_completed_tick)
++        return dict(**options, configuration=self.configuration, fallback_tick=self.fallback_tick,
+                     actual_scheduled_takeover_tick=self.scheduled_tick,
+                     trigger_completed_tick=self.trigger_completed_tick,
+                     first_held_completed_tick=self.first_held,
+diff --git a/visuotactile/anchor_continue.py b/visuotactile/anchor_continue.py
+index 8a6a86c..6957854 100644
+--- a/visuotactile/anchor_continue.py
++++ b/visuotactile/anchor_continue.py
+@@ -384,9 +384,15 @@ def restore_residual_training(saved,model,optimizer,generator,configuration,trai
+         if configuration.get(contract_key)!=expected or saved.get(version_key)!=(expected or {}).get('version'):
+             raise ValueError('Residual restore '+contract_key+' identity differs')
+     order=saved['episode_order'];next_group=saved['next_episode_group']
++    paired_deck=configuration.get('paired_group_deck')
++    if paired_deck is not None:
++        from .paired_training_decks import validate_progress
++        validate_progress(paired_deck,saved)
+     stratified=bool(configuration.get('sampling_strata'))
+     valid_order=bool(order) and set(order)<=set(train_ids) if stratified else len(order)==len(train_ids) and set(order)==set(train_ids)
+-    if configuration.get('episode_sampling') is not None:
++    if paired_deck is not None:
++        valid_order=True
++    elif configuration.get('episode_sampling') is not None:
+         # The caller already validates this deck against the hash-bound dataset.
+         # A repeated visit is not a new trajectory; restore its exact saved order.
+         from collections import Counter
+@@ -401,7 +407,8 @@ def restore_residual_training(saved,model,optimizer,generator,configuration,trai
+         raise ValueError('Residual restore multiplicities require an explicit sampling contract')
+     if saved.get('train_ids')!=train_ids or not valid_order:
+         raise ValueError('Residual restore episode population/order differs')
+-    if not 0<=next_group<=len(order) or saved['epoch']<1 or saved['updates']<0:
++    group_limit=len(paired_deck['epoch_groups'][saved['epoch']-1]) if paired_deck else len(order)
++    if not 0<=next_group<=group_limit or saved['epoch']<1 or saved['updates']<0:
+         raise ValueError('Invalid residual complete episode-group restore cursor')
+     model.load_state_dict(saved['model'],strict=True);optimizer.load_state_dict(saved['optimizer'])
+     generator.set_state(saved['schedule_rng']);torch.set_rng_state(saved['torch_rng'])
+@@ -1113,14 +1120,14 @@ def residual_setup(root, *, selected=False, smoke=False):
+     if index['base_sha256']!=base['sha256'] or index['data_sha256']!=sha256(root/'state_data/data.json'):
+         raise ValueError('Nominal cache identity mismatch')
+     residual_statistics_path=Path(v['residual_statistics_path'])
+-    from .fresh_contracts import residual_normalization
++    from .fresh_contracts import residual_normalization, FRESH_AGGREGATE_CONTRACT, FRESH_PAIRED_AGGREGATE_CONTRACT
+     residual_normalization_identity=residual_normalization(read(root/'state_data/data.json'),v)
+     if not residual_statistics_path.is_absolute():raise ValueError('Residual statistics path must be absolute')
+     residual_data=read(residual_statistics_path.parent/'data.json')
+     if residual_data.get('normalization_identity')!=residual_normalization_identity:
+         raise ValueError('New residual requires common u_expert training affine')
+     expected_train=read(root/'state_data/data.json')['splits']['train']
+-    fresh_aggregate=v.get('fresh_data_contract')=='fresh30_actual_takeover_aggregate_v1'
++    fresh_aggregate=v.get('fresh_data_contract') in (FRESH_AGGREGATE_CONTRACT, FRESH_PAIRED_AGGREGATE_CONTRACT)
+     normalization_train=data.get('normalization_train_ids',expected_train) if v.get('continuation_from') or fresh_aggregate else expected_train
+     residual_normalization_train=residual_data.get('normalization_train_ids',residual_data['splits']['train'])
+     if residual_normalization_train!=normalization_train or not set(normalization_train)<=set(expected_train) or not set(normalization_train)<=set(residual_data['splits']['train']):
+@@ -1367,9 +1374,20 @@ def residual_train(root, *, smoke=False, probe=False):
+     if rear_sampling is not None:
+         if strata: raise ValueError('Explicit rear deck cannot be combined with legacy strata')
+         _, multiplicities, unique_population, population = rear_plan(data, records, rear_sampling)
++    paired_deck=v.get('paired_group_deck')
++    if paired_deck is not None:
++        from .paired_training_decks import validate_deck, validate_progress
++        if disposable or strata or window is None or extension or v.get('matched_update_stop') or formal_epochs!=60 or v['microbatch']!=4:
++            raise ValueError('Paired decks require formal60epoch fixed128window/32chunk/microbatch4 training')
++        paired_deck=validate_deck(paired_deck,data,records,
++            data_sha256=configuration['data_sha256'],role=root.name)
++        if rear_sampling!=paired_deck['sampling']:
++            raise ValueError('Paired deck/rear sampling differs')
+     from .effective_exposure import validate as validate_exposure_policy, Ledger
+     exposure_policy=validate_exposure_policy(v.get('effective_exposure'))
+     ledger=Ledger({i:records[i]['supervision_mask'] for i in ids}) if exposure_policy else None
++    if paired_deck is not None and exposure_policy is None:
++        raise ValueError('Paired training requires actual successful-step legal tick exposure accounting')
+     if exposure_policy and (disposable or window is None):raise ValueError('Effective exposure requires formal tick-window training')
+     target_ticks=v['maximum_control_tick_epochs']*population
+     matched=v.get('matched_update_stop')
+@@ -1411,6 +1429,10 @@ def residual_train(root, *, smoke=False, probe=False):
+     signal.signal(signal.SIGTERM,lambda *_:request.append('SIGTERM'))
+     plateau=Plateau(extension,saved.get('plateau_state') if (out/'last.pt').exists() else None) if extension else None
+     def snapshot(epoch,next_group):
++        if paired_deck is not None:
++            validate_progress(paired_deck,dict(epoch=epoch,next_episode_group=next_group,
++                episode_order=order,episode_counts=episode_counts,updates=updates,
++                supervised_ticks=draws,control_ticks=ticks))
+         return cpu_snapshot(dict(residual_version=model.version,group='I-HistoryDP',contract=s['base_contracts'][root.name],
+             **({'residual_loss_version':model.loss_contract['version']} if getattr(model,'loss_contract',None) else {}),
+             **({'residual_history_version':model.history_contract['version']} if getattr(model,'history_contract',None) else {}),
+@@ -1426,10 +1448,21 @@ def residual_train(root, *, smoke=False, probe=False):
+             selection_baseline=selection_baseline,episode_counts=episode_counts,ema=False,
+             **({'effective_exposure_state':ledger.state_dict()} if exposure_policy else {}),
+             **({'plateau_state':plateau.state} if plateau else {})))
++    from .paired_curve_diagnostics import validate as validate_curve_diagnostics, Recorder
++    curve_diagnostics=validate_curve_diagnostics(v.get('family_phase_diagnostics'))
++    curves=(Recorder(out,data,component='Transformer',role=root.name,action_scale=model.action_scale)
++        if curve_diagnostics is not None else None)
+     def validate(epoch):
+         nonlocal best,selection_baseline
+-        validation,_=residual_metrics(model,records,vals,lease)
+-        train,_=residual_metrics(model,records,ids[:2],lease)
++        if curves is None:
++            validation,_=residual_metrics(model,records,vals,lease)
++            train,_=residual_metrics(model,records,ids[:2],lease)
++        else:
++            validation,predictions=residual_metrics(model,records,vals,lease)
++            curves.residual_evaluation(epoch,updates,'validation',vals,records,predictions)
++            train,predictions=residual_metrics(model,records,ids[:2],lease)
++            curves.residual_evaluation(epoch,updates,'train_evaluation',ids[:2],records,predictions)
++            curves.export(updates)
+         row=dict(epoch=epoch,update=updates,control_tick_epochs=draws/population,control_epoch=ticks/native_population,
+             train=train,validation=validation,wall_s=time.time()-began,wait_s=lease.wait_s)
+         score=validation['all']['normalized_equal_mse']
+@@ -1466,12 +1499,13 @@ def residual_train(root, *, smoke=False, probe=False):
+     def next_order():
+         return (episode_deck(ids,multiplicities,generator) if rear_sampling is not None else
+                 stratified_episode_order(ids,records,strata,v.get('sampling_weights'),generator))
+-    order=resume_order or next_order()
++    order=resume_order or (sum(paired_deck['epoch_groups'][resume_epoch-1],[]) if paired_deck else next_order())
+     if rear_sampling is not None and updates == 0:
+         from .rear_episode_sampling import latest_fit
+         atomic_json(out/'latest_fit_initial.json', latest_fit(model,records,data,lease))
+     next_group=resume_group
+     def exposure_complete():
++        if paired_deck is not None:return False
+         if matched is not None:return updates>=matched['updates']
+         if draws<target_ticks:return False
+         if not strata:return True
+@@ -1484,14 +1518,16 @@ def residual_train(root, *, smoke=False, probe=False):
+     for epoch in range(resume_epoch,v['maximum_control_tick_epochs']+1):
+         if v.get('matched_learning_rates') is not None:
+             for group in opt.param_groups:group['lr']=v['matched_learning_rates'][epoch-1]
+-        if epoch!=resume_epoch:order=next_order()
++        if epoch!=resume_epoch:order=sum(paired_deck['epoch_groups'][epoch-1],[]) if paired_deck else next_order()
+         next_group=resume_group if epoch==resume_epoch else 0
+-        for offset in range(resume_group if epoch==resume_epoch else 0,len(order),v['microbatch']):
++        epoch_groups=paired_deck['epoch_groups'][epoch-1] if paired_deck else None
++        for offset in range(resume_group if epoch==resume_epoch else 0,len(epoch_groups) if paired_deck else len(order),1 if paired_deck else v['microbatch']):
+             if exposure_complete():break
+             if (out/'STOP').exists() or (root/'STOP').exists() or request:
+                 stop='requested_stop';break
+             group_began=time.time()
+-            selected=[records[i] for i in order[offset:offset+v['microbatch']]];state=None;prefix_inputs=[]
++            selected_ids=epoch_groups[offset] if paired_deck else order[offset:offset+v['microbatch']]
++            selected=[records[i] for i in selected_ids];state=None;prefix_inputs=[]
+             history_dirty=False
+             exposure_pending=[]
+             for start in range(0,max(len(r['robot']) for r in selected),32):
+@@ -1515,13 +1551,13 @@ def residual_train(root, *, smoke=False, probe=False):
+                         action,delta=model.compose(*compose_args,**compose_kwargs)
+                     loss_mask=supervised;weight_report={}
+                     if recovery:
+-                        loss_mask,early=residual_recovery_weights([recovery_masks[i] for i in order[offset:offset+len(selected)]],
++                        loss_mask,early=residual_recovery_weights([recovery_masks[i] for i in selected_ids],
+                             start,end,supervised,recovery['backend_weight'])
+                         weight_report=dict(initial_recovery_supervised_ticks=int(early.sum()),
+                             remaining_supervised_ticks=int((supervised&~early).sum()),loss_weight_mass=float(loss_mask.sum()),
+                             recovery_prefix_weight=recovery['backend_weight'],loss_weight_mass_is_exposure=False)
+                     if fresh_weighting is not None:
+-                        loss_mask,early=residual_recovery_weights([fresh_masks[i] for i in order[offset:offset+len(selected)]],
++                        loss_mask,early=residual_recovery_weights([fresh_masks[i] for i in selected_ids],
+                             start,end,supervised,fresh_weighting['backend_weight'])
+                         weight_report=dict(initial_recovery_supervised_ticks=int(early.sum()),
+                             remaining_supervised_ticks=int((supervised&~early).sum()),loss_weight_mass=float(loss_mask.sum()),
+@@ -1535,15 +1571,19 @@ def residual_train(root, *, smoke=False, probe=False):
+                     else:
+                         loss=model.objective(action,residual_aux(selected,start,end,'target',device),delta,loss_mask)
+                     if not torch.isfinite(loss):raise FloatingPointError('Nonfinite residual loss')
++                    if curves is not None and supervised.any():
++                        curves.residual_chunk(selected_ids,start,action,
++                            residual_aux(selected,start,end,'target',device),supervised)
+                     if supervised.any():
+                         if exposure_policy:
+-                            for identity,mask in zip(order[offset:offset+len(selected)],loss_mask):
++                            for identity,mask in zip(selected_ids,loss_mask):
+                                 exposure_pending.append((identity,(mask.gt(0).nonzero().flatten()+start).cpu().tolist()))
+                         if window is None:
+                             opt.zero_grad(set_to_none=True);loss.backward()
+                             norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
+                             if not torch.isfinite(norm):raise FloatingPointError('Nonfinite residual gradient')
+                             opt.step();updates+=1
++                            if curves is not None:curves.commit(epoch,updates)
+                             with (out/'loss.jsonl').open('a') as f:f.write(json.dumps(dict(update=updates,epoch=epoch,
+                                 loss=float(loss.detach()),contact_ticks=int((gate&supervised).sum()),supervised_ticks=int(supervised.sum()),
+                                 history_ticks=int(inputs['valid'].sum()),gradient_norm=float(norm),**weight_report))+'\n')
+@@ -1554,6 +1594,7 @@ def residual_train(root, *, smoke=False, probe=False):
+                         draws+=int(supervised.sum());contact_ticks+=int((gate&supervised).sum())
+                     if window is not None and window.pending and (window.ready or end==max(len(r['robot']) for r in selected)):
+                         report=window.step(model,opt);updates+=1;history_dirty=True
++                        if curves is not None:curves.commit(epoch,updates)
+                         if exposure_policy:
+                             report['effective_tick_contributions']=ledger.step(updates,exposure_pending)
+                             exposure_pending=[]
+@@ -1574,8 +1615,8 @@ def residual_train(root, *, smoke=False, probe=False):
+             # Only complete episode groups are resumable: no mid-prefix hidden
+             # state is invented, and unsupervised prefixes still advance state.
+             training_wall_s+=time.time()-group_began
+-            for identity in order[offset:offset+len(selected)]:episode_counts[identity]+=1
+-            next_group=offset+len(selected)
++            for identity in selected_ids:episode_counts[identity]+=1
++            next_group=offset+(1 if paired_deck else len(selected))
+             if matched is not None and updates>matched['updates']:raise ValueError('Matched update budget overshot')
+             if matched is not None and updates==matched['updates']:stop='registered_matched_update_boundary'
+             if resumable:save(out/'last.pt',snapshot(epoch,next_group))
+@@ -1595,11 +1636,15 @@ def residual_train(root, *, smoke=False, probe=False):
+             stop='validation_plateau_after_lr_reduction';break
+         # Minimum exposure and a fixed validation trend define bounded stopping;
+         # Whole causal episode groups are the exposure rounding unit.
+-        if not extension and draws>=v['minimum_control_tick_epochs']*population and len(history)>=4:
++        if not paired_deck and not extension and draws>=v['minimum_control_tick_epochs']*population and len(history)>=4:
+             scores=[r['selection_score'] for r in history[-4:]]
+             if (scores[0]-min(scores[1:]))/max(scores[0],1e-12)<.01:stop='validation_plateau_after_minimum_exposure';break
+         if exposure_complete():break
++    if paired_deck is not None and stop=='maximum_control_tick_exposure':
++        if epoch!=60 or next_group!=len(paired_deck['epoch_groups'][-1]) or updates!=60*paired_deck['updates_per_epoch']:
++            raise ValueError('Paired training did not complete all60 registered matched-update decks')
+     if not history or history[-1]['update']!=updates:validate(epoch)
++    if curves is not None:curves.export(updates,plot=True)
+     save(out/'last.pt',snapshot(epoch,next_group))
+     if stop=='requested_stop':raise InterruptedError('Residual saved at complete episode-group boundary; stage remains resumable')
+     if exposure_policy:
+@@ -1607,6 +1652,11 @@ def residual_train(root, *, smoke=False, probe=False):
+         selected_exposure=Ledger(ledger.legal,selected_saved['effective_exposure_state']).summary(selected_saved['episode_counts'])
+         if not selected_exposure['eligible']:raise ValueError('Selected rear fails actual exposure minimum')
+     atomic_json(out/'finished.json',dict(stop_reason=stop,updates=updates,control_tick_epochs=draws/population,
++        **(dict(paired_group_deck_sha256=paired_deck['sha256'],
++            paired_complete_epochs=epoch,matched_updates_per_epoch=paired_deck['updates_per_epoch'],
++            primary_visits={i:60*n for i,n in paired_deck['base_multiplicities'].items()},
++            extra_real_replay_visits=paired_deck['extra_replay_visits'],actual_episode_visits=episode_counts,
++            paired_decks_complete=epoch==60 and next_group==len(paired_deck['epoch_groups'][-1])) if paired_deck else {}),
+         **({'selected_effective_exposure':selected_exposure} if exposure_policy else {}),
+         **(dict(bounded_extension=extension,plateau_state=plateau.state,
+                 bounded_training_complete=bool(draws>=target_ticks or
+diff --git a/visuotactile/batch_recording.py b/visuotactile/batch_recording.py
+index f70a9d8..defbb55 100644
+--- a/visuotactile/batch_recording.py
++++ b/visuotactile/batch_recording.py
+@@ -23,3 +23,9 @@ def snapshot(value, memo=None):
+ def lane_arrays(value,lane,count):
+     if isinstance(value,dict): return {k:lane_arrays(v,lane,count) for k,v in value.items()}
+     return value[lane:lane+1] if value.ndim and value.shape[0]==count else value
++
++
++def recorded_observation(packet, *, capture):
++    """Select writer fields before CPU transfer; controllers retain the full packet."""
++    omitted = () if capture else ("image", "depth_m", "depth_valid")
++    return {k:v for k,v in packet.items() if torch.is_tensor(v) and k not in omitted}
+diff --git a/visuotactile/batched_rollout.py b/visuotactile/batched_rollout.py
+index 899ed0e..451dae9 100644
+--- a/visuotactile/batched_rollout.py
++++ b/visuotactile/batched_rollout.py
+@@ -344,7 +344,7 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
+                                 if schedule is not None:bridge.schedule_takeover(lane,schedule)
+                         else:c.observe_execution(tr)
+                         lane_transitions[lane]=tr
+-                    from .batch_recording import snapshot,lane_arrays
++                    from .batch_recording import snapshot,lane_arrays,recorded_observation
+                     # Newly attached label fields are lane-local; concatenate once.
+                     if capture:
+                         template=next(iter(lane_transitions.values()))['dagger']
+@@ -352,7 +352,7 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
+                             if i in lane_transitions else torch.zeros_like(value) for i in range(n)])
+                             for key,value in template.items()}
+                     t=time.perf_counter()
+-                    shared=snapshot(dict(obs={k:v for k,v in packet.items() if torch.is_tensor(v)},
++                    shared=snapshot(dict(obs=recorded_observation(packet,capture=capture),
+                         transition=dict(transition,**(dict(observation_after=after_packet) if capture else {})),
+                         terminated=terminated,truncated=truncated))
+                     profile['record_submit_s']+=time.perf_counter()-t
+diff --git a/visuotactile/fresh_contracts.py b/visuotactile/fresh_contracts.py
+index 3ac8243..246d642 100644
+--- a/visuotactile/fresh_contracts.py
++++ b/visuotactile/fresh_contracts.py
+@@ -2,13 +2,72 @@
+ 
+ FRESH_DATA_CONTRACT = 'fresh30_every_native_visual_v1'
+ FRESH_AGGREGATE_CONTRACT = 'fresh30_actual_takeover_aggregate_v1'
++FRESH_PAIRED_AGGREGATE_CONTRACT = 'fresh30_paired_full_and_own_takeover_aggregate_v1'
++
++
++def _paired_population(data, configuration):
++    """Admit the explicit paired pool; historical takeover-only paths stay strict.
++
++    This only verifies the already materialized population and deck. Source
++    execution, labels and masks are audited when the immutable pool is built;
++    their source/data/mask bindings are checked again by the backend loader.
++    No affine or supervision is computed here.
++    """
++    from .paired_training_decks import validate_pool, validate_deck
++    groups = configuration.get('groups')
++    if groups not in (['A'], ['B']):
++        raise ValueError('Paired normalization requires one explicit own group')
++    pool = validate_pool(data, role=groups[0])
++    validate_deck(configuration.get('paired_group_deck'), data, role=groups[0])
++    original, full, own = (pool[k] for k in ('original_ids', 'shared_full_ids', 'own_correction_ids'))
++    affine = data['normalization_train_ids']
++    aggregate = data['aggregation']
++    provenance = data.get('paired_pool_provenance', {})
++    expected_parts = dict(old_full=affine,
++        old_correction=[i for i in original if i not in set(affine)],
++        new_full=full, own_new_correction=own)
++    if (len(original) != 180 or len(full) != 24
++            or data.get('normalization_scope') != 'unchanged original30 training affine; no aggregate refit'
++            or aggregate.get('paired_pool_version') != 'paired_own_student_pool_v1'
++            or aggregate.get('original_training_ids') != original
++            or aggregate.get('shared_full_training_ids') != full
++            or aggregate.get('new_training_ids') != own
++            or data.get('pool_partitions') != expected_parts
++            or provenance.get('version') != 'paired_own_student_pool_v1'
++            or provenance.get('role') != groups[0]
++            or provenance.get('original180_ids') != original
++            or provenance.get('original30_affine_ids') != affine
++            or provenance.get('shared_full_ids') != full
++            or provenance.get('own_correction_ids') != own
++            or provenance.get('student_prefix_supervised') is not False
++            or provenance.get('heldout_trajectories_opened') != 0
++            or not provenance.get('registry_binding')
++            or provenance['registry_binding'] not in data.get('training_expansion_registries', [])):
++        raise ValueError('Paired aggregate requires its registered original180/shared24/own partitions and unchanged affine')
++    entries = data['entries']
++    speed = dict(kind='closed_loop', arm=.5, hand=1., phase='all', hand_target_cap_rad_s=2.)
++    families = {}
++    old_families = {entries[i].get('family') for i in original + data['splits']['validation']}
++    for identity in full:
++        entry = entries[identity]
++        family = entry.get('family')
++        if (entry.get('trajectory_kind') != 'full_expert_demonstration_v1'
++                or entry.get('expert_speed') != speed or entry.get('split') != 'train'
++                or not family or family in old_families or family in families
++                or type(entry.get('seed')) is not int):
++            raise ValueError('Paired shared full experts require24 new families and the original speed contract')
++        families[family] = entry['seed']
++    for identity in own:
++        entry = entries[identity]
++        if entry.get('split') != 'train' or families.get(entry.get('family')) != entry.get('seed'):
++            raise ValueError('Paired own takeovers must belong to the registered new training families')
+ 
+ 
+ def residual_normalization(data, configuration):
+     if configuration.get('fresh_data_contract') is None:
+         return 'u_expert_train166_affine_v1'
+     identity = configuration['fresh_data_contract']
+-    if identity not in (FRESH_DATA_CONTRACT, FRESH_AGGREGATE_CONTRACT):
++    if identity not in (FRESH_DATA_CONTRACT, FRESH_AGGREGATE_CONTRACT, FRESH_PAIRED_AGGREGATE_CONTRACT):
+         raise ValueError('Unknown fresh data identity')
+     splits = data['splits']
+     if (data.get('visual_stride') != 1 or len(splits['validation']) != 6 or splits.get('test')
+@@ -17,6 +76,8 @@ def residual_normalization(data, configuration):
+     if identity == FRESH_DATA_CONTRACT:
+         if len(splits['train']) != 30 or data.get('normalization_scope') != 'selected train30 only':
+             raise ValueError('Initial train30 statistics scope differs')
++    elif identity == FRESH_PAIRED_AGGREGATE_CONTRACT:
++        _paired_population(data, configuration)
+     else:
+         original=data.get('normalization_train_ids',[])
+         extra=set(splits['train'])-set(original)
+diff --git a/visuotactile/latest_takeover_sampling.py b/visuotactile/latest_takeover_sampling.py
+index f859fcf..1c43ad4 100644
+--- a/visuotactile/latest_takeover_sampling.py
++++ b/visuotactile/latest_takeover_sampling.py
+@@ -26,6 +26,19 @@ def sampling_plan(data, spec):
+     multiplicities = dict.fromkeys(identities, 1)
+     if spec is None:
+         return None, multiplicities
++    if isinstance(spec, dict) and spec.get('version') == 'paired_dagger_replay_v1':
++        from .paired_training_decks import validate_pool
++        parts = validate_pool(data)
++        if set(spec) != {'version', 'extra_replays'} or not isinstance(spec['extra_replays'], dict):
++            raise ValueError('Paired replay requires explicit per-ID extra real visits')
++        extras = spec['extra_replays']
++        if set(extras) != set(identities) or any(type(n) is not int or n < 0 for n in extras.values()):
++            raise ValueError('Paired replay extras require every own training ID and nonnegative integers')
++        full = set(data['normalization_train_ids']) | set(parts['shared_full_ids'])
++        multiplicities = {i: (3 if i in full else 1) + extras[i] for i in identities}
++        if any(n not in REPEAT_FACTORS for n in multiplicities.values()):
++            raise ValueError('Paired epoch multiplicities must remain within [1,32]')
++        return dict(version=spec['version'], extra_replays=dict(extras)), multiplicities
+     if isinstance(spec,dict) and spec.get('version')=='original_demonstration_replay_v1':
+         if set(spec)!={'version','original_repeat'} or type(spec['original_repeat']) is not int or spec['original_repeat'] not in (2,3):
+             raise ValueError('Original demonstration replay requires bounded repeat2/3')
+diff --git a/visuotactile/queued_rollout.py b/visuotactile/queued_rollout.py
+index 5dc4fe5..ced7f31 100644
+--- a/visuotactile/queued_rollout.py
++++ b/visuotactile/queued_rollout.py
+@@ -16,7 +16,7 @@ import torch
+ 
+ from .batched_rollout import (lane_metadata,finish_lane,trace_row,expert_actor_input,_PendingCapture)
+ from .batched_controller import lane_tree
+-from .batch_recording import snapshot,lane_arrays
++from .batch_recording import snapshot,lane_arrays,recorded_observation
+ from .gpu_batch_controller import MultiPolicyController,PROFILE as GPU_PROFILE
+ from .training_resources import atomic_json
+ from .recording import flatten,BufferedNumericWriter,post_observation
+@@ -327,7 +327,7 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan,*,capture_pool
+                     return torch.cat([get(controller.lanes[i]) if i in locals_ else torch.zeros_like(template) for i in range(n)])
+                 diagkeys=controller.lanes[next(iter(locals_))].residual_diagnostics
+                 diag={k:combine(lambda c:c.residual_diagnostics[k].reshape(1) if c.residual_diagnostics[k].ndim==0 else c.residual_diagnostics[k]) for k in diagkeys}
+-                shared=snapshot(dict(obs={k:v for k,v in packet.items() if torch.is_tensor(v)},
++                shared=snapshot(dict(obs=recorded_observation(packet,capture=capture),
+                     transition=dict(tr,**(dict(observation_after=post_observation(env.research_packet,terminated|truncated)) if capture else {})),
+                     terminated=terminated,truncated=truncated,controller=dict(nominal=combine(lambda c:c.nominal),
+                         delta=combine(lambda c:c.delta),residual_diagnostics=diag)))
+diff --git a/visuotactile/state_benchmark.py b/visuotactile/state_benchmark.py
+index c6030ff..6351d0f 100644
+--- a/visuotactile/state_benchmark.py
++++ b/visuotactile/state_benchmark.py
+@@ -46,10 +46,19 @@ def dagger_configuration(configuration, spec, source):
+         raise ValueError('Positive preregistered takeover tick required')
+     if configuration.get('expert_speed') != ExpertPositionBridge.speed_scheme:
+         raise ValueError('Existing validated expert speed scheme must be explicit')
+-    if spec.get('cohort') != 'dagger_train' or spec.get('split') != 'train' or 'narrow_reset' not in spec:
++    diagnostic = configuration.get('diagnostic_takeover') is True
++    if diagnostic:
++        if (spec.get('diagnostic_only') is not True or spec.get('split') != 'diagnostic_development'
++                or spec.get('cohort') != 'fresh' or 'narrow_reset' not in spec
++                or spec.get('training_expansion') is not None):
++            raise ValueError('Isolated development takeover needs explicit diagnostic scope')
++    elif spec.get('cohort') != 'dagger_train' or spec.get('split') != 'train' or 'narrow_reset' not in spec:
+         raise ValueError('DAgger requires a fresh, explicitly train-only family reset')
+     identity = spec.get('source_identity')
+-    if spec.get('training_expansion') is not None:
++    if diagnostic:
++        if not identity or not spec.get('family'):
++            raise ValueError('Diagnostic prefix and family identity required')
++    elif spec.get('training_expansion') is not None:
+         from .training_expansion import validate_expansion_spec
+         validate_expansion_spec(spec, source)
+     elif identity not in source['splits']['train']:
+diff --git a/visuotactile/training_expansion.py b/visuotactile/training_expansion.py
+index 85d581a..a21e0bd 100644
+--- a/visuotactile/training_expansion.py
++++ b/visuotactile/training_expansion.py
+@@ -67,8 +67,21 @@ def _partitions(data):
+     return aggregate_family_partitions(data)
+ 
+ 
++def configuration_for_layout(domain, seed, layout=None):
++    """Materialize requested peg spacing; metadata alone cannot move an asset."""
++    from .narrow_data import direct_configuration
++    if layout is None:
++        return direct_configuration(domain, seed)
++    from scripts.tight_layout_20261116.pilot import reset_configuration, displacement
++    distance = layout['distance_m']
++    if (layout.get('version') != 'peg_spacing_reset_v1' or layout.get('hole_unchanged') is not True
++            or layout.get('translation_xy_m') != displacement(domain, distance).tolist()):
++        raise ValueError('Reset layout and physical displacement disagree')
++    return reset_configuration(domain, seed, distance)
++
++
+ def make_registry(registry_id, domain, seeds, source_manifests, partition_manifest,
+-                  frozen_families, *, created_utc, revisit_families=()):
++                  frozen_families, *, created_utc, revisit_families=(), reset_layout=None):
+     """Build an immutable registration before any collection directory exists."""
+     from .narrow_data import direct_configuration
+     if not isinstance(registry_id, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,79}', registry_id):
+@@ -124,7 +137,7 @@ def make_registry(registry_id, domain, seeds, source_manifests, partition_manife
+     families = {}
+     for seed in seeds:
+         family = f'expanded_{registry_id}_s{seed}'
+-        reset = direct_configuration(domain, seed)
++        reset = configuration_for_layout(domain, seed, reset_layout)
+         digest = configuration_digest(reset)
+         if seed in used_seeds or digest in hashes or family in existing_families:
+             raise ValueError('New initial family duplicates an existing registered seed or physical configuration')
+@@ -140,6 +153,7 @@ def make_registry(registry_id, domain, seeds, source_manifests, partition_manife
+         families[family] = copy.deepcopy(prior_expanded[family])
+     return dict(version=REVISIT_VERSION if revisit_families else VERSION, registry_id=registry_id, created_utc=float(created_utc),
+         **(dict(revisited_training_families=list(revisit_families),new_training_family_count=len(seeds),historical_training_outcomes_used_for_revisit=True,new_attempt_outcomes_used=False) if revisit_families else {}),
++        **(dict(reset_layout=copy.deepcopy(reset_layout)) if reset_layout is not None else {}),
+         domain=copy.deepcopy(domain), domain_sha256=canonical_digest(domain), families=families,
+         source_manifests={role: dict(_file_binding(path), canonical_sha256=canonical_digest(sources[role]))
+             for role, path in source_manifests.items()},
+@@ -201,7 +215,7 @@ def read_registry(binding, source=None):
+     for family, row in registry['families'].items():
+         if family in protected or family != row['family'] or row['split'] != 'train':
+             raise ValueError('Expansion registry contains a held-out or inconsistent family')
+-        expected = direct_configuration(registry['domain'], row['seed'])
++        expected = configuration_for_layout(registry['domain'], row['seed'], registry.get('reset_layout'))
+         digest = configuration_digest(expected)
+         if expected != row['narrow_reset'] or digest != row['configuration_sha256'] or digest in seen_hashes:
+             raise ValueError('Registered new family draw or configuration identity differs')
+diff --git a/visuotactile/trajectory_training.py b/visuotactile/trajectory_training.py
+index e27a6b2..6f5a353 100644
+--- a/visuotactile/trajectory_training.py
++++ b/visuotactile/trajectory_training.py
+@@ -97,7 +97,8 @@ def reject_incompatible(root,role,*,pairing=None,io_config=None,auxiliary=None):
+ 
+ 
+ def execute_update(model,optimizer,ema,objective,identities,records,episodes,noise,*,check=lambda:None,
+-        selected_anchors=None,anchor_receipts=None,geometry_generators=None,geometry_sampling_profile=None,diagnostic_gradients=False):
++        selected_anchors=None,anchor_receipts=None,geometry_generators=None,geometry_sampling_profile=None,diagnostic_gradients=False,
++        diagnostics=None,diagnostic_epoch=0,diagnostic_update=0):
+     """Exactly one clipped AdamW/EMA transaction for one/two independent visits."""
+     import torch
+     from .trajectory_batch import supervised_trajectories,trajectory_objective
+@@ -119,7 +120,7 @@ def execute_update(model,optimizer,ema,objective,identities,records,episodes,noi
+         **(dict(geometry_generator=geometry_generators[index],sampling_profile=geometry_sampling_profile)
+         if geometry_sampling_profile is not None and objective.hand_geometry is not None else {}))
+         for index,(identity,value) in enumerate(zip(identities,values))]
+-    loss,reports,_=trajectory_objective(model,objective,values,noise,contexts)
++    loss,reports,prediction=trajectory_objective(model,objective,values,noise,contexts)
+     if not torch.isfinite(loss):raise FloatingPointError('Nonfinite B2 loss')
+     influence=None
+     if diagnostic_gradients and objective.hand_geometry is not None:
+@@ -138,6 +139,8 @@ def execute_update(model,optimizer,ema,objective,identities,records,episodes,noi
+     norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
+     if not torch.isfinite(norm):raise FloatingPointError('Nonfinite B2 gradient')
+     check();optimizer.step();ema.step(model)
++    if diagnostics is not None:
++        diagnostics.dp_training(diagnostic_epoch,diagnostic_update,identities,values,prediction,model)
+     visits=[]
+     for identity,record,report in zip(identities,records,reports):
+         parts={key:float(value.detach()) for key,value in report['parts'].items()}

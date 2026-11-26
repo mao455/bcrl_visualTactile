@@ -1,0 +1,147 @@
+{
+  "version": "dp_pipeline_feasibility05_readonly_v1",
+  "utc": 1795402146.3778236,
+  "recommendation": "Retain active frozen serial-DP/cache plus parallel-rear plan. GPU arithmetic does not rule out one DP plus cache/rear, but combined resident RAM, I/O and performance evidence do not justify live change.",
+  "source_or_live_edits": 0,
+  "new_gpu_or_physics_or_training_runs": 0,
+  "measured_process_gpu_peaks_mib_from_prior_review": {
+    "A_DP": 12470,
+    "B_DP": 14018,
+    "own_cache": 746,
+    "rear": 568,
+    "offline": 444
+  },
+  "peak_provenance_note": "Prior review process snapshots; whole-device telemetry independently re-read below; do not sum whole-device peaks as process peaks.",
+  "front_receipts": {
+    "A": {
+      "peak_cuda_allocated_mib": 11735.95947265625,
+      "peak_cuda_reserved_mib": 12036.0,
+      "hotset_resident_bytes": 4266269514,
+      "wall_seconds": 1326.066401544027,
+      "wall_scope": "A timer resets after recovery; not full A training; B includes validation/wait/I/O",
+      "stage_process_io": {
+        "minor_faults": 7667778,
+        "major_faults": 5780,
+        "read_bytes": 278358716416,
+        "rchar": 5259599507,
+        "syscr": 456217
+      }
+    },
+    "B": {
+      "peak_cuda_allocated_mib": 13057.7607421875,
+      "peak_cuda_reserved_mib": 13584.0,
+      "hotset_resident_bytes": 4266269514,
+      "wall_seconds": 12015.831147502176,
+      "wall_scope": "A timer resets after recovery; not full A training; B includes validation/wait/I/O",
+      "stage_process_io": {
+        "minor_faults": 92225671,
+        "major_faults": 127518,
+        "read_bytes": 5164232105984,
+        "rchar": 10702736314,
+        "syscr": 837910
+      }
+    }
+  },
+  "parent_cache_and_rear_windows": {
+    "A_cache": {
+      "receipt": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend/cache_complete.json",
+      "start": 1795372443.5529795,
+      "end": 1795372671.767021,
+      "wall_s": 228.21404147148132,
+      "samples": 228,
+      "whole_device_peak_used_mib": 1333.0,
+      "minimum_gpu_free_mib": 22751.0,
+      "minimum_available_ram_gib": 35.96368408203125,
+      "maximum_available_ram_gib": 36.625850677490234,
+      "monitor_rss_max_mib": 11.8125,
+      "instantaneous_util_sample_mean": 18.894736842105264
+    },
+    "A_rear": {
+      "receipt": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend/A/training/finished.json",
+      "start": 1795372675.6193612,
+      "end": 1795378473.802845,
+      "wall_s": 5798.183483839035,
+      "samples": 5796,
+      "whole_device_peak_used_mib": 1170.0,
+      "minimum_gpu_free_mib": 22914.0,
+      "minimum_available_ram_gib": 35.59365463256836,
+      "maximum_available_ram_gib": 36.89906692504883,
+      "monitor_rss_max_mib": 12.08203125,
+      "instantaneous_util_sample_mean": 28.990510697032438
+    },
+    "B_cache": {
+      "receipt": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend/cache_complete.json",
+      "start": 1795378497.129837,
+      "end": 1795378720.4526725,
+      "wall_s": 223.32283544540405,
+      "samples": 223,
+      "whole_device_peak_used_mib": 1332.0,
+      "minimum_gpu_free_mib": 22752.0,
+      "minimum_available_ram_gib": 35.598777770996094,
+      "maximum_available_ram_gib": 36.534278869628906,
+      "monitor_rss_max_mib": 12.08203125,
+      "instantaneous_util_sample_mean": 19.53811659192825
+    },
+    "B_rear": {
+      "receipt": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend/B/training/finished.json",
+      "start": 1795378724.1783938,
+      "end": 1795384556.083939,
+      "wall_s": 5831.90554523468,
+      "samples": 5830,
+      "whole_device_peak_used_mib": 1154.0,
+      "minimum_gpu_free_mib": 22930.0,
+      "minimum_available_ram_gib": 35.645530700683594,
+      "maximum_available_ram_gib": 36.95594024658203,
+      "monitor_rss_max_mib": 12.57421875,
+      "instantaneous_util_sample_mean": 28.710120068610635
+    }
+  },
+  "capacity_arithmetic": {
+    "card_mib": 24084,
+    "assumed_quiet_driver_background_mib": 600,
+    "session_reserve_mib": 4096,
+    "B_DP_plus_cache_necessary_sum_mib": 19460,
+    "B_DP_plus_rear_necessary_sum_mib": 19282,
+    "dual_DP_necessary_sum_mib": 31184,
+    "note": "Historical measured peaks plus reserve are necessary planning estimates, not simultaneous certified maxima or main-pool forecasts."
+  },
+  "nominal_cache_parent_file_bytes": {
+    "A": 416445632,
+    "B": 409315494
+  },
+  "RAM_limitations": [
+    "Available RAM is host-wide, not incremental per-worker residency.",
+    "process_rss_bytes is monitor RSS, not DP/rear RSS.",
+    "Main own-pool trajectory sizes and actual nominal caches are not yet known; existing rear runtime sizes them before admission.",
+    "mmap read-only pages may share OS page cache, CUDA hotset contexts and trainable state do not."
+  ],
+  "ideal_critical_path": {
+    "model": "Current DA+DB+CA+CB+max(RA,RB); pipelined DA+max(max(DB,CA+RA),DB+CB)+RB assuming no contention and B rear remains last",
+    "A_cache_s": 228.21404147148132,
+    "B_cache_s": 223.32283544540405,
+    "A_rear_s": 5798.183483839035,
+    "B_rear_s": 5831.90554523468,
+    "historical_B_DP_wall_s": 12015.831147502176,
+    "ideal_extra_saving_s": 228.21404147148132,
+    "interpretation": "Parent RA<RB and DB>CA+RA; A rear work is already overlapped by current parallel-rear plan. Ideal additional saving is A cache228.2s, not A rear5798s; actual mixed-work contention can reverse gain. No speedup forecast."
+  },
+  "dependency_findings": [
+    "A nominal uses only frozen selected A epoch60 DP; B DP not a semantic prerequisite.",
+    "Role-specific rear directories and cache/RNG are distinct. Cross-group residual normalization reads prebuilt B state_data statistics, not selected B DP.",
+    "Current reviewed wrapper explicitly requires both DP deployment files before either backend and registers exact serial-DP entry order; pipeline would change frozen owner/job/source SHA bindings.",
+    "Same-owner descendants would generally be attributable with existing monitor; changed unregistered owner argv would not.",
+    "Existing watcher pauses all role groups for external work but cannot reclaim resident contexts or preempt submitted CUDA.",
+    "Independent processes preserve intended local seeds/decks/targets; scheduling affects arithmetic/interleaving, no bitwise claim."
+  ],
+  "source_sha256": {
+    "outputs/diagnostics/tight_paired_dagger_20261122_01/parallel_rear_registration.json": "eb56d9d2dc5f8e15c2dc5185f480e40aa9761f421970e84f298be28162cb0683",
+    "outputs/diagnostics/tight_paired_dagger_20261122_01/parallel_rear_proposal.py": "5d314b23d935cf82672e3a1a3ba2d53d68aebe12c308fb224b47aafa7b4c944b",
+    "outputs/diagnostics/tight_paired_dagger_20261122_01/run_main_recovery05.py": "3edbb158e0845cc4f51bfee0e27e1552c79fc8455613d8e610a40036a5e9002f",
+    "outputs/diagnostics/tight_paired_dagger_20261122_01/wait_then_main_recovery05.py": "cb3e1791b693f8f60364544f4ea517457fd628bb80e25094b34bc6371b54a28e",
+    "tools/tight_fresh_backend.py": "5d1200fefe5df082056653199b11ca0090555350606b68556d194b1a4fa1727d",
+    "tools/tight_finish.py": "bd30ac9bb2441938ef8621e43f58401b52c111f15e74737a5d9ca53305c47eea",
+    "visuotactile/frozen_visual_io.py": "4a9d1fadeee3b24eeff9761a6fe7ee5acbd005100e6037a27224e2c097d77ee0",
+    "visuotactile/anchor_continue.py": "1e866c344e237b329057e70040c34c5050eabd6af06313ea7c9c6baaca99fdc2"
+  },
+  "scope": "Read-only existing small receipts/source and legacy resource JSONL, no large payload/weights, benchmark or live process mutations"
+}

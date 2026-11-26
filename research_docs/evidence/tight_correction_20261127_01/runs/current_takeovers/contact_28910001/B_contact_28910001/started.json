@@ -1,0 +1,75 @@
+{
+  "spec": {
+    "identity": "B_contact_28910001",
+    "family": "expanded_paired20261122_s28910001",
+    "source_identity": "full_s28910001_attempt00",
+    "seed": 28910001,
+    "event_seed": 29010001,
+    "split": "train",
+    "cohort": "dagger_train",
+    "collision_gate": "live_collision_mesh_bounds_v1",
+    "narrow_reset": {
+      "fixed_start_pose": [
+        -0.12437452521834932,
+        0.023922789202400405,
+        0.6329817410205845,
+        0.12001411972489,
+        0.8965090197494745,
+        -0.37329011128919976,
+        0.2062105511712231
+      ],
+      "table_reset_z": 0.3809840183338337,
+      "table_reset_z_range": 0.0,
+      "reset_dof_pos_random_interval_arm": 0.0075,
+      "reset_dof_pos_random_interval_fingers": 0.0075,
+      "reset_dof_vel_random_interval": 0.03,
+      "hole_x_range": [
+        0.042004141046511706,
+        0.042004141046511706
+      ],
+      "hole_y_range": [
+        -0.040367207791110415,
+        -0.040367207791110415
+      ]
+    },
+    "layout": {
+      "version": "peg_spacing_reset_v1",
+      "distance_m": 0.1,
+      "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+    },
+    "takeover_tick": 1000000000,
+    "reset_admission": {
+      "object_xy_m": [
+        -0.12437452521834932,
+        0.023922789202400405
+      ],
+      "hole_xy_m": [
+        0.042004141046511706,
+        -0.040367207791110415
+      ],
+      "unshifted_object_xy_m": [
+        -0.030973799361642625,
+        -0.01180261365663424
+      ],
+      "displacement_xy_m": [
+        -0.0934007258567067,
+        0.035725402859034645
+      ],
+      "tolerance_m": 1e-05,
+      "baseline_source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/cohorts.json"
+    }
+  },
+  "batch_execution": {
+    "version": "independent_lane_queue_v1",
+    "lanes": 2,
+    "vision_microbatch": 2,
+    "physics_seed": 28910001,
+    "event_seed": 29010001,
+    "native_rng": "Persistent batch event stream; native indexed reset without reseeding other lanes; no hidden-state parity claim",
+    "gpu_pipeline": "gpu_observation_history_control_v1",
+    "lane": 0,
+    "queue_ordinal": 0,
+    "global_start_tick": 0
+  },
+  "utc": 1795711869.3625278
+}

@@ -1,0 +1,65 @@
+{
+  "version": "paired_final_recovery12_source_review_v1",
+  "status": "source_only_review_passed_not_activated",
+  "observed_utc": 1795479788.800932,
+  "source_sha256": {
+    "final_recovery12_common.py": "7d2efbda7928c4fdfcad4b7d76bc7307e37faab3c7139eb5deb8c396d12738b1",
+    "extract_selected_ledgers_recovery12.py": "b43f8539903384a991563c8cc5268839ed51ff3598390c1a3d1723980b30dcea",
+    "final_report_assembler_recovery12.py": "85810a0f969ec9986ce40667500c3c1cc6a57d860e64330c921c8bda69591ed7",
+    "final_compute_recovery12.py": "ec95a90725218f997c94f24d54b4e99c5cd4c7d110fd5f07f32d7f6a639acf11",
+    "export_final_evidence_recovery12.py": "61b71131ad4b92982f6be93e973bd73e378bf7ee593f5b769171509210cc9bea",
+    "test_final_evidence_recovery12.py": "9545e553af5556b4f7f8f128057ce1c54013700371449eab484783573754c6f1"
+  },
+  "frozen_directory": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/final_tools_frozen12_v1",
+  "frozen10_v4_source_sha256": {
+    "export_final_evidence_recovery10.py": "4d3a8e326c39c0624f6b0fe98843bbb660f251d9571936871ee30c8ee51d5c2d",
+    "extract_selected_ledgers_recovery10.py": "43044874bc51ba6e6e9351071d6a56c20f6b6f34552e0a7a16674f33a71c8021",
+    "final_compute_recovery10.py": "f801d5fa9e7ac1373eb92e5057a96b0f4243339d8bc384786d4bbbd999bd946c",
+    "final_recovery10_common.py": "e6e92002f45583e5a21e5f7487be94577cdb22d98b86ea3cab3f56cb163d7227",
+    "final_report_assembler_recovery10.py": "963fff2f67a7ec4094b3811d852c4d6cd2d54c0900cf81c949dff5772ccba61a",
+    "test_final_evidence_recovery10.py": "bbbeeac5dd2006b15d53440567b5ee0a734e5780dbc5232a372b609bbc924dc2"
+  },
+  "tests": {
+    "command": [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/test_final_evidence_recovery12.py"
+    ],
+    "returncode": 0,
+    "stdout": ".........................................                                [100%]\n41 passed in 9.02s\n",
+    "stderr": "",
+    "wall_seconds": 9.91354751586914,
+    "synthetic": true,
+    "actual_outcomes_opened": false,
+    "actual_model_or_cache_payloads_opened": false
+  },
+  "independent_source_review": {
+    "agent": "/root/evidence12/review12_sources",
+    "status": "followup_passed",
+    "findings_fixed": [
+      "Bind/export bounded wave run_started and process_exit_requested lifecycle receipts",
+      "Pin/export17 inherited engine and source-fixture dependencies",
+      "Require actual watcher12 service/PID restoration closure receipt"
+    ],
+    "remaining_blockers": []
+  },
+  "runtime12_compatibility": {
+    "source_count": 11,
+    "stages": 5,
+    "exact_frozen_source_hashes_and_original_stage_commands_verified": true,
+    "scope": "Source/registration metadata only; no scientific outcome or payload inspection"
+  },
+  "runtime_activation": false,
+  "actual_binding_written": false,
+  "ledger_extraction_run": false,
+  "report_assembly_run": false,
+  "export_run": false,
+  "gpu_or_kit_started": false,
+  "notes": [
+    "Default Python test attempt had26passes/1failure because torch absent; registered isaaclab interpreter used for all successful final runs.",
+    "41synthetic tests validate metadata and source behavior, not actual scientific completion.",
+    "Actual binding/closure/export remain root-owned after runtime12 and watcher12 genuinely close."
+  ]
+}

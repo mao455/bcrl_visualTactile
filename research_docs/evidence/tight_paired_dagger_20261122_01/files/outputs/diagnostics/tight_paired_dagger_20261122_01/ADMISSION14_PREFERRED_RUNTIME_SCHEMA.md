@@ -1,0 +1,11 @@
+Preferred runtime14, already being implemented:
+- root close watcher13 now; preserve/verify WATCHER13_ACTUAL_CLOSED.json with exact restoration before prepare14.
+- unchanged native owner ROOT/owners/test_fragment13 and exact frozen job test_fragment13_job.json are reused ONCE; neither had native start/fence. This is not restarting an attempted owner.
+- new driver/project/worker module run_test_admission14, OUT driver_test_admission14, LOGS cycle_logs_admission14, stage evaluate_fragment14.
+- new exact watcher shared_capacity14, audit watch_shared_capacity14, stop ROOT/STOP_RESOURCE_WATCH14, final actual closure WATCHER14_ACTUAL_CLOSED.json. Original13 global marker preserved.
+- project14 uses native tight_project.execute(job13) with run-local entry mapping to worker14; job13 bytes remain unchanged. worker14 calls frozen13 worker/autonomy/lease/startup diagnostics with ONLY dispatch guard replaced by14 exact watcher-metadata guard. Source13 bytes stay frozen.
+- guard14 under shared schedule lock accepts base original plan/session and optionally watcher14-owned concurrency.json whose exact bytes/PID/backup/original-absence/current live identity verify; rejects all other files/dirs/symlinks/runtime artifacts. Watcher14 pause/restore and publication use same lock to avoid temporary-write races.
+- RAM residence now12GiB per root steering, GPU11264MiB, native10GiB RAM/4GiB GPU reserve and2GiB early margin unchanged. This is an explicit resource-only amendment from original16GiB, with native reserves unchanged.
+- prepare14 requires ROOT_TEST_ADMISSION14_BOUNDARY.json status actual_fragment13_failed_before_native_owner, true13failure/helperexitnonzero/driverexitPIDclosed/watch13actualclosure, native13start absent, native13fences empty, suffix onlyplan/session afterwatch13restoration.
+- review14 ROOT_TEST_ADMISSION14_REVIEW.json status source_and_actual_pre_native14_review_passed_inactive plus registration_sha256.
+- final14 evidence: truefailed13driver+zero-native13 boundary, nativeowner13 once, successful14driver, actual13+14watch closure. Do not expect or fabricate13driver closure.

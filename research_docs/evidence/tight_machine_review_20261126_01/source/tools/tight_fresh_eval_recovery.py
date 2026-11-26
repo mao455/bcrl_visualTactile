@@ -1,0 +1,149 @@
+"""Run one fresh evaluation attempt with a bounded pre-control Kit startup.
+
+The previous attempt must not have begun any case. Training is never repeated.
+"""
+import argparse
+import json
+import os
+from pathlib import Path
+import shutil
+import signal
+import subprocess
+import sys
+import time
+
+from visuotactile.compact import sha256
+from visuotactile.training_resources import atomic_json
+
+
+def stop_owned(process):
+    if process.poll() is not None:return
+    os.killpg(process.pid,signal.SIGTERM)
+    try:process.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        os.killpg(process.pid,signal.SIGKILL);process.wait(timeout=10)
+
+
+def wait_owned(process, deadline, *, startup_marker=None, startup_seconds=None,
+               progress_marker=None, progress_seconds=180, diagnostics_ready=None):
+    """Bound a process group we created, including Kit's pre-control startup."""
+    began=time.time()
+    reason=None
+    try:
+        while process.poll() is None:
+            now=time.time()
+            if now>=deadline:reason='original_session_deadline';break
+            if progress_marker is not None and progress_marker.exists() and now-progress_marker.stat().st_mtime>=progress_seconds:
+                reason='control_progress_timeout'
+                if diagnostics_ready is not None and diagnostics_ready.exists():
+                    os.kill(process.pid,signal.SIGUSR2)
+                    time.sleep(2)
+                break
+            if (startup_marker is not None and not startup_marker.exists()
+                    and now-began>=startup_seconds):
+                reason='pre_control_startup_timeout';break
+            time.sleep(min(.5,max(.001,deadline-now),
+                max(.001,startup_seconds-(now-began))
+                if startup_marker is not None and not startup_marker.exists() else .5))
+    finally:
+        if process.poll() is None:stop_owned(process)
+    return reason
+
+
+def preserve_plan(root,previous,output,source,old,session,startup_seconds):
+    """Keep non-development autonomous cases and their exact frozen worker."""
+    from tools.tight_fresh_rollouts import completed_pair
+    if startup_seconds!=180:
+        raise ValueError('Registered-plan recovery retains the 180 second startup bound')
+    cases=old.get('cases',[])
+    if (not cases or len({c['name'] for c in cases})!=len(cases)
+            or any(Path(c['name']).name!=c['name'] for c in cases)):
+        raise ValueError('Registered autonomous cases must have unique local names')
+    if (any((previous/c['name']).exists() for c in cases)
+            or list(previous.glob('*/started.json')) or (previous/'result.json').exists()
+            or ((previous/'results.json').exists() and json.loads((previous/'results.json').read_text()))):
+        raise ValueError('Registered-plan recovery requires zero started cases')
+    prior_session=json.loads((previous/'session.json').read_text())
+    if prior_session!=session:
+        raise ValueError('Registered-plan recovery cannot change the original session or deadline')
+    prior_plan_sha256=sha256(previous/'plan.json')
+    started=json.loads((previous/'run_started.json').read_text())
+    if started.get('plan_sha256')!=prior_plan_sha256:
+        raise ValueError('Previous worker did not start this exact registered plan')
+    if set(old.get('pairs',{}))!={'A','B'} or any(c['role'] not in old['pairs'] for c in cases):
+        raise ValueError('Registered plan requires complete A/B policy identities')
+    if {role:completed_pair(root,role) for role in ('A','B')}!=old['pairs']:
+        raise ValueError('Registered complete policy pairs changed')
+    hashes=old.get('source_sha256',{})
+    actual={str(p.relative_to(source)):p for folder in ('tools','visuotactile')
+        for p in (source/folder).rglob('*.py')}
+    if not hashes or set(hashes)!=set(actual):
+        raise ValueError('Frozen source file population differs from registered plan')
+    if any(sha256(actual[path])!=digest for path,digest in hashes.items()):
+        raise ValueError('Frozen source hashes differ from registered plan')
+    frozen_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=source,text=True).strip()
+    if frozen_commit!=old.get('source_commit'):
+        raise ValueError('Frozen source commit differs from registered plan')
+    owner_path=Path(__file__).resolve()
+    binding=dict(preserve_registered_plan=True,prior_plan_sha256=prior_plan_sha256,
+        prior_run_started_sha256=sha256(previous/'run_started.json'),
+        owner_script=str(owner_path),owner_script_sha256=sha256(owner_path),
+        owner_source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=owner_path.parent.parent,text=True).strip(),
+        frozen_execution_source=str(source),frozen_execution_source_commit=frozen_commit,
+        verified_source_files=len(hashes),deadline=prior_session['deadline'],startup_seconds=180)
+    output.mkdir(parents=True)
+    shutil.copyfile(previous/'plan.json',output/'plan.json')
+    shutil.copyfile(previous/'session.json',output/'session.json')
+    atomic_json(output/'recovery_plan_binding.json',binding)
+    return binding
+
+
+def run(root,previous,output,source,startup_seconds,*,preserve_registered_plan=False):
+    if output.exists():raise FileExistsError('Preserve prior evaluation identities')
+    if (previous/'initialization.json').exists() or list(previous.glob('*/result.json')):
+        raise ValueError('Recovery is only for a pre-control initialization failure')
+    old=json.loads((previous/'plan.json').read_text())
+    if old['kind']!='autonomous':raise ValueError('Only autonomous evaluation recovery')
+    session=json.loads((root/'session.json').read_text())
+    if time.time()>=session['deadline']:raise TimeoutError('Original session expired')
+    old_pid=json.loads((previous/'run_started.json').read_text())['pid']
+    if Path(f'/proc/{old_pid}').exists():raise ValueError('Previous worker must exit first')
+    python=source/'.venv_isaacsim/bin/python'
+    env=dict(os.environ,OMP_NUM_THREADS='2',MKL_NUM_THREADS='2',PYTHONFAULTHANDLER='1')
+    binding={}
+    if preserve_registered_plan:
+        binding=preserve_plan(root,previous,output,source,old,session,startup_seconds)
+    else:
+        cases=old['cases'];count=sum(c['role']=='A' for c in cases)
+        seeds=[c['spec']['seed'] for c in cases if c['role']=='A']
+        prepare=[str(python),'-m','tools.tight_fresh_rollouts','prepare','--root',str(root),
+            '--output',str(output),'--count',str(count),'--seed',str(min(seeds))]
+        subprocess.run(prepare,cwd=source,env=env,check=True,timeout=60)
+    plan=json.loads((output/'plan.json').read_text())
+    if plan['cases']!=old['cases'] or plan['pairs']!=old['pairs']:
+        raise ValueError('Recovery changed registered cases or selected complete pairs')
+    command=[str(python),'-m','tools.tight_fresh_rollouts','run','--root',str(root),'--output',str(output)]
+    began=time.time()
+    with (output/'owner_worker.log').open('x') as log:
+        process=subprocess.Popen(command,cwd=source,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+        atomic_json(output/'recovery_registration.json',dict(command=command,pid=process.pid,
+            prior=str(previous),prior_plan_sha256=sha256(previous/'plan.json'),plan_sha256=sha256(output/'plan.json'),
+            startup_seconds=startup_seconds,deadline=session['deadline'],started=began,
+            scope='One pre-control recovery, exact same cases/pairs, no new training; original failed startup remains separate',
+            **{key:value for key,value in binding.items() if key not in ('prior_plan_sha256','startup_seconds','deadline')}))
+        reason=wait_owned(process,session['deadline'],
+            startup_marker=output/'initialization.json',startup_seconds=startup_seconds)
+        complete=(output/'result.json').exists() and json.loads((output/'result.json').read_text()).get('software_complete',False)
+        atomic_json(output/'recovery_finished.json',dict(returncode=process.returncode,software_complete=complete,
+            stop_reason=reason or ('complete' if complete else 'worker_failure'),seconds=time.time()-began))
+        if not complete:raise RuntimeError('Evaluation recovery did not complete: '+str(reason or process.returncode))
+
+
+if __name__=='__main__':
+    p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True);p.add_argument('--previous',type=Path,required=True)
+    p.add_argument('--output',type=Path,required=True);p.add_argument('--source',type=Path,required=True)
+    p.add_argument('--startup-seconds',type=int,default=180)
+    p.add_argument('--preserve-registered-plan',action='store_true');a=p.parse_args()
+    if not 60<=a.startup_seconds<=600:p.error('Bounded startup of 60 to 600 seconds required')
+    run(a.root.resolve(),a.previous.resolve(),a.output.resolve(),a.source.resolve(),a.startup_seconds,
+        preserve_registered_plan=a.preserve_registered_plan)

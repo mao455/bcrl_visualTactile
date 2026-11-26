@@ -1,0 +1,112 @@
+{
+  "utc": 1795711727.57055,
+  "opportunities_per_role": 4,
+  "families": [
+    28910000,
+    28910001
+  ],
+  "profiles": {
+    "contact": {
+      "version": "adaptive_stage_recovery_v1",
+      "stage": "contact",
+      "earliest_contact_tick": 96,
+      "contact_stall_window": 36,
+      "held_window": 12,
+      "confirm_ticks": 2,
+      "transport_travel_m": 0.035,
+      "near_root_m": 0.09,
+      "alignment_window": 36,
+      "alignment_progress_m": 0.0015,
+      "keypoint_floor_m": 0.015,
+      "height_loss_m": 0.004,
+      "relative_slip_m": 0.008,
+      "minimum_elevation_m": 0.005
+    },
+    "alignment": {
+      "never_entered_only": true,
+      "version": "adaptive_stage_recovery_v1",
+      "stage": "alignment",
+      "earliest_contact_tick": 96,
+      "contact_stall_window": 36,
+      "held_window": 12,
+      "confirm_ticks": 2,
+      "transport_travel_m": 0.035,
+      "near_root_m": 0.09,
+      "alignment_window": 36,
+      "alignment_progress_m": 0.0015,
+      "keypoint_floor_m": 0.015,
+      "height_loss_m": 0.004,
+      "relative_slip_m": 0.008,
+      "minimum_elevation_m": 0.005
+    }
+  },
+  "plans": {
+    "contact_28910000": "fcc03ec85648b51d3cb356965616aaa87d7588f25f1495be496dfaffb5afe591",
+    "contact_28910001": "1163b2a25741bb3025f277e53db18bdb9f8880df90f35e2857daf22b16a6d54b",
+    "alignment_28910000": "7597eba8aef9500098d6e194cea028b4bcfdf90d4957d2b38b8892282f01b130",
+    "alignment_28910001": "a83a753515c713eeee893795785a4fd564292d568801859f80cfb985a6c2004a"
+  },
+  "pairs": {
+    "A": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/A/training/best.pt",
+      "frontend_sha256": "5b169338bf6108b8e85309a5052c66c842a652458c4c484f72c281a8a7e73b41",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/A/backend/A/training/best.pt",
+      "backend_sha256": "0531fb2ae2611823b366a81dd91caa87d7fe7371402a8aebde427d1782daa34f",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "q_reached",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "B": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/B/training/best.pt",
+      "frontend_sha256": "dd1ed3f62df3d0801497299dac0fe076d76e3b171d44842c31f31ac26ae501fb",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/B/backend/B/training/best.pt",
+      "backend_sha256": "aa3f91e9328ad92e19f862b48ea823cf9782359a6001d96859d91d1de2b17f27",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    }
+  },
+  "terminal64_used": false,
+  "successful_student_interception": "Contact screen can intercept healthy late grasps; rescues never counted as student gains",
+  "main_data_preserved": true
+}

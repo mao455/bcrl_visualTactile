@@ -18,8 +18,10 @@
 仅 Python 标准库即可离线核验哈希、转移矩阵、统计分母、166219 行训练/开发/终测逐 tick 记录及隔离小试的完整性：
 
 ```bash
-python research_docs/evidence/tight_premature_scope_20261122_01/verify_scope.py
-python research_docs/evidence/tight_entry_final24_20261122_01/verify_published.py
+python scripts/tight_premature_scope_20261122/verify_scope.py
+python scripts/tight_entry_final24_20261122/verify_published.py
 ```
 
 这些命令不运行推理、仿真或训练。重新计算 URDF/FK 和补充屏幕需要项目环境及本机原始数据；源码与源身份全部保存，不应重启已完成的实验。
+
+已确认重复的源码快照已退役；原文件身份、唯一当前路径与历史 Git blob 见 [退役源码映射](retired_source_paths.json)。旧科学数据及原 SHA 清单保持，核验入口按映射读取原 Git blob。

@@ -1,0 +1,33 @@
+{
+  "version": "fresh_random_visit_training_v1",
+  "anchors": {
+    "version": "grasp_random_legal_cover_native_entry_v2",
+    "seed": 2026111501,
+    "population": "original_legal_population_plus_exact_native_entry",
+    "replacement": false,
+    "count": "original_random_and_legal_cover_plus_native_entry_if_missing",
+    "order": "ascending_selected_ticks",
+    "horizon": 24,
+    "rng": "independent_cpu_sha256_seed_identity_epoch_visit_index",
+    "history": "one_complete_real_history_encoding_per_visit",
+    "deployment": "unchanged_5Hz_commit12",
+    "early_control_ticks": 150,
+    "early_anchor_fraction": 0.5,
+    "shortage": "fill_from_remaining_legal_population_without_replacement",
+    "coverage": "retain_grasp_v2_draw_then_greedy_first_uncovered_legal_tick_H24",
+    "entry": "include_first_legal_tick_native_commit12_anchor_each_visit",
+    "original_sampling": "unchanged_coverage_v1_including_rng"
+  },
+  "geometry": {
+    "version": "legal_tick_half_phase_v1",
+    "fraction": 0.5,
+    "max_samples": null,
+    "commit": 12,
+    "population": "unique legal identity/tick in this visit selected anchors commit12",
+    "allocation": "proportional stage population with one per nonempty stage when feasible",
+    "rounding": "ceil population/2; stage floor then largest remaining proportional deficit",
+    "reduction": "mean selected unique configurations; no additional stage weights",
+    "rng": "explicit independent CPU generator per visit; never model/diffusion RNG",
+    "labels": "recorded diagnostic phases for sampling only; never network inputs"
+  }
+}

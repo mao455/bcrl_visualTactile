@@ -3,6 +3,9 @@ import csv
 import hashlib
 import json
 from pathlib import Path
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
+from scripts.published_source import payload
 
 
 def read(path):
@@ -22,10 +25,10 @@ def yes(value):
 def main():
     root = Path(__file__).resolve().parent
     if not (root/'primary_summary.json').exists():
-        root = Path('/home/CNS2025331827/docs/bc+rl_RSS/research_docs/evidence/tight_entry_final24_20261122_01')
+        root = Path(__file__).resolve().parents[2]/'research_docs/evidence/tight_entry_final24_20261122_01'
     manifest = read(root/'published_sha256.json')
     for name,digest in manifest.items():
-        assert hashlib.sha256((root/name).read_bytes()).hexdigest()==digest, name
+        assert hashlib.sha256(payload(root,name)).hexdigest()==digest, name
     summary = read(root/'primary_summary.json')
     registration = read(root/'registration.json')
     assert summary['complete'] and summary['episodes']==96

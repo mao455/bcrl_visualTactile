@@ -1,0 +1,15 @@
+# final14 source-only preparation requirements
+
+Root-provided boundary: original13 driver failed naturally before any native fragment owner start, with `ValueError('Original suffix changed')`. The original13 owner contained preparation/scheduler metadata and empty dispatches, not native launch marks. This is input to source design, not an actual lifecycle census performed by this preparation.
+
+Preserve all frozen13 adapters and all earlier scientific/runtime sources. New14 evidence must bind actual source/registration and root boundary/review, retain failed original12 consumed whole-wave prefix, and retain failed13 driver/helper attempt without a fabricated13 native owner start/exit or successful13 driver closure. A later completed14 native suffix uses exactly the original never-launched waves; failed13 contributes zero additional student opportunities if and only if the root actual boundary and unchanged no-dispatch proof establish this.
+
+Required failure proof: root actual closed actor PID/birth identities, exact original13 activated registry/status/failure/driver-exit and evaluate-stage nonzero exit; original13 no successful driver closure; pre-native failure error and preserved original12 census. Native owner identity may be reused only if runtime14 explicitly registers and root reviews that choice. At the boundary, record zero native starts/stage logs/dispatches. After14, do not mistake a deliberately reused native owner's later14 receipts for a native13 launch.
+
+Required14 closure: real native owner and monitor/worker reaping, actual14 driver/helper closure before original deadline, exact same64 registration/plan/session/pairs/source295/noise7091, outcome-independent original12 prefix plus once-only missing suffix, no gap/retry/unknown dispatch, separate registered/attempted/terminal/software-unfinished/unexecuted counts. Current watcher restoration must use the real final watcher; earlier watcher records remain historical. Only reviewed cooperative schedule metadata may be admitted around original pristine suffix inputs, and raw schedule bytes/restoration identities must remain bound.
+
+Preserve actual epoch60 model ages and own-DP caches. Detailed selected exposure extraction remains exactly8 payloads after actual closure/root binding review; assembler/export reuse it. Pin inherited frozen13 engines/fixtures as well as earlier24 dependencies. Keep exactly two existing caches/pipeline_events.json exceptions and original file/aggregate limits. Raw stage logs remain local.
+
+Accounting includes failed13 driver activation-to-exit wall interval once, actual14 native owner once, actual14 driver/helper intervals as appropriate, failed12 native owner, and all earlier failures. No invented native13 interval or GPU-active-hours claim. Historical collection exit remains unknown. Synthetic tests must reject any prior13 native start/fence, changed/root-unreviewed boundary, unknown/duplicated suffix, failed14, wrong actor/service/restoration identity or altered original job/policy/noise/source.
+
+This document does not activate runtime, inspect actual outcomes/lifecycle, establish actual closure, or authorize export.

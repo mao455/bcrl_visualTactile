@@ -1,0 +1,162 @@
+{
+  "status": "main_run_not_blocked_packaging_completion_pending",
+  "observed_utc": 1795402051.2440848,
+  "scope": "Read-only reproducibility packaging review: git diff, bounded Python/JSON source/receipt reads and metadata. No GPU, tensor/HDF5/raw log reads, exports, source/config changes or runtime mutations.",
+  "git_baseline": "60e7b1fdd806bc31fb5e5cb2f49189018ba0d4f3",
+  "modified_production": [
+    {
+      "path": "tools/tight_fresh_backend.py",
+      "exists": true,
+      "bytes": 13109,
+      "sha256": "5d1200fefe5df082056653199b11ca0090555350606b68556d194b1a4fa1727d"
+    },
+    {
+      "path": "tools/tight_fresh_train.py",
+      "exists": true,
+      "bytes": 60277,
+      "sha256": "fcc7cb770af2f3e8c983ef806b68ff71740db5731cbdac0949ea2c0295960b59"
+    },
+    {
+      "path": "visuotactile/anchor_continue.py",
+      "exists": true,
+      "bytes": 139016,
+      "sha256": "1e866c344e237b329057e70040c34c5050eabd6af06313ea7c9c6baaca99fdc2"
+    },
+    {
+      "path": "visuotactile/latest_takeover_sampling.py",
+      "exists": true,
+      "bytes": 5990,
+      "sha256": "ebc88fccdd0e7ae3b10236b1d970f87e22c9c1d9969137c6126b9ca715c8c791"
+    },
+    {
+      "path": "visuotactile/trajectory_training.py",
+      "exists": true,
+      "bytes": 9854,
+      "sha256": "bd876edd8cd2593c763de30108bc1a0b77051422ccd22cc9bd49aed7e995ca62"
+    }
+  ],
+  "new_production": [
+    {
+      "path": "tools/tight_paired_collection.py",
+      "exists": true,
+      "bytes": 43634,
+      "sha256": "f7db6910441ad346d530566c4b084341c2629814d208baaddf55e0ead57bafec"
+    },
+    {
+      "path": "tools/tight_paired_dagger.py",
+      "exists": true,
+      "bytes": 13266,
+      "sha256": "e7e2cdaf9c2c422d4edb6e586303ee171615fa0fc30caae7ce3f1eae8d81cf20"
+    },
+    {
+      "path": "tools/tight_paired_evaluate.py",
+      "exists": true,
+      "bytes": 30323,
+      "sha256": "538e12bb71beaf7dde3fb3f83e1fd19f3bd35defa521d28c952857d6cf519717"
+    },
+    {
+      "path": "tools/tight_paired_learning.py",
+      "exists": true,
+      "bytes": 10471,
+      "sha256": "79af140c6ac3a934c3f175764305bf774c6da40fe1b308f6e815ba57dd0f1f39"
+    },
+    {
+      "path": "tools/tight_paired_pool.py",
+      "exists": true,
+      "bytes": 19442,
+      "sha256": "ac56cc0732c9bdca75d98b0e8545a6c2ba8b33703cb69544929849112e26efea"
+    },
+    {
+      "path": "tools/tight_paired_prepare.py",
+      "exists": true,
+      "bytes": 15639,
+      "sha256": "4751bf8cde0725e553c7fca29f2a52cdd5191706fefa98d9fdf9c689c2063a1a"
+    },
+    {
+      "path": "visuotactile/paired_curve_diagnostics.py",
+      "exists": true,
+      "bytes": 12058,
+      "sha256": "10c76aa0fe390265a06064cc3e86f0b8f06ce4712e8f7e255bef3aff632065ef"
+    },
+    {
+      "path": "visuotactile/paired_training_decks.py",
+      "exists": true,
+      "bytes": 14495,
+      "sha256": "b8b84a638439d9dff3e9b6b8dace3f760c33a849dbe376c61473e40adc61cd5a"
+    }
+  ],
+  "new_tests": [
+    {
+      "path": "tests/test_paired_collection.py",
+      "exists": true,
+      "bytes": 5406,
+      "sha256": "191e9ba1b6733feaee942df4c3239fa8ecb101775f7789f7c918ed57fa5e4528"
+    },
+    {
+      "path": "tests/test_paired_curve_diagnostics.py",
+      "exists": true,
+      "bytes": 6722,
+      "sha256": "153416e5d4d17ede8b307859d903c36a046b039c98be70de869345851f9cf91f"
+    },
+    {
+      "path": "tests/test_paired_evaluate.py",
+      "exists": true,
+      "bytes": 9145,
+      "sha256": "47086fed75f31ec349a78ca903e531c7342b1a9d9b716be3742348f2ff948dd2"
+    },
+    {
+      "path": "tests/test_paired_training_decks.py",
+      "exists": true,
+      "bytes": 10875,
+      "sha256": "6e1f11aebb59856c168290ae76f21bd90e5b8c0b63e7205c117e5bf16c4a5faa"
+    }
+  ],
+  "source_snapshot_check": {
+    "registered_production_files": 295,
+    "current_mismatches": [],
+    "frozen_snapshot_mismatches": [],
+    "identity_receipt": "outputs/diagnostics/tight_paired_dagger_20261122_01/source_ready_identity.json",
+    "frozen_snapshot_root": "outputs/diagnostics/tight_paired_dagger_20261122_01/frozen_source"
+  },
+  "orchestration_proposal": {
+    "path": "outputs/diagnostics/tight_paired_dagger_20261122_01/export_source_closure_proposal.json",
+    "sha256": "864fe071f8f4ae8a068c20b1b15840fa425afdf01b02f93a5880ece7fbd9eabe",
+    "audit_sources": 56,
+    "audit_source_bytes": 445903,
+    "actual_registered_binding": "wait_main_recovery05/registration.json frozen.orchestration_and_inputs_sha256; future driver_main_recovery05 registration orchestration_sha256",
+    "preserved_source_identity": "Current copied bytes and their recorded SHA are not asserted to be actual execution bytes for an older failed attempt without that attempt receipt binding."
+  },
+  "exporter_review": {
+    "exists": true,
+    "initial_source_sha256": "67261d0556c0ddb0b5c0b47f7c6af177ea8fe4c64f1a8acd59d59cb01e8e030a",
+    "implementation_in_progress": true,
+    "coordinated_with": "/root/collection_recovery",
+    "current_gaps": [
+      "Original exporter did not include outputs-local orchestration wrappers/tests; outputs/ is gitignored, so final eval production source list alone cannot reproduce the actual recovery/parallel/resource workflow. Exact56-source proposal sent.",
+      "Collection cases use name, whereas initial exporter inspected case/identity; all96 per-case receipts were silently omitted. Agent informed.",
+      "Actual paired_initial_check.json, paired_queue_assignments.json, expert_entries.json, collection_aggregate_recovery05 and interrupted census/bindings were absent from initial allowlist.",
+      "Current protected.json, source_ready_identity.json, source registrations and generated main/evaluation jobs and paired budgets/rates/decks required explicit inclusion. Initial allowlist captured only the first6 config files.",
+      "Actual evaluation summary basenames funnels.csv, paired_contrasts.csv, noise_audit.json and distinct_observed_initials.json differ from initial guessed names.",
+      "Root guard/presealed/integrity/noise receipts are actual subdirectories/files; include those exact names rather than optional guessed top-level reports."
+    ],
+    "final_acceptance": "After implementation, dry allowlist must show all exact required existing paths plus generated final configs; missing required paths must be reported, not silently ignored. No actual export until final assembler and64/256 outcome gate pass."
+  },
+  "historical_rules": [
+    "Keep original registration/config experiment.json unchanged: it records initially proposed entry parents; actual_parent_ages.json, parent_pairs.json, historical_entry50_rear60_pairs.json and parent_reconstruction_amendment.json give the final actual parents. Do not silently rewrite history.",
+    "Keep both training registries, active_training_expansion pointer and admission amendment: rejected28910012 and replacement28910024 must remain traceable.",
+    "Export protected.json and protected_historical_references.json as hash/path manifests only; leave historical130-50, entry, actual parents, original180/raw histories and encoder weights untouched. Do not replace old frozen snapshots with current production sources.",
+    "Source-ready295 identity matches current and frozen snapshot at this audit. Final evaluation source_sha256 must identify all final production files; preserve SHA receipts for actual parent/main training and orchestration.",
+    "A clean checkout of60e7b1f plus exact registered source files and outputs-local wrappers is required to reconstruct code; files archived under research_docs/evidence are source snapshots, not directly runnable in place because module paths and PROJECT parents assume the authoritative workspace layout."
+  ],
+  "payload_policy": {
+    "allow": "Bounded explicit .py/.json/.csv/.md and selected small figure files with full source-relative paths and SHA",
+    "deny": "Raw HDF5, model/statistics/RNG tensors, visual/feature/cache payloads, videos, general logs/JSONL, arbitrary source-tree recursion and symlink escape",
+    "no_payload_export_performed": true,
+    "public_reproducibility_limit": "Lightweight evidence can verify identities and results; exact local rerun still requires the retained raw data, model/encoder/expert assets, external dependencies and execution environment. Do not call it a standalone raw-data execution bundle."
+  },
+  "recommendations": [
+    "Integrate export_source_closure_proposal.json finite source/config/receipt lists and verify the real-schema case-name fixture.",
+    "Preserve original source-relative layout in manifest; document read-only checksum verification and restore into correct workspace paths without replaying completed historical jobs.",
+    "At finalization inventory exact required existing source/receipt coverage, report excluded local assets and missing future-dependent outputs explicitly, and retain all software failures/unverified states."
+  ]
+}

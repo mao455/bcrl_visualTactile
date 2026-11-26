@@ -1,0 +1,34 @@
+{
+  "status": "complete",
+  "utc": 1795341037.4257915,
+  "profile": {
+    "version": "paired_family_phase_diagnostics_v1",
+    "phase_labels": "recorded_geometry_sampling_phases_v1",
+    "training": "existing_forward_detached_legal_error_vectors",
+    "validation": "existing_evaluation_detached_legal_error_vectors",
+    "extra_model_forwards": false,
+    "affects_sampling": false,
+    "affects_selection": false
+  },
+  "activation": "atomic_json(training_root/family_phase_diagnostics.json, profile()); both parent and main roots; before training starts",
+  "hooks_applied": true,
+  "do_not_apply_patch_again": true,
+  "backend_wrapper_preserves_profile": true,
+  "tests_passed": 37,
+  "new_diagnostic_tests": 7,
+  "parity": "Actual CPU DP loss receipt/model/AdamW/EMA/denoiser-forward-count/globalRNG/explicit-noiseRNG unchanged with opt-in enabled",
+  "real_label_smoke": {
+    "new_full_ticks": 440,
+    "old_validation_ticks": 257
+  },
+  "gpu_or_kit_started": false,
+  "note": "CURVES_IMPLEMENTATION.md",
+  "sources": {
+    "visuotactile/paired_curve_diagnostics.py": "62b6d96ae887c898837a38febb2af5d8e63fcda2ca4a5d9b4a89087d643d6ccf",
+    "tools/tight_fresh_train.py": "39a5cb72f25ad938a88e09c7bab0d3f2d0f7019460cfef5cbc87c2e4bc99af65",
+    "visuotactile/trajectory_training.py": "bd876edd8cd2593c763de30108bc1a0b77051422ccd22cc9bd49aed7e995ca62",
+    "tools/tight_fresh_backend.py": "5d1200fefe5df082056653199b11ca0090555350606b68556d194b1a4fa1727d",
+    "visuotactile/anchor_continue.py": "1e866c344e237b329057e70040c34c5050eabd6af06313ea7c9c6baaca99fdc2",
+    "tests/test_paired_curve_diagnostics.py": "153416e5d4d17ede8b307859d903c36a046b039c98be70de869345851f9cf91f"
+  }
+}

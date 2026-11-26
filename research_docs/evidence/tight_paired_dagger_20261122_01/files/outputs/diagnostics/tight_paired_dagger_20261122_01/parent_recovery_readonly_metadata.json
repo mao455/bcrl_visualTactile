@@ -1,0 +1,98 @@
+{
+  "observed_utc": 1795359159.559448,
+  "checks": {
+    "checkpoint_stable_during_metadata_read": true,
+    "durable_epoch57_update6840": true,
+    "optimizer_ema_age": true,
+    "legal_ledger_age": true,
+    "entry_ledger_age": true,
+    "durable_log_sequence": true,
+    "durable_visit_count": true,
+    "visit_counts_match_saved": true,
+    "abandoned_hash": true,
+    "abandoned_exact_ids": true,
+    "discarded_not_restored": true,
+    "configuration_unchanged": true,
+    "restore_payload_complete": true
+  },
+  "passed": true,
+  "checkpoint": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/training/last.pt",
+  "epoch": 57,
+  "updates": 6840,
+  "ema_steps": 6840,
+  "durable_learning_counters": {
+    "updates": 6840,
+    "anchors_seen": 325692,
+    "target_ticks": 7431808,
+    "visits_seen": 13680
+  },
+  "current_log_last_update": 6873,
+  "effective_exposure": {
+    "version": "new_optimizer_step_legal_tick_exposure_v1",
+    "updates": 6840,
+    "trajectories": 180,
+    "legal_ticks": 35863,
+    "minimum_visits": 57,
+    "minimum_tick_steps": 57,
+    "maximum_tick_steps": 171,
+    "below50_ticks": 0,
+    "below50_trajectories": 0,
+    "quantiles": {
+      "0.0": 57.0,
+      "0.05": 57.0,
+      "0.25": 57.0,
+      "0.5": 57.0,
+      "0.75": 169.0,
+      "0.95": 171.0,
+      "1.0": 171.0
+    },
+    "eligible": true,
+    "ancestors_counted": false
+  },
+  "entry": {
+    "entries": 150,
+    "slots": 956,
+    "minimum_steps": 57
+  },
+  "native_recovery_receipts": [
+    {
+      "version": "fresh_batch_epoch_log_recovery_v1",
+      "durable_updates": 6840,
+      "completed_epochs": 57,
+      "episodes_per_epoch": 240,
+      "checkpoint_sha256": "3bc56019fd526a3ed059966ca765bd2817a75d5787f50685877ca9414ade09e2",
+      "original_log_sha256": "6494edca27020a89b9e50967ffd2492d26fc59e5be464d274605ccabb589f2d2",
+      "retained_log_sha256": "74543710fe2715914e7e1e80d77827b19c7044a857acccd032e3eb497f073354",
+      "abandoned_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/training/learning.abandoned.84f566d3467343e583c320f3c8ae7c94.jsonl",
+      "abandoned_sha256": "bece747ca253599158eeb65123b93a8a511b317c5e02af7b5fa091dfd087a340",
+      "abandoned_rows": 4,
+      "known_discarded_update_ids": [
+        6841,
+        6842,
+        6843,
+        6844
+      ],
+      "discarded_updates_in_restored_model": 0,
+      "utc": 1795359067.0661592,
+      "scope": "Abandoned rows preserve real work whose optimizer/RNG state was not checkpointed; excluded from the restored model learning dose.",
+      "full_trajectory_batch": {
+        "version": "full_trajectory_batch_v1",
+        "batch_size": 2,
+        "grouping": "adjacent_registered_deck_visits",
+        "tail_policy": "keep_singleton",
+        "loss_reduction": "mean_per_trajectory_in_actual_batch",
+        "optimizer_steps": "one_per_batch",
+        "ema_steps": "one_per_optimizer_step",
+        "learning_rate": "unchanged_no_automatic_scaling",
+        "geometry": "original_selection_per_visit",
+        "noise": "original_randn_then_randint_per_visit",
+        "history": "independent_complete_real_prefix"
+      },
+      "durable_episode_visits": 13680,
+      "optimizer_updates_per_epoch": 120
+    }
+  ],
+  "gpu_or_kit_started": false,
+  "cuda_initialized": false,
+  "limits": "Readonly CPU metadata/mmap; no optimizer replay, CUDA, model forward or current-checkpoint hash scan. Durable SHA bound by native receipt; live progress may advance after observation."
+}

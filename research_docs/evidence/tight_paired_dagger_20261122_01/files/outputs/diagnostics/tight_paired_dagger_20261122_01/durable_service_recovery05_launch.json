@@ -1,0 +1,24 @@
+{
+  "utc": 1795398774.3869214,
+  "watch_command": [
+    "systemd-run",
+    "--user",
+    "--property=Nice=10",
+    "--property=IOSchedulingClass=idle",
+    "--property=KillMode=control-group",
+    "--property=TimeoutStopSec=180",
+    "--property=RuntimeMaxSec=285796",
+    "--working-directory=/home/CNS2025331827/docs/bc+rl_RSS",
+    "--setenv=PYTHONPATH=/home/CNS2025331827/docs/bc+rl_RSS:/home/CNS2025331827/docs/bc+rl_RSS/rl_games",
+    "--setenv=RESEARCH_CPUS=8-23",
+    "--unit=tight-paired-watch-recovery05",
+    "--property=CPUAffinity=8-15",
+    "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+    "-m",
+    "outputs.diagnostics.tight_paired_dagger_20261122_01.coexistence_watch_recovery05",
+    "--audit",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/watch_service_recovery05",
+    "--apply"
+  ],
+  "finite_deadline": 1795684571.2261844
+}

@@ -1,0 +1,144 @@
+{
+  "version": "paired_rear_parallel_proposal_v1",
+  "activated": false,
+  "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning",
+  "owner": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/main_train",
+  "job": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/proposed_main_train_parallel.json",
+  "serial_job": "/home/CNS2025331827/docs/bc+rl_RSS/configs/experiments/paired_dagger_20261122/main_train.json",
+  "expected_serial_job": {
+    "version": "tight_project_job_v1",
+    "operation": "train",
+    "resource_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/main_train",
+    "stages": [
+      {
+        "entry": "paired_frontend",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning",
+          "--role",
+          "A"
+        ]
+      },
+      {
+        "entry": "paired_frontend",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning",
+          "--role",
+          "B"
+        ]
+      },
+      {
+        "entry": "paired_rear_prepare",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning",
+          "--role",
+          "A"
+        ]
+      },
+      {
+        "entry": "backend_cache",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/A/backend"
+        ]
+      },
+      {
+        "entry": "paired_rear_train",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/A/backend/A"
+        ]
+      },
+      {
+        "entry": "backend_offline",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/A/backend/A",
+          "--job",
+          "image",
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/A/backend/A/offline"
+        ]
+      },
+      {
+        "entry": "paired_rear_prepare",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning",
+          "--role",
+          "B"
+        ]
+      },
+      {
+        "entry": "backend_cache",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/B/backend"
+        ]
+      },
+      {
+        "entry": "paired_rear_train",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/B/backend/B"
+        ]
+      },
+      {
+        "entry": "backend_offline",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/B/backend/B",
+          "--job",
+          "image",
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/B/backend/B/offline"
+        ]
+      }
+    ]
+  },
+  "source_sha256": {
+    "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_paired_learning.py": "79af140c6ac3a934c3f175764305bf774c6da40fe1b308f6e815ba57dd0f1f39",
+    "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_fresh_backend.py": "5d1200fefe5df082056653199b11ca0090555350606b68556d194b1a4fa1727d",
+    "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_finish.py": "bd30ac9bb2441938ef8621e43f58401b52c111f15e74737a5d9ca53305c47eea",
+    "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_fresh_train.py": "fcc7cb770af2f3e8c983ef806b68ff71740db5731cbdac0949ea2c0295960b59",
+    "/home/CNS2025331827/docs/bc+rl_RSS/visuotactile/anchor_continue.py": "1e866c344e237b329057e70040c34c5050eabd6af06313ea7c9c6baaca99fdc2",
+    "/home/CNS2025331827/docs/bc+rl_RSS/visuotactile/state_resources.py": "a88840c5137ec4efc19f2615b33297def9d5a1bcbbc09360934840951cd88f74",
+    "/home/CNS2025331827/docs/bc+rl_RSS/visuotactile/latest_takeover_sampling.py": "ebc88fccdd0e7ae3b10236b1d970f87e22c9c1d9969137c6126b9ca715c8c791",
+    "/home/CNS2025331827/docs/bc+rl_RSS/visuotactile/paired_training_decks.py": "b8b84a638439d9dff3e9b6b8dace3f760c33a849dbe376c61473e40adc61cd5a",
+    "/home/CNS2025331827/docs/bc+rl_RSS/visuotactile/trajectory_training.py": "bd876edd8cd2593c763de30108bc1a0b77051422ccd22cc9bd49aed7e995ca62",
+    "/home/CNS2025331827/docs/bc+rl_RSS/visuotactile/paired_curve_diagnostics.py": "10c76aa0fe390265a06064cc3e86f0b8f06ce4712e8f7e255bef3aff632065ef",
+    "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_project.py": "61aff30133874fc2a4b4e7177bc061e4d449e0daf5f9dee10a94b2e3ac0a608a",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/resource_watch_v4.py": "1ad88f4ab761455cbd7031ffa8d6c24b83eef572dd5b35caeb3da56a51488f0d",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/resource_watch_parallel_proposal.py": "005ee0dbfe13c08c88e7e7ae15d8b65e0d17ec210c9399992ee6912fd5244fc7"
+  },
+  "wrapper_sha256": "5d314b23d935cf82672e3a1a3ba2d53d68aebe12c308fb224b47aafa7b4c944b",
+  "deadline": 1795684571.2261844,
+  "cpu_affinity": [
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "threads": 2,
+  "epochs": 60,
+  "deploy_epoch": 60,
+  "ram_per_worker_bytes": 6442450944,
+  "vram_per_worker_mib": 1536,
+  "min_ram_bytes": 10737418240,
+  "min_gpu_free_mib": 4096,
+  "max_telemetry_age_s": 3.0,
+  "safety_factor": 1.25,
+  "semantics": "Same complete trainers, schedules, targets, source, RNG seeds, ledgers and epoch60. Independent processes; scheduling only; no bitwise or speedup claim. DP serial because measured combined peaks exceed card. Own nominal caches run serial before either rear trainer; offline runs serial after both. Rear pair admitted before either starts; otherwise both trainers run serial. Any launched failure is terminal, never a training retry.",
+  "limitations": [
+    "Parent process_rss telemetry is monitor RSS, not trainer RSS; 6GiB/worker is a conservative admission bound, not a measured parent peak.",
+    "Current v4 exact owner argv does not recognize this caller; use proposed watcher adapter after old writer exits.",
+    "Cooperative pause retains resident memory and cannot preempt submitted CUDA; no zero-interference guarantee.",
+    "Keep actual presealed_guard --mode main before evaluation."
+  ]
+}

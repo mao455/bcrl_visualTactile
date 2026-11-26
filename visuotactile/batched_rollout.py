@@ -249,6 +249,8 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
             first_packet,initial_render_proof=render_guard.observe(env.research_packet,control_tick=0)
         env.action_control_mode='absolute_joint_position_target_rad';player.reset()
         initial=env._diagnostics();metadata=env.research_metadata();metadata['config']=env.cfg.to_dict()
+        from .paired_execution import verify_registered_layout
+        verify_registered_layout(env,cases,output)
         metadata.update(env_origins_w=env.scene.env_origins.cpu().tolist(),
             expert_model_sha256=plan['expert_sha256'],inference_scheduler_index_mode='host')
         if saved['configuration'].get('execution_adapter'):
@@ -266,6 +268,10 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
                 first_observation=initial_render_proof,state=render_guard.snapshot(),utc=time.time()))
     daggers=[];triggers=[];directories=[];recorders=[];numerics=[];writers=[]
     rows=[[] for _ in range(n)];plans=[[] for _ in range(n)];previous=[None]*n;results={}
+    observers=[]
+    if plan.get('observe_only'):
+        from .adaptive_takeover import AdaptiveTrigger,profile as adaptive_profile
+        observers=[AdaptiveTrigger(adaptive_profile('alignment',never_entered_only=True,observe_only=True),10**9) for _ in cases]
     pool=SharedCaptureWriter(max_pending_bytes=plan['batch']['writer_bytes'],
         verification_workers=plan['batch'].get('verification_workers',0),
         verification_max_pending=plan['batch'].get('verification_max_pending',4)) if capture else None
@@ -344,7 +350,7 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
                                 if schedule is not None:bridge.schedule_takeover(lane,schedule)
                         else:c.observe_execution(tr)
                         lane_transitions[lane]=tr
-                    from .batch_recording import snapshot,lane_arrays
+                    from .batch_recording import snapshot,lane_arrays,recorded_observation
                     # Newly attached label fields are lane-local; concatenate once.
                     if capture:
                         template=next(iter(lane_transitions.values()))['dagger']
@@ -352,7 +358,7 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
                             if i in lane_transitions else torch.zeros_like(value) for i in range(n)])
                             for key,value in template.items()}
                     t=time.perf_counter()
-                    shared=snapshot(dict(obs={k:v for k,v in packet.items() if torch.is_tensor(v)},
+                    shared=snapshot(dict(obs=recorded_observation(packet,capture=capture),
                         transition=dict(transition,**(dict(observation_after=after_packet) if capture else {})),
                         terminated=terminated,truncated=truncated))
                     profile['record_submit_s']+=time.perf_counter()-t
@@ -365,6 +371,8 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
                             schedule=observe_transition(triggers[lane],tick,tr)
                             if schedule is not None:bridge.schedule_takeover(lane,schedule)
                     elif pipeline is None:c.observe_execution(tr)
+                    if observers:
+                        observe_transition(observers[lane],tick,tr)
                     if tick%12==0:plans[lane].append(c.plan[0].cpu().numpy().copy())
                     rows[lane].append(trace_row(c,tr,actor[lane:lane+1],expert[lane:lane+1]))
                     numeric=dict(obs={k:v for k,v in p.items() if torch.is_tensor(v) and k not in ('image','depth_m','depth_valid')},transition=tr)
@@ -385,6 +393,7 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
                     reasons={k:bool(v[lane]) for k,v in transition['termination_reasons'].items()}
                     if reasons['max_successes'] and not bool(terminated[lane]):raise ValueError('Native success/termination mismatch')
                     if bool((terminated|truncated)[lane]):
+                        if observers:atomic_json(directories[lane]/'observe_only_trigger.json',observers[lane].receipt())
                         active[lane]=False
                         if controller.visual_frames[lane]!=len(rows[lane]):raise ValueError('Dropped per-tick camera input')
                         t=time.perf_counter()

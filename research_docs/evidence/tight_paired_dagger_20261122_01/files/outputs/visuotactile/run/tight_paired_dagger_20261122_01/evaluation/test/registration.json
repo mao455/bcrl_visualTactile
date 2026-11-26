@@ -1,0 +1,2381 @@
+{
+  "version": "tight_paired_dagger_frozen_autonomy_v1",
+  "registered_utc": 1795479322.6648555,
+  "cohort": "test",
+  "pairs": {
+    "A_new": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/A/training/best.pt",
+      "frontend_sha256": "5b169338bf6108b8e85309a5052c66c842a652458c4c484f72c281a8a7e73b41",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/A/backend/A/training/best.pt",
+      "backend_sha256": "0531fb2ae2611823b366a81dd91caa87d7fe7371402a8aebde427d1782daa34f",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "q_reached",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "B_new": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/B/training/best.pt",
+      "frontend_sha256": "dd1ed3f62df3d0801497299dac0fe076d76e3b171d44842c31f31ac26ae501fb",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/B/backend/B/training/best.pt",
+      "backend_sha256": "aa3f91e9328ad92e19f862b48ea823cf9782359a6001d96859d91d1de2b17f27",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "A_parent": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/training/best.pt",
+      "frontend_sha256": "7ea9c635716be5c723548917e1f2b30d6ea365d1357fc7ed03d91c25fed65539",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend/A/training/best.pt",
+      "backend_sha256": "bce33804d2dd137c3a70cfbbec9260ca153a9430faa79acc0af0e0aba1c3f29a",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "q_reached",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "B_parent": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/training/best.pt",
+      "frontend_sha256": "6e1f283336d92944c2c2709b0c43e4774dc42e245e2f8ff9aba10ed1ce58fb7f",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend/B/training/best.pt",
+      "backend_sha256": "42e85fa1807cf84cdac0c9430304f9c917a2355ca54ce3dc03f4009cdd700066",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    }
+  },
+  "n": 64,
+  "seeds": [
+    28912000,
+    28912001,
+    28912002,
+    28912003,
+    28912004,
+    28912005,
+    28912006,
+    28912007,
+    28912008,
+    28912009,
+    28912010,
+    28912011,
+    28912012,
+    28912013,
+    28912014,
+    28912015,
+    28912016,
+    28912017,
+    28912018,
+    28912019,
+    28912020,
+    28912021,
+    28912022,
+    28912023,
+    28912024,
+    28912025,
+    28912026,
+    28912027,
+    28912028,
+    28912029,
+    28912030,
+    28912031,
+    28912032,
+    28912033,
+    28912034,
+    28912035,
+    28912036,
+    28912037,
+    28912038,
+    28912039,
+    28912040,
+    28912041,
+    28912042,
+    28912043,
+    28912044,
+    28912045,
+    28912046,
+    28912047,
+    28912048,
+    28912049,
+    28912050,
+    28912051,
+    28912052,
+    28912053,
+    28912054,
+    28912055,
+    28912056,
+    28912057,
+    28912058,
+    28912059,
+    28912060,
+    28912061,
+    28912062,
+    28912063
+  ],
+  "specifications": [
+    {
+      "seed": 28912000,
+      "family": "paired_test_28912000",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03374080985564949,
+          -0.012867219743451104,
+          0.6321665181057782,
+          0.12625043278432915,
+          0.8951456909032759,
+          -0.3746291597279633,
+          0.20598088014845697
+        ],
+        "table_reset_z": 0.3805593636954278,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04069027131761717,
+          0.04069027131761717
+        ],
+        "hole_y_range": [
+          -0.040132343740054484,
+          -0.040132343740054484
+        ]
+      }
+    },
+    {
+      "seed": 28912001,
+      "family": "paired_test_28912001",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03328235521208534,
+          -0.010264906259250115,
+          0.6296379851895497,
+          0.12782969247100262,
+          0.8922103402882313,
+          -0.3763394517119849,
+          0.2144504733424403
+        ],
+        "table_reset_z": 0.38082804863284475,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04269712187398398,
+          0.04269712187398398
+        ],
+        "hole_y_range": [
+          -0.040856468014171456,
+          -0.040856468014171456
+        ]
+      }
+    },
+    {
+      "seed": 28912002,
+      "family": "paired_test_28912002",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.032033080643392366,
+          -0.011513586142937002,
+          0.6309865143487163,
+          0.11964211688086687,
+          0.8890313700104002,
+          -0.3902453110083447,
+          0.20740707381341353
+        ],
+        "table_reset_z": 0.38083097727716797,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04367116549683226,
+          0.04367116549683226
+        ],
+        "hole_y_range": [
+          -0.04275078750264967,
+          -0.04275078750264967
+        ]
+      }
+    },
+    {
+      "seed": 28912003,
+      "family": "paired_test_28912003",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03376148397602015,
+          -0.01278266919668786,
+          0.6303873429055596,
+          0.13469304868965112,
+          0.8926313184448699,
+          -0.3793826683294186,
+          0.2028201493034098
+        ],
+        "table_reset_z": 0.379121086827557,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04307596213641808,
+          0.04307596213641808
+        ],
+        "hole_y_range": [
+          -0.042090231228462824,
+          -0.042090231228462824
+        ]
+      }
+    },
+    {
+      "seed": 28912004,
+      "family": "paired_test_28912004",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.032264314212587714,
+          -0.012343733660262729,
+          0.6306763418545773,
+          0.12873285162216652,
+          0.8895674750218507,
+          -0.37966945476829517,
+          0.21897208826370135
+        ],
+        "table_reset_z": 0.3804849385090414,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.044446567583925345,
+          0.044446567583925345
+        ],
+        "hole_y_range": [
+          -0.04160094432078651,
+          -0.04160094432078651
+        ]
+      }
+    },
+    {
+      "seed": 28912005,
+      "family": "paired_test_28912005",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03075675229942085,
+          -0.012902734397594087,
+          0.6281479986469197,
+          0.120711185309928,
+          0.8936464849971275,
+          -0.3772855552678801,
+          0.21090398148376593
+        ],
+        "table_reset_z": 0.37958592335236596,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.042512204131909606,
+          0.042512204131909606
+        ],
+        "hole_y_range": [
+          -0.04046389586222193,
+          -0.04046389586222193
+        ]
+      }
+    },
+    {
+      "seed": 28912006,
+      "family": "paired_test_28912006",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.030446926140700152,
+          -0.012952328730273355,
+          0.6284830253902096,
+          0.11597965403504776,
+          0.8966823187429939,
+          -0.37348488738394403,
+          0.20740946946932762
+        ],
+        "table_reset_z": 0.380301248997403,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04207104647629243,
+          0.04207104647629243
+        ],
+        "hole_y_range": [
+          -0.04176398838565547,
+          -0.04176398838565547
+        ]
+      }
+    },
+    {
+      "seed": 28912007,
+      "family": "paired_test_28912007",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.033990501077029105,
+          -0.012754510041519129,
+          0.6277839185382725,
+          0.13075340184653603,
+          0.8911708564839308,
+          -0.3808379936638487,
+          0.20899900733615073
+        ],
+        "table_reset_z": 0.37944646131215354,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.039810124776968846,
+          0.039810124776968846
+        ],
+        "hole_y_range": [
+          -0.04348053981844903,
+          -0.04348053981844903
+        ]
+      }
+    },
+    {
+      "seed": 28912008,
+      "family": "paired_test_28912008",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.031564450181991596,
+          -0.012875423977468253,
+          0.6314400708615726,
+          0.12376316077260487,
+          0.8871030438580988,
+          -0.3869066073107078,
+          0.21916718928419593
+        ],
+        "table_reset_z": 0.38032847794170854,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04086004661525257,
+          0.04086004661525257
+        ],
+        "hole_y_range": [
+          -0.043563691653946364,
+          -0.043563691653946364
+        ]
+      }
+    },
+    {
+      "seed": 28912009,
+      "family": "paired_test_28912009",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03270425513876318,
+          -0.009167658986084811,
+          0.6284980064037553,
+          0.13663420011319513,
+          0.8909173687538686,
+          -0.3775576377892636,
+          0.21224438175190474
+        ],
+        "table_reset_z": 0.37984280464875236,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04324572705381122,
+          0.04324572705381122
+        ],
+        "hole_y_range": [
+          -0.03683796962877685,
+          -0.03683796962877685
+        ]
+      }
+    },
+    {
+      "seed": 28912010,
+      "family": "paired_test_28912010",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.031156506823943532,
+          -0.012990916089480607,
+          0.6303753851648813,
+          0.13457603662858597,
+          0.887961955163967,
+          -0.3821887397580368,
+          0.2175884504633384
+        ],
+        "table_reset_z": 0.3796772402694445,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04446115656799541,
+          0.04446115656799541
+        ],
+        "hole_y_range": [
+          -0.04159322431603075,
+          -0.04159322431603075
+        ]
+      }
+    },
+    {
+      "seed": 28912011,
+      "family": "paired_test_28912011",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03168064506382011,
+          -0.009176740896159725,
+          0.6325766438102808,
+          0.12190017402402513,
+          0.8940658656715517,
+          -0.38075002599098945,
+          0.20202995606567534
+        ],
+        "table_reset_z": 0.3807210783849556,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.0421381751074468,
+          0.0421381751074468
+        ],
+        "hole_y_range": [
+          -0.034801335437610936,
+          -0.034801335437610936
+        ]
+      }
+    },
+    {
+      "seed": 28912012,
+      "family": "paired_test_28912012",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03087807976005256,
+          -0.01002676803221777,
+          0.6295268288771769,
+          0.12410687560673672,
+          0.8957367254987852,
+          -0.37604933819597014,
+          0.20208960212828161
+        ],
+        "table_reset_z": 0.38047292295439467,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04142515347231857,
+          0.04142515347231857
+        ],
+        "hole_y_range": [
+          -0.03978099720078279,
+          -0.03978099720078279
+        ]
+      }
+    },
+    {
+      "seed": 28912013,
+      "family": "paired_test_28912013",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03361874663252473,
+          -0.012307197438597378,
+          0.6290809234981287,
+          0.12297262130938805,
+          0.89235822875756,
+          -0.3806478525778872,
+          0.20900202949004462
+        ],
+        "table_reset_z": 0.3798484551721667,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.03977982858256633,
+          0.03977982858256633
+        ],
+        "hole_y_range": [
+          -0.039737076529391825,
+          -0.039737076529391825
+        ]
+      }
+    },
+    {
+      "seed": 28912014,
+      "family": "paired_test_28912014",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.030908215227078092,
+          -0.010546659627592683,
+          0.6314812688058389,
+          0.13082700316391185,
+          0.8903062659227642,
+          -0.38421715606665735,
+          0.20643724255087875
+        ],
+        "table_reset_z": 0.3809826558111888,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.043168703673721914,
+          0.043168703673721914
+        ],
+        "hole_y_range": [
+          -0.03733655474695409,
+          -0.03733655474695409
+        ]
+      }
+    },
+    {
+      "seed": 28912015,
+      "family": "paired_test_28912015",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.031078190424842493,
+          -0.012480124152757678,
+          0.6306091989227858,
+          0.11351346102012344,
+          0.8925620496180926,
+          -0.38209461478730616,
+          0.210835236916102
+        ],
+        "table_reset_z": 0.38023483670252395,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.040672777876664325,
+          0.040672777876664325
+        ],
+        "hole_y_range": [
+          -0.042846545301247325,
+          -0.042846545301247325
+        ]
+      }
+    },
+    {
+      "seed": 28912016,
+      "family": "paired_test_28912016",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.034311369201444585,
+          -0.012336471287708903,
+          0.6281296444822039,
+          0.12622314655758732,
+          0.8871801754667444,
+          -0.3878751983438363,
+          0.21571275824061623
+        ],
+        "table_reset_z": 0.3791026585652255,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.037298134975935836,
+          0.037298134975935836
+        ],
+        "hole_y_range": [
+          -0.04251740342336993,
+          -0.04251740342336993
+        ]
+      }
+    },
+    {
+      "seed": 28912017,
+      "family": "paired_test_28912017",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.031109098930275005,
+          -0.010528963114998086,
+          0.6307010339650346,
+          0.1293906613847423,
+          0.8956683714592191,
+          -0.3725064576314043,
+          0.2056095186586912
+        ],
+        "table_reset_z": 0.37997163408068674,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04052321254620942,
+          0.04052321254620942
+        ],
+        "hole_y_range": [
+          -0.03724471011431421,
+          -0.03724471011431421
+        ]
+      }
+    },
+    {
+      "seed": 28912018,
+      "family": "paired_test_28912018",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.033228866894889866,
+          -0.012397558444124109,
+          0.6307315462486381,
+          0.11388912457342407,
+          0.894237335809988,
+          -0.37575892691414736,
+          0.21488181267345338
+        ],
+        "table_reset_z": 0.3790212133774726,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04090814024943906,
+          0.04090814024943906
+        ],
+        "hole_y_range": [
+          -0.041810072804637256,
+          -0.041810072804637256
+        ]
+      }
+    },
+    {
+      "seed": 28912019,
+      "family": "paired_test_28912019",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.030838835997897995,
+          -0.011418271658707011,
+          0.6285718820364881,
+          0.11498946720310152,
+          0.8898398802637935,
+          -0.3885120110489421,
+          0.20981167084153735
+        ],
+        "table_reset_z": 0.3796962892292382,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04319155011526811,
+          0.04319155011526811
+        ],
+        "hole_y_range": [
+          -0.039996321170215954,
+          -0.039996321170215954
+        ]
+      }
+    },
+    {
+      "seed": 28912020,
+      "family": "paired_test_28912020",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03336769519912526,
+          -0.01245278043040056,
+          0.6290764537854977,
+          0.11609895709326241,
+          0.8913581302370353,
+          -0.3787850149987645,
+          0.22028104380705454
+        ],
+        "table_reset_z": 0.38057823330338286,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.041325349294358285,
+          0.041325349294358285
+        ],
+        "hole_y_range": [
+          -0.04256028073044399,
+          -0.04256028073044399
+        ]
+      }
+    },
+    {
+      "seed": 28912021,
+      "family": "paired_test_28912021",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.031502786543945276,
+          -0.011115723756410852,
+          0.6288726759243739,
+          0.1252577737128179,
+          0.8965970224340103,
+          -0.37535477318649263,
+          0.19882950927676385
+        ],
+        "table_reset_z": 0.38024479090940777,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04210205712573791,
+          0.04210205712573791
+        ],
+        "hole_y_range": [
+          -0.04216069439512274,
+          -0.04216069439512274
+        ]
+      }
+    },
+    {
+      "seed": 28912022,
+      "family": "paired_test_28912022",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03385249855110166,
+          -0.011438407720874264,
+          0.6324357909630254,
+          0.12092403354522137,
+          0.892370154035288,
+          -0.3759499706480336,
+          0.21843675490649436
+        ],
+        "table_reset_z": 0.38050681990560903,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04076019056011124,
+          0.04076019056011124
+        ],
+        "hole_y_range": [
+          -0.03871917527642024,
+          -0.03871917527642024
+        ]
+      }
+    },
+    {
+      "seed": 28912023,
+      "family": "paired_test_28912023",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03200123174850526,
+          -0.009758949793582022,
+          0.6314898698224414,
+          0.11353612608287125,
+          0.8940391527744859,
+          -0.3773631308092109,
+          0.2130744445314613
+        ],
+        "table_reset_z": 0.3796635020860044,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04305541151385754,
+          0.04305541151385754
+        ],
+        "hole_y_range": [
+          -0.039249301245285015,
+          -0.039249301245285015
+        ]
+      }
+    },
+    {
+      "seed": 28912024,
+      "family": "paired_test_28912024",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03392025578676098,
+          -0.009784068731726936,
+          0.6300978676643526,
+          0.11722300802138565,
+          0.8894663546339665,
+          -0.38328230287621495,
+          0.21955217305377117
+        ],
+        "table_reset_z": 0.38062790970791743,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.0372179166212765,
+          0.0372179166212765
+        ],
+        "hole_y_range": [
+          -0.036204242499830064,
+          -0.036204242499830064
+        ]
+      }
+    },
+    {
+      "seed": 28912025,
+      "family": "paired_test_28912025",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.030869183196337215,
+          -0.012439578119771113,
+          0.6275025455773725,
+          0.1284582084691195,
+          0.8914231207445947,
+          -0.37927801900574304,
+          0.2121593806648614
+        ],
+        "table_reset_z": 0.37902749495327637,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04524714481694589,
+          0.04524714481694589
+        ],
+        "hole_y_range": [
+          -0.038811443025935304,
+          -0.038811443025935304
+        ]
+      }
+    },
+    {
+      "seed": 28912026,
+      "family": "paired_test_28912026",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.030857662748013222,
+          -0.009448711710482092,
+          0.6295888871637567,
+          0.1267968551686311,
+          0.8921435521939887,
+          -0.38190627797043947,
+          0.20530500400854607
+        ],
+        "table_reset_z": 0.3792495371540478,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.043118840696672746,
+          0.043118840696672746
+        ],
+        "hole_y_range": [
+          -0.03496195156642211,
+          -0.03496195156642211
+        ]
+      }
+    },
+    {
+      "seed": 28912027,
+      "family": "paired_test_28912027",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.032737307070673224,
+          -0.011088394354881816,
+          0.6288633711907042,
+          0.12229034173719557,
+          0.8948078345626469,
+          -0.377030970981441,
+          0.2054550278529221
+        ],
+        "table_reset_z": 0.3803983336566622,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04066982810158805,
+          0.04066982810158805
+        ],
+        "hole_y_range": [
+          -0.0418166828874907,
+          -0.0418166828874907
+        ]
+      }
+    },
+    {
+      "seed": 28912028,
+      "family": "paired_test_28912028",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.030835097789609262,
+          -0.010446069577854175,
+          0.630009179491971,
+          0.12757603782345767,
+          0.8902096805279168,
+          -0.3780160792254095,
+          0.21989777884473338
+        ],
+        "table_reset_z": 0.38013824567196264,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04429918286174006,
+          0.04429918286174006
+        ],
+        "hole_y_range": [
+          -0.04064062399743442,
+          -0.04064062399743442
+        ]
+      }
+    },
+    {
+      "seed": 28912029,
+      "family": "paired_test_28912029",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.0340904011678393,
+          -0.012284871251901343,
+          0.6303729773961779,
+          0.12499592708842304,
+          0.8923963283900637,
+          -0.38220413949267684,
+          0.20475574978019143
+        ],
+        "table_reset_z": 0.3798601744721975,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.037648237214773235,
+          0.037648237214773235
+        ],
+        "hole_y_range": [
+          -0.04125011173990559,
+          -0.04125011173990559
+        ]
+      }
+    },
+    {
+      "seed": 28912030,
+      "family": "paired_test_28912030",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03226817865771968,
+          -0.012915709316478473,
+          0.6286503592385821,
+          0.11852829310756575,
+          0.8909037581595415,
+          -0.38101493388477775,
+          0.2169545289067209
+        ],
+        "table_reset_z": 0.37945816721439984,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04328152694417335,
+          0.04328152694417335
+        ],
+        "hole_y_range": [
+          -0.038549423366556285,
+          -0.038549423366556285
+        ]
+      }
+    },
+    {
+      "seed": 28912031,
+      "family": "paired_test_28912031",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.030795213346171822,
+          -0.011982515815233817,
+          0.6323752446598834,
+          0.1159782543053534,
+          0.8914257413425467,
+          -0.3870024456831929,
+          0.20527642159183296
+        ],
+        "table_reset_z": 0.3807011420678585,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.041264132768738394,
+          0.041264132768738394
+        ],
+        "hole_y_range": [
+          -0.04040677204190766,
+          -0.04040677204190766
+        ]
+      }
+    },
+    {
+      "seed": 28912032,
+      "family": "paired_test_28912032",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.031124792738036564,
+          -0.010839642010847998,
+          0.63146757217329,
+          0.12478359658746307,
+          0.8893835302914549,
+          -0.38654362740851195,
+          0.20978590087282323
+        ],
+        "table_reset_z": 0.3801489009230033,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04110558964480038,
+          0.04110558964480038
+        ],
+        "hole_y_range": [
+          -0.03941210879372552,
+          -0.03941210879372552
+        ]
+      }
+    },
+    {
+      "seed": 28912033,
+      "family": "paired_test_28912033",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.030936765280629996,
+          -0.01000651419750735,
+          0.6310062899084012,
+          0.11723143768183304,
+          0.8908567249653011,
+          -0.388738589632328,
+          0.20374863081739544
+        ],
+        "table_reset_z": 0.3805495104684782,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04219983622412317,
+          0.04219983622412317
+        ],
+        "hole_y_range": [
+          -0.039471184234669596,
+          -0.039471184234669596
+        ]
+      }
+    },
+    {
+      "seed": 28912034,
+      "family": "paired_test_28912034",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.032444222556179694,
+          -0.009243027211651898,
+          0.6299046170700879,
+          0.11440251828879208,
+          0.8908680850041362,
+          -0.38181781494576095,
+          0.2179022375893302
+        ],
+        "table_reset_z": 0.38075132060388933,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.038609395404171146,
+          0.038609395404171146
+        ],
+        "hole_y_range": [
+          -0.04033640526796294,
+          -0.04033640526796294
+        ]
+      }
+    },
+    {
+      "seed": 28912035,
+      "family": "paired_test_28912035",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03092654431407413,
+          -0.010906246186616323,
+          0.6317850350100099,
+          0.11511763903103601,
+          0.8925375288664783,
+          -0.3856108619811838,
+          0.20354130268109097
+        ],
+        "table_reset_z": 0.38078632646455934,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04304880853251376,
+          0.04304880853251376
+        ],
+        "hole_y_range": [
+          -0.041834426014106654,
+          -0.041834426014106654
+        ]
+      }
+    },
+    {
+      "seed": 28912036,
+      "family": "paired_test_28912036",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03305377296988653,
+          -0.01282191536977963,
+          0.6307875370641814,
+          0.11347886687922255,
+          0.8913707501561747,
+          -0.3812091281715859,
+          0.2173946714218908
+        ],
+        "table_reset_z": 0.37998753104541305,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.03967282456237525,
+          0.03967282456237525
+        ],
+        "hole_y_range": [
+          -0.04026486677222609,
+          -0.04026486677222609
+        ]
+      }
+    },
+    {
+      "seed": 28912037,
+      "family": "paired_test_28912037",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.033102070103154045,
+          -0.012794777139022152,
+          0.6284439381055738,
+          0.12282076304208238,
+          0.8937569125352757,
+          -0.38219650736261684,
+          0.2000989286506451
+        ],
+        "table_reset_z": 0.37906295195439815,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04238837489052464,
+          0.04238837489052464
+        ],
+        "hole_y_range": [
+          -0.039026270464659035,
+          -0.039026270464659035
+        ]
+      }
+    },
+    {
+      "seed": 28912038,
+      "family": "paired_test_28912038",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03162483901870114,
+          -0.009615346194045915,
+          0.6293319512382126,
+          0.11671837557089754,
+          0.8928707566591089,
+          -0.37861407628597993,
+          0.21403299738905163
+        ],
+        "table_reset_z": 0.37949114181802834,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04353235911910473,
+          0.04353235911910473
+        ],
+        "hole_y_range": [
+          -0.03886989436378521,
+          -0.03886989436378521
+        ]
+      }
+    },
+    {
+      "seed": 28912039,
+      "family": "paired_test_28912039",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03211018666188561,
+          -0.011430245224426882,
+          0.6297465565154644,
+          0.13147302556545995,
+          0.887592617095782,
+          -0.3839300701972075,
+          0.2179265950962347
+        ],
+        "table_reset_z": 0.37942367306189906,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.042196894164782346,
+          0.042196894164782346
+        ],
+        "hole_y_range": [
+          -0.03882768283975979,
+          -0.03882768283975979
+        ]
+      }
+    },
+    {
+      "seed": 28912040,
+      "family": "paired_test_28912040",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03419643610309226,
+          -0.009841415309044439,
+          0.6285940048348768,
+          0.12575395736542117,
+          0.8864430822602307,
+          -0.3881426369901967,
+          0.2185177509868721
+        ],
+        "table_reset_z": 0.37915703077635166,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04222402045627079,
+          0.04222402045627079
+        ],
+        "hole_y_range": [
+          -0.037900518767009644,
+          -0.037900518767009644
+        ]
+      }
+    },
+    {
+      "seed": 28912041,
+      "family": "paired_test_28912041",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03044396258419144,
+          -0.009848798262305789,
+          0.6322074985681281,
+          0.12841806839426398,
+          0.8912202323664999,
+          -0.38090668283032353,
+          0.21010831999669552
+        ],
+        "table_reset_z": 0.3808233583148785,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04622592999064394,
+          0.04622592999064394
+        ],
+        "hole_y_range": [
+          -0.03542269278235185,
+          -0.03542269278235185
+        ]
+      }
+    },
+    {
+      "seed": 28912042,
+      "family": "paired_test_28912042",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03163359794112504,
+          -0.01019809204481879,
+          0.629813860880613,
+          0.11873805370835275,
+          0.8873564068809445,
+          -0.39032985293735106,
+          0.21480828126714355
+        ],
+        "table_reset_z": 0.3799615945891493,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.040464460096366825,
+          0.040464460096366825
+        ],
+        "hole_y_range": [
+          -0.03808958956790237,
+          -0.03808958956790237
+        ]
+      }
+    },
+    {
+      "seed": 28912043,
+      "family": "paired_test_28912043",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03056004867164744,
+          -0.010664802925569386,
+          0.6308841532895596,
+          0.11805352511225459,
+          0.8956272456935488,
+          -0.37569059564877033,
+          0.2068136560945058
+        ],
+        "table_reset_z": 0.37901969271625474,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04471864471572429,
+          0.04471864471572429
+        ],
+        "hole_y_range": [
+          -0.03637161987512477,
+          -0.03637161987512477
+        ]
+      }
+    },
+    {
+      "seed": 28912044,
+      "family": "paired_test_28912044",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.033132343543674746,
+          -0.010338056783242695,
+          0.6299785107287307,
+          0.12864165214156315,
+          0.893590239350436,
+          -0.37693911141311637,
+          0.20703822300521307
+        ],
+        "table_reset_z": 0.37922153301224765,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.040979209638602763,
+          0.040979209638602763
+        ],
+        "hole_y_range": [
+          -0.038230031816227666,
+          -0.038230031816227666
+        ]
+      }
+    },
+    {
+      "seed": 28912045,
+      "family": "paired_test_28912045",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03301615427650214,
+          -0.009284093029870523,
+          0.6300219485569412,
+          0.11655048870419671,
+          0.8942874287545538,
+          -0.3804337309991704,
+          0.2047834580687105
+        ],
+        "table_reset_z": 0.3809549853678149,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.0412168365479108,
+          0.0412168365479108
+        ],
+        "hole_y_range": [
+          -0.03782802901946462,
+          -0.03782802901946462
+        ]
+      }
+    },
+    {
+      "seed": 28912046,
+      "family": "paired_test_28912046",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03329877875312055,
+          -0.01047327679638179,
+          0.627468794213932,
+          0.1269291970880193,
+          0.8945132681807275,
+          -0.3695083150209918,
+          0.21725263434931863
+        ],
+        "table_reset_z": 0.37933400690596497,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04121739500159609,
+          0.04121739500159609
+        ],
+        "hole_y_range": [
+          -0.03804048858662134,
+          -0.03804048858662134
+        ]
+      }
+    },
+    {
+      "seed": 28912047,
+      "family": "paired_test_28912047",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.032333576074294816,
+          -0.011972894361931058,
+          0.6289012545686239,
+          0.13635808543274644,
+          0.889999017963578,
+          -0.38062853851061457,
+          0.21078483403319737
+        ],
+        "table_reset_z": 0.38065255111078183,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04047593126111778,
+          0.04047593126111778
+        ],
+        "hole_y_range": [
+          -0.03948003099737083,
+          -0.03948003099737083
+        ]
+      }
+    },
+    {
+      "seed": 28912048,
+      "family": "paired_test_28912048",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03406442297766613,
+          -0.009821903885168822,
+          0.6315871866346565,
+          0.12562200691772196,
+          0.892073905478449,
+          -0.382912611337293,
+          0.20445366381503854
+        ],
+        "table_reset_z": 0.38037738461226217,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.03805730724398105,
+          0.03805730724398105
+        ],
+        "hole_y_range": [
+          -0.04095075996601465,
+          -0.04095075996601465
+        ]
+      }
+    },
+    {
+      "seed": 28912049,
+      "family": "paired_test_28912049",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03424657122724839,
+          -0.009493083191512004,
+          0.6318866924038367,
+          0.117240464044192,
+          0.896226951778877,
+          -0.378102026975204,
+          0.20017715084203164
+        ],
+        "table_reset_z": 0.3806519815461369,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.038008188985216296,
+          0.038008188985216296
+        ],
+        "hole_y_range": [
+          -0.038433127171808926,
+          -0.038433127171808926
+        ]
+      }
+    },
+    {
+      "seed": 28912050,
+      "family": "paired_test_28912050",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03114273543940344,
+          -0.012181935356822085,
+          0.6293806148064168,
+          0.125630176014738,
+          0.8926447320752446,
+          -0.3818699009998719,
+          0.20390666960478532
+        ],
+        "table_reset_z": 0.37972092993707307,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.040831113512213496,
+          0.040831113512213496
+        ],
+        "hole_y_range": [
+          -0.03841368958761826,
+          -0.03841368958761826
+        ]
+      }
+    },
+    {
+      "seed": 28912051,
+      "family": "paired_test_28912051",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03237102595996402,
+          -0.010121526302765032,
+          0.6302761377689525,
+          0.1293928693350459,
+          0.8891610993845592,
+          -0.3833200382868887,
+          0.21381272876134003
+        ],
+        "table_reset_z": 0.3794164439170685,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04067711412779204,
+          0.04067711412779204
+        ],
+        "hole_y_range": [
+          -0.03943143920299362,
+          -0.03943143920299362
+        ]
+      }
+    },
+    {
+      "seed": 28912052,
+      "family": "paired_test_28912052",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03223282656576517,
+          -0.010128857291000543,
+          0.6320311934218055,
+          0.11354348911254303,
+          0.8915452997183735,
+          -0.3842345801656478,
+          0.211231512945631
+        ],
+        "table_reset_z": 0.3806214992284372,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04111749232234931,
+          0.04111749232234931
+        ],
+        "hole_y_range": [
+          -0.04109798757273377,
+          -0.04109798757273377
+        ]
+      }
+    },
+    {
+      "seed": 28912053,
+      "family": "paired_test_28912053",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03283338634962239,
+          -0.011498258699187525,
+          0.6308158457680453,
+          0.1214335376565933,
+          0.8885446241867384,
+          -0.3820559434712083,
+          0.22310471273714538
+        ],
+        "table_reset_z": 0.38053384621708797,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.040798437059333864,
+          0.040798437059333864
+        ],
+        "hole_y_range": [
+          -0.036801370052383195,
+          -0.036801370052383195
+        ]
+      }
+    },
+    {
+      "seed": 28912054,
+      "family": "paired_test_28912054",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03158950000392606,
+          -0.011651594425205544,
+          0.6286793420051597,
+          0.11322786550572729,
+          0.8904687114395995,
+          -0.385556886600296,
+          0.21352030732777952
+        ],
+        "table_reset_z": 0.3800965799893341,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.039724469505869636,
+          0.039724469505869636
+        ],
+        "hole_y_range": [
+          -0.04279124659899579,
+          -0.04279124659899579
+        ]
+      }
+    },
+    {
+      "seed": 28912055,
+      "family": "paired_test_28912055",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.030415014079810045,
+          -0.010499598334241005,
+          0.630946265078809,
+          0.12467042238201265,
+          0.8881826801875017,
+          -0.38585246865763756,
+          0.21611754869743963
+        ],
+        "table_reset_z": 0.38022841712629407,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04270623298334394,
+          0.04270623298334394
+        ],
+        "hole_y_range": [
+          -0.03697073964678077,
+          -0.03697073964678077
+        ]
+      }
+    },
+    {
+      "seed": 28912056,
+      "family": "paired_test_28912056",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.032925888485863745,
+          -0.01214649346234477,
+          0.6307531661201597,
+          0.12428862704275083,
+          0.887330605897774,
+          -0.3850588095497264,
+          0.2211934814573234
+        ],
+        "table_reset_z": 0.3790114293527244,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04308786192662096,
+          0.04308786192662096
+        ],
+        "hole_y_range": [
+          -0.03840147500083051,
+          -0.03840147500083051
+        ]
+      }
+    },
+    {
+      "seed": 28912057,
+      "family": "paired_test_28912057",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03289125571959178,
+          -0.009101942685296368,
+          0.630650855553319,
+          0.13425665912916243,
+          0.8940453538011037,
+          -0.37585553952960205,
+          0.20344723703504364
+        ],
+        "table_reset_z": 0.38046768714298845,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04023961228673288,
+          0.04023961228673288
+        ],
+        "hole_y_range": [
+          -0.03558295983860901,
+          -0.03558295983860901
+        ]
+      }
+    },
+    {
+      "seed": 28912058,
+      "family": "paired_test_28912058",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03333875814860594,
+          -0.012160523758874761,
+          0.6317430949692164,
+          0.12380307033788991,
+          0.887091890649606,
+          -0.3924995917853328,
+          0.20900946819010982
+        ],
+        "table_reset_z": 0.3805515192317316,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.03979342891909057,
+          0.03979342891909057
+        ],
+        "hole_y_range": [
+          -0.04149512713171887,
+          -0.04149512713171887
+        ]
+      }
+    },
+    {
+      "seed": 28912059,
+      "family": "paired_test_28912059",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.031276284517480074,
+          -0.009780523281139432,
+          0.6283488683410249,
+          0.13047331346940913,
+          0.8949404980794168,
+          -0.37492436935982576,
+          0.20369105688753805
+        ],
+        "table_reset_z": 0.3802377474628282,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04268472264929249,
+          0.04268472264929249
+        ],
+        "hole_y_range": [
+          -0.04052500310917118,
+          -0.04052500310917118
+        ]
+      }
+    },
+    {
+      "seed": 28912060,
+      "family": "paired_test_28912060",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03227539684856806,
+          -0.012007877851889502,
+          0.6298157490112659,
+          0.11642642802733356,
+          0.8917168491055885,
+          -0.3782390998023234,
+          0.21959335437319552
+        ],
+        "table_reset_z": 0.37984886245671584,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04340041637800374,
+          0.04340041637800374
+        ],
+        "hole_y_range": [
+          -0.04100248756079777,
+          -0.04100248756079777
+        ]
+      }
+    },
+    {
+      "seed": 28912061,
+      "family": "paired_test_28912061",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03173566798595098,
+          -0.010464609162673019,
+          0.6287381652147284,
+          0.12217880317011132,
+          0.8969852544957205,
+          -0.3729503898790051,
+          0.20346476350565285
+        ],
+        "table_reset_z": 0.38066030147964663,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.040801105916328725,
+          0.040801105916328725
+        ],
+        "hole_y_range": [
+          -0.03819699719530844,
+          -0.03819699719530844
+        ]
+      }
+    },
+    {
+      "seed": 28912062,
+      "family": "paired_test_28912062",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03408619558501133,
+          -0.011263825354538565,
+          0.6310789537951906,
+          0.11750534056490002,
+          0.8954694067514677,
+          -0.3796233632960634,
+          0.20053241278365175
+        ],
+        "table_reset_z": 0.3798950297694414,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.037080795599393535,
+          0.037080795599393535
+        ],
+        "hole_y_range": [
+          -0.03687584544069874,
+          -0.03687584544069874
+        ]
+      }
+    },
+    {
+      "seed": 28912063,
+      "family": "paired_test_28912063",
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.03166621970240184,
+          -0.010648565469526793,
+          0.6313608033733664,
+          0.12937155602565023,
+          0.8910961721140793,
+          -0.3743808813158666,
+          0.22147161955076436
+        ],
+        "table_reset_z": 0.3800570668996668,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04398906886124444,
+          0.04398906886124444
+        ],
+        "hole_y_range": [
+          -0.03888672217088646,
+          -0.03888672217088646
+        ]
+      }
+    }
+  ],
+  "wave_plan_sha256": {
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave00": "87034c92722a44767ec5904656a06e8e25edf773caf9f4e26ed1ba57699e93df",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave01": "da0f01ed5ef1dd840535c7069ad1214088c70cae605e42913d1a29f96acc4e6f",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave02": "fc6e4ca7304a89266ce369eaad0e73fb0306369b7cf10f752e6870b816fd8a4b",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave03": "5c94a365d64b3b5c317e15a71a96d6776eeef2d3f8b01ba9c3a1a0ea11ab289e",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave04": "8c73acacc3d2018f195db923f5fdd4c4017bbeb6d1d8b3e0ea060b67a2c206c4",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave05": "c9a9350b8efba9d502a6ecdc2bf760990bbddea1c160e6c343d68a531c1c04d1",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave06": "827ca3e24cd563370a1fd9b42e77b1cf11ae1b805517106c8b24547be61cb5e7",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave07": "a6eb66bd210ccf5b1567132a554d6d9fbfbff9273881372cee1d7a1dae8d4f31",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave08": "de81156a765c8939dea70a0d59ed3c2fad0a5b6a21c40415c3bd944f882c73f9",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave09": "daada545d9d2a75fed450d0c96607823456277cd500eff39e3fd7e176c40494c",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave10": "dfc969b88aeb968b634462708df2199e8a93a07c50f96796b95dfe4caf302576",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave11": "25101e79cd29506f2f7794fc007b965adee3237143e968078dd1f1808fd844ad",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave12": "347e11a6f841b30f115b0ba69c515bce4b79efc463325e3bf45e973fde2942eb",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave13": "b33fc43dcee91e453f5bf752bf17694fbe229f3f988c06ee789282fce1948c87",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave14": "5d57f9ba66e13ec18c6a185bb6033d5e6dd8c83cbc4d63470c8a20c9991a0afb",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave15": "01f75cf0e587e8102301f2f56527be510d2afb7b1c50f7f72a7c557bdd9a931e",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave16": "0419df22d97759083767482f59a5487cf7ae5e6a1a899101a2237d04034e0d83",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave17": "bd207b4641372c12b284930318cf1677fb115969bda13fd36adddea12c2fd7da",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave18": "6325f5f2a196cc994536000ae09843b91cd52cef3b746a27036c3f1a2b48f4e9",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave19": "8ed8ff33c4698cc3b40ce15b7a68c77f72d7cab34028fa6a4f5258d2891d5916",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave20": "77ca7f960a238f1fcd7f27f5e2ac5cbc7998c3448801024e4be0dc85e5a75ed1",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave21": "017a3b48e72db8d36b4d94f759719033268ae469b3f84d42033a267c93d9c693",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave22": "22d4e8be30c26827c56ff272446565596f8d475a6a6fc6ab5279a1628fa9a62d",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave23": "1b2e69bbd25d6afef386f73a1f44f42c9d12af74190b5998e3564a450edd3da3",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave24": "a1967951e21e67246e6aefab2669dda39db4696d158b7e40cdc545af1b57bc0c",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave25": "fa45d7c085b932129574560174cfd9d56badb16e24f921892edfcb500cbbdfe8",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave26": "ca5ad7c19f702b38efce56e5c186a559ae3b528aeaa61028d99be6699e570345",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave27": "87f7e47e8aea27ddb4c0540cc65bd23ac458ea19565401f9c68bc57541e35e21",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave28": "8f480fe2c408e0f0596ea62612f54f652fc7c4c048dce4273579186e8c083126",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave29": "6b1927ad12107dbbbf6ae69f9bfb7dd6d632f61561f7808e6080ed4e5b07d5ac",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave30": "b2a4ed2b7863fb0a98194f5e1a423be41a4427c1b24ad6ebed9a6e9018cbed07",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave31": "3b7855dbc19408357752551dd11c958707db6f959c1dbabc564585e6bf0c3617",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave32": "431618db27174db5611c903ac0b31af0d6e4995b3b6c0ff2c3a92a93fe716448",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave33": "fe847d311a7f52a46faa2ba71cd07f300c307eb457fda8999eebe0fee86ce4cb",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave34": "80f12e098b632547e6865f8a63eb126534ce206d575912b69ac65a4558f73956",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave35": "6c7a0738ca4092a2fa819a3a68d949674e33fce1e3d5c634cb23663e48b5d74f",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave36": "5d013c3781e0b6ea7f7dfa77efe912fa27aa54ccf2866d44081fb70a54b3cbaa",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave37": "348dda7376c865d2e68136e02173344bb355d9251afc70ffe577a8e8eaa43efc",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave38": "2e4b005a70b890f40f207339035284e4c66c334a2da635bbe0443f88d35655de",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave39": "71ea682d5f9d1989eae736f376e4e706bf0ea6faa8097add1e403cc217b60a18",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave40": "8bdd279fc479278eb6919df36215cca5b2159f9da66f1fed2c23387e18d4ced5",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave41": "ef4965a7b52207a43e343ece3f1584e1a10f434d826cf99cf95c6be826a4c37f",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave42": "98555647ed67b07c3a746ce20cca11ee1df8201604e1216408ab91b59c0b7a0e",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave43": "3f347a9863981eff942ca81df9cdb14c743760c186e5eaece8aa2c76c7b8799e",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave44": "a90c04332e589be2dfa0c81bb9f360736adc9a6cbbd203f9ff52f5c568fa2439",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave45": "3316f31e3bfda8e9fbf43372810ed5ec56bb09da008e56b027f0e97425329dec",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave46": "1f85b086227bb39a2cc1b54944411d0b0ad32444ea2e9c547c7badfaa5f331c2",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave47": "78a3dbbbfa9b263c80fd2ca54e4b119450d47dbcba72bfe27aa500e5f8e0fab9",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave48": "8cac5eef60bb02f12f3dfb455539512d8ddc1e57f30490633432d18887c156b1",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave49": "453b3d0f85e53359a095aa79d39d7be45fee97cec6d9a219ed7390c1caa681e1",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave50": "4be44855ab34d1ae4f2e34c131edf12d25a47fd21516b31297fecb3ed9dfd19c",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave51": "43e6608986c04735cb060659aca96e0d59c1ab2519b1aeaa546689f04563d2d7",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave52": "9b9b6a1dcb6af42196fc1a8e7f23c0d9f714c943a3d610e1a968bf6f19e2df89",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave53": "ae2781a0624f65d3009828b2adb3a9256290da0598505de86c5d7396c0bf1863",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave54": "76e32e6a28515ac303e463cfd0d2cbc887314bd57a18e64c72893d5ba7a7116f",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave55": "2d5f938394646f3e1bf16e4a9b16afc53e43ce10a05966ff5abd1fe42dfd4c9d",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave56": "d2ef1d3617b9b7e46270854aca92ac047bea74074c01803410b78a9959a09a93",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave57": "37d9c0e437b4987bc665d8eaf19a74df022b1f7c8f9e9c50afba63cd46798c7a",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave58": "4ac71f8509f85e75a49cbfc5edfeccdb814c14b37a0ad7d415d51c0c398208ff",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave59": "b1a27b2ed45da7a9023cb665f64c196db8eafc4a31e166dc13ab602ccf29d117",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave60": "e573d1127b14fda1a562c024503c35285a0ab06050f0605b05aeae328b92d24e",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave61": "95e132dccf2733a00d4d2f6859237c3d534715b7b26f102899c34054736c1da9",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave62": "631c81e65204f362c6da24797bc69a8d67eda58bdf5333e00b33d00fd6a163a5",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave63": "a13a24191c4503762748f59dfa4bc03e72179f09ff58ab087e30348878281e5e"
+  },
+  "source_commit": "60e7b1fdd806bc31fb5e5cb2f49189018ba0d4f3",
+  "source_sha256": {
+    "tools/anchor_continue_pair.py": "0b7ab5694678583a7781ae7ce7f782591a106d22d9ca63e70f58f2ca4d93d904",
+    "tools/anchor_continue_queue.py": "7b3f37ab2ea6a196dc5884dfb3f2474d0eb96169d6c90f5409f9f256b3115401",
+    "tools/anchor_continue_worker.py": "2200ac84ae5c8cc0bbaf252b929fcc13eac1098bee6b3fa910aabadd67278542",
+    "tools/anchor_interim_analysis.py": "ec494423a2de1856215dd8d819f2677c3e950a405628c0a1f1c0652ae143783f",
+    "tools/anchor_interim_eval.py": "67094da84ba311abab06f1c4043157543f4daddc8ecde2ada5b1204b0a389eae",
+    "tools/dataset_trust_audit.py": "0b1f327af3897c1262e60ecd842c7ebd1259660f795a6d960b50453fccf9ac01",
+    "tools/dataset_trust_replay.py": "4d1b0e2b86cbc4b23c95125b5cfb55aeefaa6c7220e120ee57d4d234c6a7ee7e",
+    "tools/dataset_trust_report.py": "068a311c708c751f491f70a4b7b267beefaf761763761d10a564cebcadd2bd40",
+    "tools/dataset_trust_review.py": "0f91db6bfd6d669fb965ed20a723f93c89e156663a4df832d82cd91073717bf5",
+    "tools/evaluation_delivery.py": "8e76cbe5cbd4967c5ee7e207f83458934a1d347392678d88536990f9c625d906",
+    "tools/expert_speed_audit.py": "d97f86858c7ff0872da9b6c2650b231fc9d851c8bcc5b662e251849baf2db992",
+    "tools/expert_speed_eval.py": "9f786da928f2324078e4b7028930667598160fc35ca435216b1320baeb78aeec",
+    "tools/h24_diagnosis_common.py": "bd5d0366abdd7e2758690e4a4ef7a77a0d77b0438c58aae81419cb2c432ed477",
+    "tools/kit_resource_preflight.py": "6e4d43d15608e61b843f6b50829f7cd174ac40b7472ab7198bf2a15cfd554238",
+    "tools/narrow_collection.py": "8ce1e05d3026a058a4ff3451255da44e8cf55e1916f0756a1dd8358469eff942",
+    "tools/narrow_delivery.py": "c99153454f38282b83e606fe4ca07b29ddc2742002a8b70dfda061c7c71c0411",
+    "tools/narrow_followup.py": "49a05dc67f36d22b7d09c73ea05c686878cfb140aff1171bacb760142f471039",
+    "tools/narrow_repair.py": "fd450b6f11c2b07e6db8b76ef285c7a95258199d5a02d4dd6731f20af9f542e8",
+    "tools/narrow_repair_audit.py": "f899073790794d96ee3bc68e4617a09df46d9835707ef167ed690de61c177531",
+    "tools/narrow_repair_pipeline.py": "edb75186c7b2bfffbc455105c79b7ae690afe89f3112fb830f1cbd4c2422e2bb",
+    "tools/project_maintenance.py": "4c0acc0daa9b101dfb619de10aba13e493cc7012580d2c38fd5c294e32c48028",
+    "tools/reset_query_probe.py": "8ca1dd8ee9118a27317166a583f8da7406016b4b51ac9836fa63d9b10b45badd",
+    "tools/rollout_timing.py": "a3782a00fe300e59fd9cc2757b0609f867da8dc3a2c5dc59c9857174c3eb145d",
+    "tools/runtime.py": "57c6d5bfa52f39d1ee42a31c1199799aa1414d0c6bd6a32e2bbff6e49541a975",
+    "tools/state_mechanism.py": "4d4510b3f0f0f29153a1dc4766d4e96df449b954bacfd42c9640744328c4874c",
+    "tools/state_mechanism_audit.py": "dc4e6c3bcdf3eb0cba8da1c7886aacb72bd919340cadb270e4220b73c92b842f",
+    "tools/state_mechanism_train.py": "41be28bddde36b493ea87940ebd6815e00d2b22cf379da263a453801b2d36271",
+    "tools/tight_ab_fairness.py": "a42ede1cb8acfc108f34b5d4d68992ffb5fa30655ed4c25cdbb33cff30e9036d",
+    "tools/tight_ab_replication.py": "2fd2a46c60df186e2c28f8107b3e58676893cdad7802612dbf20e81c7aa72265",
+    "tools/tight_adaptive_dagger.py": "46afd5b5d0ab4f55f241f76cbfed03bb6bd684925c49bbf02905412f8998d4c8",
+    "tools/tight_audit.py": "ed085a82de92b816d36049944e9fa66d7e1fedc57f5985eed977ebd55dfd2732",
+    "tools/tight_batch_collection_review.py": "d05003cdfe25cc09447084e62bc3052f0bbdbbb0a08763da293c2dd0b9d32569",
+    "tools/tight_batch_owner.py": "39373a7d02ddf4c963cafff3667fcef612eada76f240127ba56bc3dd58a69329",
+    "tools/tight_batch_probe_owner.py": "212e459e28da358c4913320ab34c24e1ebc506709700bd256248619c48a8c92d",
+    "tools/tight_batch_throughput_report.py": "1e746cc77ff6493713835e9ef70db067aa45d7f699214535dd02ce45d1a8f212",
+    "tools/tight_cache_archive.py": "0cf1742daa05404f1824d0c18bf1de0fb5b61935b0937c962da85fa876a65ecc",
+    "tools/tight_check.py": "2e1aa211e4277f63671c8749e517a785b5ca59e1da4e0e351bcc4577e31f1351",
+    "tools/tight_checkpoint_cleanup.py": "ca06e1b6a78e4ac3a61793896b23b12338066a2e50cb6c31ad465763fd272466",
+    "tools/tight_collection_summary.py": "ad7cf6aae10a4ae9b357551111965daf8522177327585019174bca0d8d38423b",
+    "tools/tight_control_phase_audit.py": "9cbca2f3ce917815b6310c7cd28f5e817236e158e42f711f3516cecabfc2e21e",
+    "tools/tight_dagger.py": "af2f28b9324ff55b304f6e564c41252bb328e4ccc27d0cd3138bc81c6ed43658",
+    "tools/tight_diagnostics.py": "848aca09b97a6f6a6484e6b7f3555015526fc6b435a5de6654bcf2b588ba9126",
+    "tools/tight_entry_control_audit.py": "fd3da093c4280409ad66c0692801695247236bae67c63708b7f73ccdde119fa7",
+    "tools/tight_entry_phase.py": "d41e234dfbcc89e34d488fdd3505fe964260f1ed520734545e53bdabb242a189",
+    "tools/tight_entry_vision.py": "abe672ea5fe8044f530e96a47d40c4389a6cb1b78581e373a7bce711b2136c68",
+    "tools/tight_episode_io_probe.py": "31156dcb2c2fec00e8c616c44c7295fde9bdf9c2df44c26d4e1d3f4e54829850",
+    "tools/tight_evaluate.py": "f16aae06f3a4c552238a8f588420ce226926d8a1032888ad394cff60a29dd660",
+    "tools/tight_execution_adaptive.py": "d66e897b23b659b13718497b3519d00095891954e0af1bdd17977d4513ed0940",
+    "tools/tight_execution_capacity.py": "b2be81c2a755d2a12e7681f94299c6058d04ee696d798ec49d18ec64f220ce69",
+    "tools/tight_execution_centered.py": "54d2c2b26c0262c3064d82edf817831685249ae4461b4d03b1e3df3890f35860",
+    "tools/tight_execution_contact.py": "d456564cb629602805842b50b806a8172fd3e94c802ce28e0f1bc9e9511501e3",
+    "tools/tight_execution_follow.py": "1dec2f5a6d6abb3a0a2f8640c655916288dfae337836e007e081d24c7e1690fc",
+    "tools/tight_execution_learning.py": "fe34a55262c8461e7619f1bf29847865a69d1d0cd29b7a7e9c6f2788b32fecb0",
+    "tools/tight_execution_probe_stage.py": "226b85030289f0fd169b95ffd041faa44571603046852bd7bf8d0529861f5c84",
+    "tools/tight_exposure_training.py": "89a82a4f001ad18ce239db3c23e09050753f0a10d1cb659a31c5b6943d40b1d6",
+    "tools/tight_finish.py": "bd30ac9bb2441938ef8621e43f58401b52c111f15e74737a5d9ca53305c47eea",
+    "tools/tight_fresh_anchor_coordinates.py": "880e7aa81bea3980352ba358ad717d0578ff7155c8eb415142566659980b4d13",
+    "tools/tight_fresh_anchor_report.py": "a979cd692b8424f546ec2e804555385a3f870db4db7d51a62b43d25e9a62150e",
+    "tools/tight_fresh_anchor_study.py": "c32081b105a80f4fb04b35c3afa155b526bc11561c46ce6c8a829e154c150514",
+    "tools/tight_fresh_anchor_study_report.py": "ab1e6213be60d95ebb5f998745f88ec09b7845a11dd87f24bd65884f2dfdef50",
+    "tools/tight_fresh_approach_timing.py": "68761acb1417b5fe50a65ade66a8c01215de8f0eaf28e87e044b83d42a8181b0",
+    "tools/tight_fresh_backend.py": "ad607ea98f1d6e94d1b692721560729c98c04c413d876af6abe978d46ab15aea",
+    "tools/tight_fresh_backend_study.py": "1cb4a2a064b0ba760a8e796ec3e7c3f0e1d085dd4d1d5e2d57c4fa6d585ae6ec",
+    "tools/tight_fresh_backend_study_report.py": "00c51c7fdd0b10ebd825d69e3483f4e94473c5c030886892cee7660b8b4e108d",
+    "tools/tight_fresh_batch_eval.py": "9257a872ad5f9abb289f298b4e31c904d4d110094647f34211628a39ec3c89a2",
+    "tools/tight_fresh_batch_gate.py": "b263833537e7f5ee0808747beba2aa9632b51237bfd7f92b153a1201f994ebc4",
+    "tools/tight_fresh_batch_report.py": "4cb5196716d07467516ef150bff103eebbe548c82b9a4982df38ae150ebc39ad",
+    "tools/tight_fresh_batch_run.py": "d0cdeb33c1a10796aaa5ac19b7455734803818d7d595c5324b6edf25ef761369",
+    "tools/tight_fresh_cleanup.py": "4520d3f9592fd19a90793d54ca740bef073cc6bdf030d60dbaf6528781de58b2",
+    "tools/tight_fresh_closed_gap.py": "58b37fc699e28b4a70a7dd2f6969965ac7584f994ecbf1dafdfb1ea4516c35e0",
+    "tools/tight_fresh_collect_cycle_owner.py": "b86157ec0065aca89d6227a87342ff1a63fb24e5d9d5561b2a4ea94db1a050ed",
+    "tools/tight_fresh_collection_owner.py": "39569b96ad9aec8e74b59a1473265e224e9109cbc681c2c54ce31ce527aec382",
+    "tools/tight_fresh_collection_source.py": "2a63de88fd572d2651bfc43f979e1a7d255ec710396585974b8a3873d343cb9e",
+    "tools/tight_fresh_command_chain.py": "81c5d60b426313153aa8678d39aa4c6fd787adbc37559d8f500879774b863379",
+    "tools/tight_fresh_contact_height_coverage.py": "7aca3a1040acda8cf4efa66e7fd9e80f44bfc57405c66381d69387786869d1e6",
+    "tools/tight_fresh_contact_motion_report.py": "4f4133761379daadb1015f412006cf3c5820ab44611a34b9996943c1143de2be",
+    "tools/tight_fresh_contact_report.py": "68ca305ea1ac3d359dc42f2b3f84a90490c16f8e6fa9805fbfc4b8bbfe5bc25c",
+    "tools/tight_fresh_contact_trigger_acceptance.py": "e150479f3297478a8c4ba301425d50871b2616830997f672547dc32e16a71845",
+    "tools/tight_fresh_cycle.py": "a04c8b2ad6dc605430c727b04dd4d8aef96377cfd47a77d81239eda2f1129763",
+    "tools/tight_fresh_cycle_readout.py": "079315b81bb2768d3f4387e2c564166f7f89672c2f5a18b6c740c07434707a86",
+    "tools/tight_fresh_cycle_throughput.py": "ca63eeef6a16a95682ff3d87b0e6febc25ed54b170b4016644250825ddc71e75",
+    "tools/tight_fresh_dagger.py": "5cf742969c8d7736d0a0a9e439396523d856dc1df7696ba92c66252d24d92b83",
+    "tools/tight_fresh_diagnostic_report.py": "36dbedeb4be8d342509184ceaa600b45520887fcfeeea16383132062ec92607e",
+    "tools/tight_fresh_eval_recovery.py": "c5c09b9026c89b69228dee1f43e05f2e214d416c6a77f9171c75a97c4fe51f08",
+    "tools/tight_fresh_expansion.py": "fa43abe9d9ce9a68a0c5d93b8f766634ad100dcb996a789712e1f77f0e22a01c",
+    "tools/tight_fresh_expansion_preregister.py": "be1cfd1e3ae5aef58b8bc7ac5c10cfb8e1e3d750563979ab4c11ab9dba09324f",
+    "tools/tight_fresh_expert_counterfactual.py": "baff5943f4900cd619a01479c296c3bb664bff592975ac6c8e53fe51bd1f9481",
+    "tools/tight_fresh_expert_stability_coverage.py": "e0efc8af01eaa675d47af8ea3c043702ba2393977b016241a2137a45e2234536",
+    "tools/tight_fresh_family_report.py": "36131292aa913e149f673ba90a9db2ea894ef528eb288ee36cbb09871118adac",
+    "tools/tight_fresh_fixed_fit_owner.py": "82914ec73c6eecc729b8ceb69374dec592e44271e28a9266bc058477c39cf285",
+    "tools/tight_fresh_fixed_rear_fit.py": "699b6f8b3bb610d2dd9b25777bae87458838b28dc266b17964c93b3cec0a0fc3",
+    "tools/tight_fresh_followup_session.py": "4efc15716c0bdf21768bad9b1e3e77118ea3ba785bdc113deafc6e1ce8231cf6",
+    "tools/tight_fresh_forensics_gate.py": "1637f39e0951ddc9407e8f9fa16ee5c9bd56fe3acfd4971268ec1fd3e91bfae8",
+    "tools/tight_fresh_frontend_baseline.py": "abebe82264a84198bee5395deaf0dceae66d33b40f5672ef2d8cd05f933d7c31",
+    "tools/tight_fresh_frontend_component_gate.py": "9adaf739e2a879a0071323198de61ad83d7a50f4b8c5518615b86335b92c0cf9",
+    "tools/tight_fresh_grasp_evidence.py": "497927ce87a1511f0a798b89a30ddb93861e365095d7cfca06b7487ba738a977",
+    "tools/tight_fresh_grasp_fit.py": "42482a2f78b8dff51b080cfa54a112e0865eedb2ece4facf0e5944059f51e5e3",
+    "tools/tight_fresh_grasp_review.py": "a32e6cccd5d6971d247924aa3a56bd52934e14b08c19301760e1d2b7d0b3c75a",
+    "tools/tight_fresh_grasp_trace.py": "552cae8d4ae7d79a2d2b48adad5e0f042f20f1ce0d9811a97a881d8d1ce3f443",
+    "tools/tight_fresh_identity_target_audit.py": "40616b3e65a53990eb44cc84e5a5470335fff83db5acc8ca6ff5767ea5056fc3",
+    "tools/tight_fresh_increment_report.py": "fc7db5d39283e889f17e165dd51cd5085e6f3c0ec63baa080df32a7e25fe82d6",
+    "tools/tight_fresh_learning_plot.py": "0bd534a8933e19512114f764c1d85567c37810b3c648a52b164c2006b75fc77c",
+    "tools/tight_fresh_learning_report.py": "1c9a22066dc5e064e11e37a5d2a60234f12c00e5477b96d923398ece53631d88",
+    "tools/tight_fresh_motion_probe.py": "bd7866ff540c84bb45e81a1b712a7c05dc3bbcd91a4c252774169d4af6dd1746",
+    "tools/tight_fresh_next_collection_coverage.py": "a06412b3131fd039a5bf9df979dbcb8b73e60aac98c8ad87dea29e3ebf08e913",
+    "tools/tight_fresh_night_owner.py": "2df3614b4aafd608ae75cdc9a8e86ae1ba23e141797220d284a21ea0ad71315a",
+    "tools/tight_fresh_night_status.py": "94c97615c2389f6ca2cf73034b9789975573c7de0423cc30226e30395d143b60",
+    "tools/tight_fresh_normalization_report.py": "1d95e5cc23b084c5bec94f3b9a814c3949cd2fde5dad755786945fbbd09dcabd",
+    "tools/tight_fresh_onset_after.py": "353d25cb5d0ced52f190cfbca2d0d2cc99b9712f874d68ed3707a00981d06919",
+    "tools/tight_fresh_onset_report.py": "580f92102fb606953e56eedbd62783a03c44b8e1a4a99e396eefb7232862af42",
+    "tools/tight_fresh_orientation_probe.py": "66d4db76aa8026a56df2f70d54fcf52ca06f2f535feec510e9b37368c98b9424",
+    "tools/tight_fresh_original_probe.py": "9bbf9023104d3f8aa658b33310edf9e8913d57efd06176623ea7093ac82c6f41",
+    "tools/tight_fresh_pair_fit.py": "db83609660329512f4107e7af147c89c6c63023066187d402d1d166275bc04ef",
+    "tools/tight_fresh_paired_io_recovery.py": "292538aeb55c97fb75622f4e95755424f5214ba201a617e2e214e382a2aa1946",
+    "tools/tight_fresh_paired_io_study.py": "4584f379f0b65817ba2ce1a5e67c027d40a47bbabaf9d52c33ab666a9e65ae76",
+    "tools/tight_fresh_phases.py": "0cda7628593954cac85adf528a68085fe44fcc5e331e0469455cf3cd8f666eaf",
+    "tools/tight_fresh_position_probe.py": "66b456bdc07b0a1b5b50f667f7bda564a176d899bb2968137b4f74e1c8c721d9",
+    "tools/tight_fresh_prefetch_check.py": "0834cb475bce1abc993f18ae012ae013a51b1252d2f622a9d5f77d46f1b8701a",
+    "tools/tight_fresh_prepared_reuse.py": "8c95498511aff4e72bdf3f9516a2d6766b6692b044c8622a4363fde43fca59ce",
+    "tools/tight_fresh_profile_report.py": "d4d14ca333baa0a46f2e897fb189decb79c166f914351b6e13453d9ed22995b7",
+    "tools/tight_fresh_progress_relay.py": "eda57fad94a81c98bd7ba679f3c8dc01982176e1994054ea2cfeebf04973eaba",
+    "tools/tight_fresh_progression.py": "81755dbe88aa388cda07a435b2e3594aaf96f9e96da40ffa2cbe8516007331be",
+    "tools/tight_fresh_rear_coverage_report.py": "4e8dcbf86b8a02ef3d0c0868a44bc7cd7c00a8a916b9de9b0d8c9e8da32f8a70",
+    "tools/tight_fresh_rearfit.py": "a2ad69d1ef562bc534a9491ce3c3f01d279affe711a4cea831560e58f7497e7c",
+    "tools/tight_fresh_recovery_report.py": "6f4c65981ba23636fbe02e739b4ac6433476011b8672fd87b5727dc6f226cf15",
+    "tools/tight_fresh_remaining.py": "88f1da1e1879cbd1554835a8b1fd4951080e672cdec01551a3801d4735dcefd9",
+    "tools/tight_fresh_report.py": "7cecaef9d59d78d147400c3ef7051fffc52044374625cd449310db112801f0cc",
+    "tools/tight_fresh_research_loop.py": "928c3c4648ed88bd67484399fc832255d755dae483253f9f31adb7bdb9c795f5",
+    "tools/tight_fresh_rollouts.py": "33b7ce5bff335f3ae96de0b9e71c7a1f5fe9e841e40f7be16061397311d7b2c3",
+    "tools/tight_fresh_round_compare.py": "bde768ca376858fea01ab0cc952bd85cc2c0a516c060b9c08390fa6c4decc8bb",
+    "tools/tight_fresh_sampler_probe.py": "18694839d7c5717a23f854a1495c9c39a3726b773facdda30123733349833d8d",
+    "tools/tight_fresh_seed_spread.py": "7f306baa0599e2a8ea21c1f78d9ebd359bbfcdc9e9c514ca2953a5db4f073cf6",
+    "tools/tight_fresh_selected_fit.py": "27847dd9049ea84d58c4503a1c5f70c8fdebf61f7ec287ac4559fbfe3ba0555d",
+    "tools/tight_fresh_slip_report.py": "b7b8bf48b337f69db22944598887428770dfe84f8e9fd271e418f03cba462369",
+    "tools/tight_fresh_stage_audit.py": "04115a4e2d5d2d772b411a0166d947f9b4a0d4aa7fb49ec9c5057211e3822a98",
+    "tools/tight_fresh_stage_exposure.py": "5ff296d48323642421b06f62c215aa725b5c61790426f928f3df1bc7e2f47030",
+    "tools/tight_fresh_stage_fit.py": "4495fe010da92c9ee28848a8ca2b33b0c95a0fbc3c13a5c80b33881d7383e07b",
+    "tools/tight_fresh_stage_fit_owner.py": "3b351e50c1f02a25e0b9be41295c1fa8d8cbb425170442bce08950162e04ccf4",
+    "tools/tight_fresh_stage_takeover.py": "f9b5c5ba2ec4bba8888d8adea4df5952dbb52ece49ab08629cc4403a8a986ced",
+    "tools/tight_fresh_study_onset.py": "632ac11b887a15292ffba591de9f0bb69dfa298f95453ec3faa6927a73fa8844",
+    "tools/tight_fresh_study_plot.py": "10b219b9948b304f45e9ed595a8f496dc6c7df896b0b91df6141f39c104a4f44",
+    "tools/tight_fresh_supervision_audit.py": "6e94d81dfcc446907693156d97dce232d0a900110b4080917ece3029c16a37c8",
+    "tools/tight_fresh_takeover_pose_audit.py": "19ce41c9af6c13b0c04a3e887d720221cc73a4889fcb5c85439785b29597f4ff",
+    "tools/tight_fresh_train.py": "fcc7cb770af2f3e8c983ef806b68ff71740db5731cbdac0949ea2c0295960b59",
+    "tools/tight_fresh_train_diagnostic.py": "f655afe3c1dd36d5cb295ec5ce256e85d0393f0414a4c6cf487e2ecb97228c48",
+    "tools/tight_fresh_training_check.py": "ef611f3d4138b1aebb4a7ba0f8d69d8043f6d4f788e274322066286b3938643f",
+    "tools/tight_fresh_visual_aux_report.py": "6423539e8b28218093fb6a7e4478198b6bc8a23ba112081c2b70260876c694eb",
+    "tools/tight_fresh_visual_aux_study.py": "0374b01fba6ba35e3096b36e6e25c5abaf102b1fe8f8bbf4ccb64a46720bdf80",
+    "tools/tight_fresh_visual_closeout.py": "4374e4f3e569aa54c211a1293d57799894750765e3a2ec7a89b2ad6a38ae7b1e",
+    "tools/tight_fresh_visual_family_probe.py": "ab6d67f4404f4a5cb9bfff0af05d3dff04cf2610b5a6aef6e2fc93d98f291898",
+    "tools/tight_fresh_visual_prefix_probe.py": "4c2a301bb66bf17f090764206053673481f7cb1e213b5a8756b61cfbd76c8705",
+    "tools/tight_fresh_visual_probe.py": "8cb42be210ff28f474cee70a95df2975bb52a478237415805db2dfa76fbead01",
+    "tools/tight_frozen_comparison.py": "0a2a265d0320cd911ced67cdc2eac31aaaadd24d440b358a02f03db1921ddd12",
+    "tools/tight_frozen_frontend.py": "1647c3e4d168ccaacbfc3015a6d751069477a0ab5e27f548e0d7c6562e9f8695",
+    "tools/tight_gradient_diagnostics.py": "9b213660a825f06a71872e3879c429b52acf1338746d98ead087bc7b3c9f6931",
+    "tools/tight_heldout_evaluate.py": "3f05250c8a640013315c92e1671829334a4372f768a91a3498d767c97a820072",
+    "tools/tight_inactive_render_gate.py": "45c8c6ab56c2c2b8726afafe1e1830a1c9c8241d3428cd25bfa5c29f1e0ab5ad",
+    "tools/tight_live_publish.py": "910025c86eb89215f7617d98960a2a6e3016719d311f18c8b9c9f88344a389b0",
+    "tools/tight_offline_planning_gate.py": "9aa1b9ac98891f459727489b0a90edd3e41bd366e8dc5698bf7798936e057086",
+    "tools/tight_paired_collection.py": "f7db6910441ad346d530566c4b084341c2629814d208baaddf55e0ead57bafec",
+    "tools/tight_paired_dagger.py": "e7e2cdaf9c2c422d4edb6e586303ee171615fa0fc30caae7ce3f1eae8d81cf20",
+    "tools/tight_paired_evaluate.py": "538e12bb71beaf7dde3fb3f83e1fd19f3bd35defa521d28c952857d6cf519717",
+    "tools/tight_paired_learning.py": "79af140c6ac3a934c3f175764305bf774c6da40fe1b308f6e815ba57dd0f1f39",
+    "tools/tight_paired_pool.py": "ac56cc0732c9bdca75d98b0e8545a6c2ba8b33703cb69544929849112e26efea",
+    "tools/tight_paired_prepare.py": "4751bf8cde0725e553c7fca29f2a52cdd5191706fefa98d9fdf9c689c2063a1a",
+    "tools/tight_performance.py": "2f2eea8446755067b2c87e6c833bf080d27d267b06515c9f4f18a27ceb6581be",
+    "tools/tight_project.py": "61aff30133874fc2a4b4e7177bc061e4d449e0daf5f9dee10a94b2e3ac0a608a",
+    "tools/tight_replay_balance.py": "5d4a0de2283893c6c0e3cb1b2ff44d8162da91d93a872d43f351372e124deca4",
+    "tools/tight_representation_audit.py": "a079bc1066e9a15ec0de85e7c4b103a81223ca76cc617f8bf6f3b0e1f3246e56",
+    "tools/tight_representation_diagnostics.py": "5fad8e496335cdfea606eb834b972e26c164efff8fe2d454fd8be9bd3618b1cc",
+    "tools/tight_representation_probe.py": "fb1f38cf930747717f4769c5c8bdc45d917fff7bee57093bf98df457ce9ce4f5",
+    "tools/tight_representation_summary.py": "dbab38a9d1ce22ea6442c916f26022f0de08b2f5b165ba12f668bbac8ac33103",
+    "tools/tight_representation_verify.py": "2f64c561b6055e5369affdea945aad21f83b7041041a99a301de6b62d27b7e7f",
+    "tools/tight_research_supervisor.py": "22cdd2597ae9f7154246c2d7155da990a0232e1e138a502ba08bb07c709e8875",
+    "tools/tight_residual_cache_gate.py": "e0dd0a400b1c6f36b7754a914caed3ffe0e1ec0c46c6092b2dd5629af44ce777",
+    "tools/tight_restart.py": "ee6d639eb786930ba7efd123ae29cd7b34c8684db609a4bbde53963c4f32f499",
+    "tools/tight_retired_cache_cleanup.py": "f0e547d0d382284f2b36b092191a46f222a1fd1afea3af377bc147e7ff01fa12",
+    "tools/tight_rgb_storage_check.py": "aa22c131e5f0707203fb7faf7257cd386aae1c396f0dddc15bd75554879f9a7c",
+    "tools/tight_runtime_probe.py": "a3aa6ee5874aed46c50b7be54928658ff003db67b2898ea6be5eb9cad8f2809e",
+    "tools/tight_span_dose.py": "194b470e2e7ac036367269f50f42f125e8db7909f4d17505e09a59b1a2e27a32",
+    "tools/tight_span_metric.py": "45e65601ee933a05e05ed054523f439d06a5794b7d17f24e99c4d1f35ed7c27f",
+    "tools/tight_state.py": "1c8703eb1fad6b803170f15224f9aba4cba27d56b0745811de1c73dc48b101c2",
+    "tools/tight_success_replication.py": "58b8b814aa014f011f8b132a69117be911a937b987b2f04deaf58c8b2dd5460b",
+    "tools/tight_takeover_phase_audit.py": "3daa1aafafaa211701868c09b660b4b6c8ccc794e32738682e7e602f3da52cfa",
+    "tools/tight_trajectory_batch_gate.py": "d8043cda606159396c769c7ae2337621b5ede6b1abed0f80bd40d1af6de89db3",
+    "tools/tight_trajectory_recovery_probe.py": "66da8ac6ff52d054b129c5460b67ae067df583da54460436a8dc7cc8b4a76b60",
+    "tools/tight_trajectory_training_gate.py": "656e85be047f5913ec27776b2d3a5bc7fc6b40eeefbb935884db2527162574c3",
+    "tools/tight_videos.py": "2e7eda4922b606e35eac52e9c7bdf4f3139d1c2cb9fb87fd715a5359f62b803f",
+    "tools/tight_visual_aux_acceptance.py": "0144a7f91bbba1924d99db99e88dce45cbee204f6b3e2077fe114607c02101a0",
+    "tools/tight_visual_aux_calibrate.py": "a4f512e6b4be84aeaa74af9c6557a7488098eb3d61913c0580fb27a1b81489d2",
+    "tools/trajectory_metrics.py": "b7133782fea700fdd268bcd9a9c3c2b086dfff04369d76104e0e06504da271e7",
+    "visuotactile/__init__.py": "5a735e709bbc20eb3cfb1d67c6a4e04fb861bdf1ca689dece1790ee18b6edadc",
+    "visuotactile/action_history.py": "a1436401bbf86e7a90a72e9c3b163313e44e43d1c436910ac81bddac44be726b",
+    "visuotactile/adaptive_takeover.py": "7f5ec2dc69ffd651efe1bbf0fa98e949ed48763b4a9d49469acd56fb5ee2bd8e",
+    "visuotactile/anchor_continue.py": "74c85a6073ae0e0c24b1a8f3a1457fd287320ff7d2de5579d396b109102acaf6",
+    "visuotactile/anchor_sampling.py": "aa7cf1c6b3b09d7864d1e95722b4fa48b0591def43613f0361f5497892b0af44",
+    "visuotactile/async_recording.py": "5f17607535e7823f68571e8d3a26360345cce687715d94d831f896b0ad3cf205",
+    "visuotactile/batch_recording.py": "3ec67aeaaf2e7649b3e4b43de2f6b4bdfaffc6acc43c748b8749f946d6b053ce",
+    "visuotactile/batched_controller.py": "ce4998a7803f30d6cd4c8d04539427dc4bfc73fa0fd82734c8dec6b409db9b12",
+    "visuotactile/batched_frontend_diagnostic.py": "fb34bab4c2c9bb918d810c8cb8c9e967a7640cfd5b10e748c9c49b28f6abaa37",
+    "visuotactile/batched_position_bridge.py": "ec8ce80425b9caaaf9f4ab3b6d53e39114b3573e397990d4de9c7cee0bde224f",
+    "visuotactile/batched_rollout.py": "7f281977322501ee3a3a58cfc219cf3f6368614a6894561df08bc1ca98d269f4",
+    "visuotactile/bounded_extension.py": "fd80bff693177e16363a795c9af5b00a073f736713d125b3e4fd5699c77079fb",
+    "visuotactile/camera_calibration.py": "dc12c6b7a0de0f33ff0a79269b871196d91f9a5245abef62213fcdae52770a57",
+    "visuotactile/camera_failure_diagnostics.py": "832e333c33f5d192c4743de9b057aece07166b05b9c089dac7c536d5ac1be5d4",
+    "visuotactile/camera_render_probe.py": "aaa4283f45ea3ea3f3b0caa1de3b77b63006c48ee03803fba9fe62457f01950c",
+    "visuotactile/camera_rigs.py": "36c8b7264cd04bf3aaa7fbe2ebe5d668e6afe863562850d79d81eb2aff3c4b2c",
+    "visuotactile/camera_validity.py": "7209161f2ed006b8be00e36d86ee58edab1efdd7f3033ba2f7ce089d553aca3d",
+    "visuotactile/checkpointing.py": "afe7277f5e63057b98976f39dc6ef740d2737d1fc6d456336f995e5f6c5150b5",
+    "visuotactile/compact.py": "4a7335955bacae8291b7d454c4e034710a13755787ef40e4bbc9bc3b60cd13ba",
+    "visuotactile/continuous_vision.py": "7430464d0cb8a9f0d02aabaedb63a9d508bda221d04a0bac7935c5328342c920",
+    "visuotactile/current_render.py": "dc1c861275873899d037b057d3cc0da53325a4a1867f7c484ea31d3cca2be22a",
+    "visuotactile/deviation_takeover.py": "b5a31dd4ec0e41bba1fc42a5dc40c42a6f0209644ed36ab5e9a42ab6125e6fe6",
+    "visuotactile/dp_objectives.py": "7dcf7f2ba9147cd2d400a2ecaa9426805761e5eecf860c93282d50dfb43becc6",
+    "visuotactile/effective_exposure.py": "9007f15c381cd0a53ffb2b47dfc7d89ac27ebfdf782d7d87a2a5c5d8c151af27",
+    "visuotactile/entry_exposure.py": "3befbe5ddfab3e19f57b44caceb8baf2eb08969a652d540cc648b949fa61f708",
+    "visuotactile/environment_rng.py": "18878c7ccde8a403a1eb133ee266f2a3514f1553b9ea2dad768781e0ef378ff1",
+    "visuotactile/episode_io.py": "62e7d572c12ea9f685c93d51a501db24a99c41dab332be5995a0a907bc8ab5fb",
+    "visuotactile/execution_backend.py": "1f700710df163d58843dcd24dc5f63eaf230b1be65c045215bde5a6519029201",
+    "visuotactile/execution_learning.py": "23d1379e5db3e203dd8de37357b48dcebcbe1fa5a270c278e304cafa1bfc2f59",
+    "visuotactile/expert.py": "524f67297d76094de1c3df98171d28748f27892290f5b2c2bc38f10c8e670e09",
+    "visuotactile/expert_speed.py": "0431086bac241778ebbc0cad33c254e821c45f0e89f16e89001530f6596de2c6",
+    "visuotactile/first_plan_forensics.py": "86d7aa39c146323d8d87a8c4d61b797675b0662d85ec9215b34f8a2e1473800c",
+    "visuotactile/fresh_contracts.py": "e206d24ff0bcd602da39520018ebaa072572b389f0c89c3c27870ae9edce62de",
+    "visuotactile/fresh_recovery.py": "9347547f3ffa53639c8de2facd4c5b62474f635b82598b07eb5706b6f2ceb8ef",
+    "visuotactile/fresh_visit_sampling.py": "e1becff8e2bd4564d5bbd67a52f734bc127e629e41886963dece77b1ca9eed37",
+    "visuotactile/frozen_payload_audit.py": "79916e5a3288691e128188cb9b126c58b3063805c8bee4f68c9348271f909689",
+    "visuotactile/frozen_visual_io.py": "4a9d1fadeee3b24eeff9761a6fe7ee5acbd005100e6037a27224e2c097d77ee0",
+    "visuotactile/geometry_sampling.py": "ed606917662aad5267facaf3f0329f56dfb917945c0987b495397bb1cc8d089d",
+    "visuotactile/gpu_batch_controller.py": "f692bdc994388660b4521b138113360c79dcc1511f25b46e05ee1f1cf7dd3f41",
+    "visuotactile/grasp_curriculum.py": "8999b92e0191a6ba5baed82cb13371abcc96604aa743824494bc6d6dcd6466c1",
+    "visuotactile/inactive_render_products.py": "83b993908047383ce90a90c4cda47fced3a66ce14e1359bf67c747bd81a8582d",
+    "visuotactile/initial_geometry.py": "c86894fd02f72329eef9fe1be8d4a49d794e06fb7ec85cc356efb3c0a8d76c48",
+    "visuotactile/kinematics.py": "b94edf4d4893879f348e25a36e03fc4e12080dc7bdb600078fdbf484a9d55aa9",
+    "visuotactile/latest_takeover_sampling.py": "ebc88fccdd0e7ae3b10236b1d970f87e22c9c1d9969137c6126b9ca715c8c791",
+    "visuotactile/live_collision.py": "77f68235a5917a40c8b5889c16701b310146d537289f65dcb2f34677df865cda",
+    "visuotactile/models/__init__.py": "6eef10f160f5a03ea1262f4f1f55bf0ed62b75841130fb224760e2797e44e396",
+    "visuotactile/models/native_dp.py": "f41029d3de6468cf2f2474e84c517d169d6d70d2933ff94ce40e2a1389027923",
+    "visuotactile/models/native_vision.py": "686174d14612364bc74a9319c6741cd5816bafbcf2893b0356b727688280ae7e",
+    "visuotactile/models/vendor/__init__.py": "96223a2f2664daa2bc2924314ddca976b926e595c778f46d9c291391a14811c4",
+    "visuotactile/models/vendor/conditional_unet1d.py": "7cef53c66b731fbc4fdd796ad6cc313b4ff9556d2e3ebe26d88462a01a07da2c",
+    "visuotactile/models/vendor/conv1d_components.py": "ea2aa10e297cf253bc1a1919ba47fe6ae32049b5eaaab292ed9cc145d8d2adc0",
+    "visuotactile/models/vendor/ema_model.py": "c6ffb2bd1bf9428fa518596d10cd587d64d08825f8a568cf9ebbf8372767fccf",
+    "visuotactile/models/vendor/positional_embedding.py": "2266c75ecc9c9ac8ca126839d39a7bafbdd7af8800d6de903f66815e64cc366c",
+    "visuotactile/narrow_data.py": "b2efa032f23596ca57e875a7e68e6a683500b0eb612b85a2312e20f66455032a",
+    "visuotactile/narrow_decision.py": "0d3bf737912cc4084cb8ed476c826601b6a8430a8633370805e0beecfae48add",
+    "visuotactile/native_controller.py": "5e3ce18f7e57d5088b65bcf74d10e7b7eadf0274c6454bd32cd62926028c938c",
+    "visuotactile/native_data.py": "00d0e07b4d9a2897c1caee9d4118f4eeffb4fa3fe24d93eff5de71203a6c343b",
+    "visuotactile/native_evaluation.py": "72aedd7c468cb6e85b30b5b833884f809fe2b73b644d80391e5d3a6db0d7f295",
+    "visuotactile/observations.py": "459ccc55a9f4af27110ccc442759cce33e10e639f5ef7bebae036b1d34d88f23",
+    "visuotactile/offline_planning.py": "09733406b9ab65e00350093084312ccd9fe518a89a5723a06fd0ece371c2fb33",
+    "visuotactile/paired_curve_diagnostics.py": "10c76aa0fe390265a06064cc3e86f0b8f06ce4712e8f7e255bef3aff632065ef",
+    "visuotactile/paired_episode_io.py": "525c8800322abf2daab0d6a55567facde3833e80757e05f8a8f4ef0c10a27c9b",
+    "visuotactile/paired_execution.py": "c289c8b683979f2069f795bebaf9dad8f7fa963158045be42eb1ad066b09cc1d",
+    "visuotactile/paired_training_decks.py": "b8b84a638439d9dff3e9b6b8dace3f760c33a849dbe376c61473e40adc61cd5a",
+    "visuotactile/phase_takeover.py": "53cd2439a1dccbc694ed2af71aafd5f8b087f4883aeef4c467eb95f2338c6d2f",
+    "visuotactile/position_control.py": "f38d5661b2e6ec79e4992795a7786ea13c1880ff5a72dcd02e681f67e97b098e",
+    "visuotactile/precision.py": "0416b5b20923d59ceccb638e2c02d2dc110d920bf08c0ab57f35b59a030e1b45",
+    "visuotactile/queued_rollout.py": "fee72020f4b00784dab7658f9abbd3ade81d3f2f48f8c5514ba04b846c82ad8b",
+    "visuotactile/rear_episode_sampling.py": "7a331e06a3dbee2be541d2f18024e12f0f81f4d2999b38991e4b53747c4a707c",
+    "visuotactile/recording.py": "67b1fbffc2cdca80141b7d77b95b16f9c93345972bbdea13ae44c3a3acc175c1",
+    "visuotactile/recovered_captures.py": "f8af6e7e1d7f2e459f90148536ad150b152cb450bb3755dc026e2c475f849dcf",
+    "visuotactile/residual_output.py": "e58bde415cd9495ae0a858e3a36d02737281911baa6e57a880182895602b9dfd",
+    "visuotactile/residual_tick_window.py": "7529d91e593975852f522179e9b4d91d13c4a4779682e6ccfa28b9e6789eea77",
+    "visuotactile/run_facts.py": "6a79c9bebceaebbb60b439c51e4419ba53c161b9ad3a4422f0053a83175d8fd8",
+    "visuotactile/sampler_audit.py": "3226ea5297ab3278260ea536b521adb95a9c558f487a3e9a985ea8f5984822e3",
+    "visuotactile/sensor_rgb.py": "f2bd2257e2b04fcb8f9c4c2016e531a4414bfeb924e703b0f887dcd6f3a958ac",
+    "visuotactile/sim/__init__.py": "63cdecdcc2893131dd45472ae44703d761402d07f95a73fc2f695b89293b571e",
+    "visuotactile/sim/environment.py": "5b24270a70c909da22840d2bbd19010b161432edc3e4d6321f963cca812e2f27",
+    "visuotactile/sim/expert_speed_environment.py": "3de63bfd85f6f187b49dffe3943bc0c4e5062f983fbda564413064f2e323febf",
+    "visuotactile/sim/native_diagnostics.py": "61d80fe3edb318d493619592b0f41d8118943bf8686f78a819e35a0e0b112022",
+    "visuotactile/sim/replay_environment.py": "047578eaf72c64ca417ae1cb951fbec49d4815685cafb3f91c7e8a092951176e",
+    "visuotactile/startup_diagnostics.py": "666e9aab04b2bed463a1ba6af4d4e2468cb4141fa0957502fb7082652ec5bddc",
+    "visuotactile/state_benchmark.py": "57b90473e7d6bac6dc0318b47d6bb08296530a66fc0cd7d41a0a34f273863db3",
+    "visuotactile/state_history.py": "a6d587f0ccb5ad424f41a355476584624a93beaf0a0b4c9c52a2d7c2d499bc49",
+    "visuotactile/state_image_loss.py": "fb74ebb2b7256561ae750c823488aa13bad3e836f0644503c653893ae05e24c1",
+    "visuotactile/state_image_offline.py": "e599a354f5c77251f1fb4d7ab166872657e0a608e307d4d88cd46bca8431eca3",
+    "visuotactile/state_motion.py": "dad48e2ff477513dbd28a8303d4ddf52c2073119688ee0edf826350b90a1e02f",
+    "visuotactile/state_resources.py": "a88840c5137ec4efc19f2615b33297def9d5a1bcbbc09360934840951cd88f74",
+    "visuotactile/success_audit.py": "05c992745a43c03c26659bb73b63ba9f000a4ed07173c9cbd8c53320a428ddf5",
+    "visuotactile/takeover_trigger.py": "170ff6ec3e375a08398483d28b07447a63f0da2cba1e40523c4776008cca99e2",
+    "visuotactile/target_windows.py": "77f5ebf2174d6dec9d17e0dfbd99f932309d193fbd1397511aa0dc4a0d010374",
+    "visuotactile/tight_gate.py": "3ed89287ba6e853897769874e4daf28fdfa3b2b5ceb28fb99bd022245c7d5c3b",
+    "visuotactile/tiled_camera_pose_sync.py": "5c67fb2a839cc364d8e0dae45d8cd1665205c78627ae6ac0bce485b104f152f1",
+    "visuotactile/training_expansion.py": "ca937db28d9b03bd4b91b762255382ca71df0bfd67121604127c3a1e17c4eaf9",
+    "visuotactile/training_receipts.py": "5b82c6107bd822682ac1168ebd7fee65bedf2ad5653b799676fc5d8bbac23dbc",
+    "visuotactile/training_resources.py": "cc6612e5b485bc9f4d361742bc88331a31a2c6504cf807b5fe3a810f98780999",
+    "visuotactile/trajectory_batch.py": "8e0031d929c3976b222101b788f99f5c3c86d3d51569ea9334bff6bdbe1d2d14",
+    "visuotactile/trajectory_prefetch.py": "12cbf6508193e5c67bf4b1809281dbfec4888f96e3985dcc5d2cd36471ba6b86",
+    "visuotactile/trajectory_training.py": "bd876edd8cd2593c763de30108bc1a0b77051422ccd22cc9bd49aed7e995ca62",
+    "visuotactile/vector_position_bridge.py": "46beafe983831d5ca75242e1d58fbca508e36f746e1d40811f6afd8b9c1ff2d5",
+    "visuotactile/video.py": "4480e2d5a1a147fc56a19490207e62f802f732836904f5fded4596cb4d8e88ba",
+    "visuotactile/visual_arithmetic.py": "be8e94d8af0c9a1bf0c3b4590b7c7b39cf1528b528659e4eae617931d58ef561",
+    "visuotactile/visual_aux_training.py": "521f2e8cd1ec9c3806ac100c881e12c9610e5aa441a8439b12ba9498e57f42e1",
+    "visuotactile/visual_pose_aux.py": "c28e9aadbb904d3896bbefec32e3a78e12162b4040014bd323737ca74ee60789"
+  },
+  "job": "/home/CNS2025331827/docs/bc+rl_RSS/configs/experiments/paired_dagger_20261122/evaluate_test.json",
+  "job_sha256": "c07923c1232616a5772c2ebf2ecc34af2bd926edccba41ab2b506e4fcd8d64b9",
+  "deadline": 1795684571.2261844,
+  "cohorts_sha256": "c3038d5ebd96cc082e2388b7f697df4241198b624fb7732ba67c1f84478cba2e",
+  "parent_pairs_sha256": "a69ac133caf3aa80c5231cea624eed15c15b415f326fe5835ceeeabad4a4d0d6",
+  "expert_permission": false,
+  "optimizer_updates": 0,
+  "new_dagger_trajectories": 0,
+  "strict_denominator": "Every registered initial state for every role; missing software/invalid starts are primary failures",
+  "noise": {
+    "sampler_seed": 7091,
+    "draw_shape": [
+      1,
+      24,
+      29
+    ],
+    "scheduler": "host",
+    "record_start_end": true
+  },
+  "stable_hold": {
+    "contact_threshold_N": 0.1,
+    "minimum_fingers_both_substeps": 2,
+    "minimum_consecutive_ticks": 12,
+    "settled_reference": "median(object_world_z[24:48])",
+    "minimum_height_above_settled_m": 0.02,
+    "earliest_available_transition": 47,
+    "scope": "Existing held12 screen; diagnostic, never native success"
+  },
+  "first_gate": "native keypoints max distance <=15mm while first subgoal unconfirmed",
+  "inference": "120/60/5Hz; commit12; every-frame DINO microbatch2, duplicate-last-real-lane tail",
+  "checkpoint_selection": "All new components preregistered epoch60; development is descriptive only",
+  "historical24": "Reference existing tight_entry_final24_20261122_01; no re-execution",
+  "compute_policy": "One own GPU worker; CPU8-15; nice10; ionice idle; external jobs untouched"
+}

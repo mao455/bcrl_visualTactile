@@ -5,8 +5,48 @@ this implementation. It preserves native reset draws and verifies observed state
 not hidden PhysX state.
 """
 import torch
+import numpy as np
 from visuotactile.training_resources import atomic_json
 from tools.tight_fresh_rollouts import read
+
+def verify_registered_layout(env, cases, output, *, lane_indices=None):
+    """Read actual asset XY before any action; metadata alone cannot pass."""
+    rows=[]
+    diagnostics=env._diagnostics()
+    for lane,case in zip(range(len(cases)) if lane_indices is None else lane_indices,cases):
+        expected=case['spec'].get('reset_admission')
+        if expected is None:continue
+        origin=env.scene.env_origins[lane,:2].detach().cpu().numpy()
+        obj=diagnostics['object_pose_w'][lane,:2].detach().cpu().numpy()-origin
+        hole=diagnostics['hole_pose_w'][lane,:2].detach().cpu().numpy()-origin
+        baseline=np.asarray(expected['unshifted_object_xy_m'])
+        delta=obj-baseline
+        errors=dict(object_xy_m=float(np.max(np.abs(obj-expected['object_xy_m']))),
+                    hole_xy_m=float(np.max(np.abs(hole-expected['hole_xy_m']))),
+                    signed_displacement_xy_m=float(np.max(np.abs(delta-expected['displacement_xy_m']))))
+        rows.append(dict(case=case['name'],seed=case['spec']['seed'],object_xy_m=obj.tolist(),
+            hole_xy_m=hole.tolist(),actual_minus_unshifted_xy_m=delta.tolist(),expected=expected,
+            errors=errors,passed=max(errors.values())<=expected['tolerance_m']))
+    if rows:
+        receipt=dict(rows=rows,passed=all(r['passed'] for r in rows),
+            phase='after native reset, before first student action',
+            subtraction='actual corrected peg XY minus historical unshifted family baseline XY')
+        atomic_json(output/'actual_layout_admission.json',receipt)
+        if not receipt['passed']:raise ValueError('Actual reset layout mismatch; no student action admitted')
+
+def reset_registered_sampler(base, plan, directory, *, identity):
+    """Explicit paired-case noise opt-in; default persistent queue state is unchanged."""
+    if 'sampler_episode_seed' not in plan:
+        return None
+    seed = plan['sampler_episode_seed']
+    if type(seed) is not int or seed != base.model.contract.get('sampler_seed'):
+        raise ValueError('Per-case sampler seed must match the frozen model contract')
+    base.generator.manual_seed(seed)
+    receipt = dict(identity=identity, seed=seed, extra_random_draws=0,
+                   phase='case admission before first planning action',
+                   scope='Diffusion generator only; environment random streams unchanged')
+    atomic_json(directory/'sampler_episode_reset.json', receipt)
+    return receipt
 
 def install(output):
     from visuotactile import narrow_data

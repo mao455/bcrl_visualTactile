@@ -1,0 +1,12 @@
+INACTIVE planned14 interfaces, pending root choice/source review:
+
+- driver module and project/worker wrapper: outputs.diagnostics.tight_paired_dagger_20261122_01.run_test_admission14
+- driver OUT: AUDIT/driver_test_admission14/{registration,status,failure,driver_exit,closure}.json
+- driver LOGS: ROOT/cycle_logs_admission14/{evaluate_fragment14,summarize_test,audit_collection_cuda_noise_recovery05}{.log,_exit.json}
+- new REGISTRY: AUDIT/TEST_ADMISSION14_REGISTRATION.json, root source/actual-review AUDIT/ROOT_TEST_ADMISSION14_REVIEW.json, actualboundary AUDIT/ROOT_TEST_ADMISSION14_BOUNDARY.json
+- actual native owner remains ROOT/owners/test_fragment13 and unchanged original13 job AUDIT/test_fragment13_job.json. Original thirteen driver remains failed with zero native owner launch/fences; do not invent closure13.
+- job13 entry paired_evaluate_fragment13 keeps original args worker --output E/test/waveNN, but14 wrapper supplies its local ENTRIES mapping to module run_test_admission14 (exact once worker). No job13 bytes or13 runtime sources changed.
+- watcher module outputs.diagnostics.tight_paired_dagger_20261122_01.shared_capacity14, audit watch_shared_capacity14, separate ROOT/STOP_RESOURCE_WATCH14. Root closes/restores actual13 watcher first. Exact source adapter recognizes native owner13 under module14 with job13 and newworker14 module. Native13 startup watchdog+lease+autonomy remain reused.
+- expected root actualwatch closure AUDIT/WATCHER14_ACTUAL_CLOSED.json (service watcher14). Final evidence must bind actual14 driver success/nativeowner13 once/truefailed13driver+zero-native-attempt boundary, actual13+14 watcher restoration and all original10/12 failures.
+- 14 driver closure fields: utc,status='original_missing_suffix_and_audits_complete',original13_driver_remains_failed=true,native_owner13_used_once=true,report_required=true. driver_exit utc,pid,returned_after_owned_helpers=true.
+- registry14 fields include original13_registry_sha256, original13_job_sha256, original13_driver_failure/exit/log/rc SHA, boundary13 SHA, source295/frozen8pairs/cohorts/session/deadline identities inherited13, exact new14sources, eligible_indices inherited13, unchanged tail_stages, admission {gpu_resident_mib:11264,ram_resident_bytes:12*2**30, gpu_reserve_mib:4096,ram_reserve_bytes:10*2**30,cooperative_early_ram_margin_bytes:2*2**30}, no-native-owner13-start/no-dispatch actual census with only original plans/session and verified watcher schedules allowed.

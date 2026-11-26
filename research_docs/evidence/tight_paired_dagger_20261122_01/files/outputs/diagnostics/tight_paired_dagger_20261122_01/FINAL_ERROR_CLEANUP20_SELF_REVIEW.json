@@ -1,0 +1,51 @@
+{
+  "version": "final_error_cleanup20_author_self_review_v1",
+  "written_utc": 1795654148.0509665,
+  "status": "inactive_source_and_cpu_fixtures_ready_for_root_review",
+  "source_sha256": "a1d7d87325160028e9e3a1176ed9bea96ce7e627e7dc811f59554f4b1dc3a658",
+  "test_source_sha256": "aeb51f5360a583aea0f2834277b72ecc86dbe5a72be3b9cd513806b76e4993ff",
+  "tests": {
+    "command": "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python -m unittest discover -s outputs/diagnostics/tight_paired_dagger_20261122_01 -p test_final_error_cleanup20.py -v",
+    "exit_code": 0,
+    "passed": 21,
+    "reported_elapsed_seconds": 0.041,
+    "all_signal_syscalls_mocked": true,
+    "actual_signals_sent_by_author": 0
+  },
+  "scope": {
+    "eligible_original_indices": [
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "deadline": 1795684571.2261844,
+    "only_error": "Complete terminal RAM reserve traceback from queued rollout lease.block and state_resources",
+    "minimum_unchanged_seconds": 120,
+    "monotonic_stability_required": true,
+    "term_grace_seconds": 15,
+    "one_exclusive_registered_actual_directory": true,
+    "each_signal_guards": [
+      "Root registration and helper source pin",
+      "Local/helper and original owner STOP",
+      "Exact original owner/driver birth, command, cwd, ancestry",
+      "Current immutable launch/dispatch/plan/session/runtime source pins",
+      "Exact worker birth in original launch window",
+      "Complete unchanged terminal exception and real prior progress",
+      "Same-session exact worker group and descendant ancestry",
+      "Durable per-signal intent followed by fresh identity/census before syscall"
+    ],
+    "global_or_startup_stop_created": false,
+    "frozen_runtime_edited": false,
+    "main_test_results_read": false,
+    "activated": false
+  },
+  "limitations": [
+    "Signals and filesystem receipts cannot be atomic; durable intent precedes syscall and post-signal receipt records observed delivery. A crash between them leaves delivery uncertain.",
+    "Post-TERM log changes refuse KILL and fail the aid, preserving conservative scope.",
+    "Native owner remains solely responsible for actual child reaping; final closure must census all descendants.",
+    "Read-only current-wave observer was exercised before the final guard-only revisions and returned no qualifying exception; no activation occurred."
+  ],
+  "independent_review": "Pending separate reviewer signoff at receipt creation"
+}

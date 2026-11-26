@@ -1,0 +1,19 @@
+{
+  "command": [
+    "systemd-run",
+    "--user",
+    "--unit=tight-paired-collection-recovery05",
+    "--property=Nice=10",
+    "--property=IOSchedulingClass=idle",
+    "--property=CPUAffinity=8-23",
+    "--property=KillMode=control-group",
+    "--property=TimeoutStopSec=180",
+    "--property=RuntimeMaxSec=285796",
+    "--working-directory=/home/CNS2025331827/docs/bc+rl_RSS",
+    "--setenv=PYTHONPATH=/home/CNS2025331827/docs/bc+rl_RSS:/home/CNS2025331827/docs/bc+rl_RSS/rl_games",
+    "--setenv=RESEARCH_CPUS=8-23",
+    "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/run_collection_recovery05.py"
+  ],
+  "utc": 1795398774.5303867
+}

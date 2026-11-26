@@ -1,0 +1,466 @@
+{
+  "version": "paired_dagger_report_facts10_v1",
+  "created_utc": "2026-11-23T19:22:49.451343+00:00",
+  "scope": "Completed collection and immutable training registration metadata only. No checkpoint/cache payloads, live schedules, future development/test registration or outcomes read; no active runtime changes. Only REPORT_FACTS10.md/json written.",
+  "verification": "Recomputed collection denominators/trigger types/expert attempts and DP registered pool multiplicities from listed finalized source JSON; matched summary, integrity and prior handoff hashes. This is not a selected-checkpoint exposure or completion audit.",
+  "collection": {
+    "A": {
+      "opportunities": 48,
+      "software_incomplete": 5,
+      "no_trigger": 18,
+      "takeovers": 25,
+      "expert_recovered": 24,
+      "valid_trajectories": 24,
+      "legal_expert_ticks": 7203,
+      "admitted_legal_expert_ticks": 6721,
+      "software_complete": 43,
+      "expert_failed_after_takeover": 1
+    },
+    "B": {
+      "opportunities": 48,
+      "software_incomplete": 3,
+      "no_trigger": 17,
+      "takeovers": 28,
+      "expert_recovered": 27,
+      "valid_trajectories": 27,
+      "legal_expert_ticks": 8303,
+      "admitted_legal_expert_ticks": 7801,
+      "software_complete": 45,
+      "expert_failed_after_takeover": 1
+    }
+  },
+  "observable_collection_pairs": {
+    "passed": 47,
+    "unverified": 1,
+    "failed": 0,
+    "all_verified": false
+  },
+  "by_assigned_opportunity": {
+    "A": {
+      "support": {
+        "opportunities": 24,
+        "invalid_initialization": 0,
+        "unknown_initialization": 0,
+        "software_incomplete": 2,
+        "untriggered": 2,
+        "takeovers": 20,
+        "expert_recovered": 19,
+        "valid_trajectories": 19,
+        "legal_expert_ticks": 6075,
+        "never_entered_at_takeover": 20,
+        "ever_entered_then_left_at_takeover": 0,
+        "ever_entered_still_in_gate_at_takeover": 0
+      },
+      "alignment": {
+        "opportunities": 24,
+        "invalid_initialization": 0,
+        "unknown_initialization": 0,
+        "software_incomplete": 3,
+        "untriggered": 16,
+        "takeovers": 5,
+        "expert_recovered": 5,
+        "valid_trajectories": 5,
+        "legal_expert_ticks": 1128,
+        "never_entered_at_takeover": 5,
+        "ever_entered_then_left_at_takeover": 0,
+        "ever_entered_still_in_gate_at_takeover": 0
+      }
+    },
+    "B": {
+      "support": {
+        "opportunities": 24,
+        "invalid_initialization": 0,
+        "unknown_initialization": 0,
+        "software_incomplete": 2,
+        "untriggered": 0,
+        "takeovers": 22,
+        "expert_recovered": 21,
+        "valid_trajectories": 21,
+        "legal_expert_ticks": 6722,
+        "never_entered_at_takeover": 22,
+        "ever_entered_then_left_at_takeover": 0,
+        "ever_entered_still_in_gate_at_takeover": 0
+      },
+      "alignment": {
+        "opportunities": 24,
+        "invalid_initialization": 0,
+        "unknown_initialization": 0,
+        "software_incomplete": 1,
+        "untriggered": 17,
+        "takeovers": 6,
+        "expert_recovered": 6,
+        "valid_trajectories": 6,
+        "legal_expert_ticks": 1581,
+        "never_entered_at_takeover": 6,
+        "ever_entered_then_left_at_takeover": 0,
+        "ever_entered_still_in_gate_at_takeover": 0
+      }
+    }
+  },
+  "actual_takeover_coverage": {
+    "A": {
+      "trigger_reasons": {
+        "contact_stall": 16,
+        "support_instability": 9
+      },
+      "takeovers": 25,
+      "never_entered_at_takeover": 25,
+      "entered_then_left_at_takeover": 0,
+      "stable_held12_at_trigger": 0,
+      "never_entered_alignment": 0,
+      "alignment_after_gate_exit": 0,
+      "post_subgoal": 0
+    },
+    "B": {
+      "trigger_reasons": {
+        "contact_stall": 21,
+        "support_instability": 7
+      },
+      "takeovers": 28,
+      "never_entered_at_takeover": 28,
+      "entered_then_left_at_takeover": 0,
+      "stable_held12_at_trigger": 0,
+      "never_entered_alignment": 0,
+      "alignment_after_gate_exit": 0,
+      "post_subgoal": 0
+    }
+  },
+  "expert_demonstrations": {
+    "accepted": 24,
+    "attempts": 28,
+    "distinct_attempted_families": 25,
+    "preaction_rejections": 3,
+    "postaction_failures": 1,
+    "replaced_seed": 28910012,
+    "replacement_seed": 28910024,
+    "legal_timeout_retry_seed": 28910002,
+    "legal_timeout_control_ticks": 601
+  },
+  "retained_collection_software_incompletes": [
+    {
+      "case": "A_s28910001_alignment",
+      "legal": true,
+      "software_complete": false,
+      "issue": "software_incomplete",
+      "retained_in_denominator": true
+    },
+    {
+      "case": "A_s28910002_support",
+      "legal": true,
+      "software_complete": false,
+      "issue": "software_incomplete",
+      "retained_in_denominator": true
+    },
+    {
+      "case": "B_s28910002_support",
+      "legal": true,
+      "software_complete": false,
+      "issue": "software_incomplete",
+      "retained_in_denominator": true
+    },
+    {
+      "case": "B_s28910002_alignment",
+      "legal": true,
+      "software_complete": false,
+      "issue": "software_incomplete",
+      "retained_in_denominator": true
+    },
+    {
+      "case": "A_s28910002_alignment",
+      "legal": true,
+      "software_complete": false,
+      "issue": "software_incomplete",
+      "retained_in_denominator": true
+    },
+    {
+      "case": "B_s28910003_support",
+      "legal": true,
+      "software_complete": false,
+      "issue": "software_incomplete",
+      "retained_in_denominator": true
+    },
+    {
+      "case": "A_s28910003_support",
+      "legal": true,
+      "software_complete": false,
+      "issue": "software_incomplete",
+      "retained_in_denominator": true
+    },
+    {
+      "case": "A_s28910003_alignment",
+      "legal": true,
+      "software_complete": false,
+      "issue": "software_incomplete",
+      "retained_in_denominator": true
+    }
+  ],
+  "parents": {
+    "reason": "Entry current-stage ages can align50/60 but R1 selected ancestor ages differ; old source path missing; reconstruct rather than claim aligned ancestral ages",
+    "shared_pool": 180,
+    "zero_trainable_ancestor_updates": true,
+    "encoder_frozen": true,
+    "dp_initialization_seed": 2026111401,
+    "backend_initialization_seed": 2026111404,
+    "roles": {
+      "A": {
+        "initialization": "Common deterministic seed; zero historical trainable ancestors",
+        "frontend_epochs": 60,
+        "frontend_updates": 7200,
+        "backend_epochs": 60,
+        "backend_updates": 22763,
+        "frontend_sha256": "7ea9c635716be5c723548917e1f2b30d6ea365d1357fc7ed03d91c25fed65539",
+        "backend_sha256": "bce33804d2dd137c3a70cfbbec9260ca153a9430faa79acc0af0e0aba1c3f29a"
+      },
+      "B": {
+        "initialization": "Common deterministic seed; zero historical trainable ancestors",
+        "frontend_epochs": 60,
+        "frontend_updates": 7200,
+        "backend_epochs": 60,
+        "backend_updates": 22763,
+        "frontend_sha256": "6e1f283336d92944c2c2709b0c43e4774dc42e245e2f8ff9aba10ed1ce58fb7f",
+        "backend_sha256": "42e85fa1807cf84cdac0c9430304f9c917a2355ca54ce3dc03f4009cdd700066"
+      }
+    },
+    "historical_entry_selected_stage": {
+      "A_DP": "50/6000",
+      "B_DP": "50/6000",
+      "A_backend": "53/20108",
+      "B_backend": "54/20490"
+    },
+    "historical_reference_reports": [
+      "research_docs/TIGHT_ENTRY_FINAL24_20261122.md",
+      "research_docs/TIGHT_PREMATURE_SCOPE_20261122.md"
+    ],
+    "new_minus_parent_reference": "Actual reconstructed common180 complete pairs used for this round collection; historical130-50/entry are separate retained references."
+  },
+  "pools_and_sampling": {
+    "A": {
+      "partitions": {
+        "old_full": {
+          "trajectories": 30,
+          "base_multiplicity": 3,
+          "frontend_real_visits_per_epoch": 94
+        },
+        "old_corrections": {
+          "trajectories": 150,
+          "base_multiplicity": 1,
+          "frontend_real_visits_per_epoch": 150
+        },
+        "new_full": {
+          "trajectories": 24,
+          "base_multiplicity": 3,
+          "frontend_real_visits_per_epoch": 72
+        },
+        "own_corrections": {
+          "trajectories": 24,
+          "base_multiplicity": 1,
+          "frontend_real_visits_per_epoch": 24
+        }
+      },
+      "trajectories": 228,
+      "legal_ticks_preflight": 51894,
+      "frontend_visits_per_epoch": 340,
+      "dp_data_sha256": "b3b4eaf0712d67915913bce755760b2e4e50057f47889a9c444144ce75222d35",
+      "extra_real_original_demo_visits_per_epoch": 4
+    },
+    "B": {
+      "partitions": {
+        "old_full": {
+          "trajectories": 30,
+          "base_multiplicity": 3,
+          "frontend_real_visits_per_epoch": 91
+        },
+        "old_corrections": {
+          "trajectories": 150,
+          "base_multiplicity": 1,
+          "frontend_real_visits_per_epoch": 150
+        },
+        "new_full": {
+          "trajectories": 24,
+          "base_multiplicity": 3,
+          "frontend_real_visits_per_epoch": 72
+        },
+        "own_corrections": {
+          "trajectories": 27,
+          "base_multiplicity": 1,
+          "frontend_real_visits_per_epoch": 27
+        }
+      },
+      "trajectories": 231,
+      "legal_ticks_preflight": 52974,
+      "frontend_visits_per_epoch": 340,
+      "dp_data_sha256": "a8663dbb24138053968ae0eb88e30931b924a89345a555ad450e6d678f466968",
+      "extra_real_original_demo_visits_per_epoch": 1
+    }
+  },
+  "registered_new_training_budget": {
+    "epochs": 60,
+    "deploy_epoch": 60,
+    "frontend_updates_per_epoch": 170,
+    "frontend_updates_per_role": 10200,
+    "backend_updates_per_epoch": 640,
+    "backend_updates_per_role": 38400,
+    "checkpoint_selection": "Fixed epoch60; validation/development does not select checkpoint.",
+    "base_weights": {
+      "old_full": 3,
+      "old_corrections": 1,
+      "new_full": 3,
+      "own_corrections": 1
+    },
+    "equalization": "Same deterministic original-demo real-visit padding rule; A4/B1 actual additional DP visits. Backend complete-group schedules equalize updates.",
+    "training_completed": null,
+    "actual_selected_exposure_checked": false
+  },
+  "preflight_only": {
+    "passed": true,
+    "minimum_expected_legal_tick_steps": {
+      "A_DP": 60,
+      "B_DP": 60,
+      "A_backend": 60,
+      "B_backend": 60
+    },
+    "native_entry_committed_slots": {
+      "A": 1120,
+      "B": 1149
+    },
+    "minimum_expected_entry_steps": 60,
+    "not_actual_exposure": true
+  },
+  "future_metrics": {
+    "A_new_strict_success_of64": null,
+    "B_new_strict_success_of64": null,
+    "absolute_95pct_intervals": null,
+    "A_new_minus_parent_paired_pp_and_95pct": null,
+    "B_new_minus_parent_paired_pp_and_95pct": null,
+    "A_minus_B_paired_pp_and_95pct": null,
+    "both_at_least32of64": null,
+    "success_retained_new_lost": null,
+    "full64_stage_counts": null,
+    "actual_component_update_and_exposure": null,
+    "timing_and_compute": null
+  },
+  "reporting_limits": [
+    "Expert recoveries are not autonomous student successes.",
+    "A5/B3 software incompletes stay in48 opportunities each; do not relabel as no-trigger or retry.",
+    "All53 takeovers never entered15mm; none were held12 stable near-hole alignment, postgate or postsubgoal takeovers. Alignment-allocated A5/B6 were support-instability fallback.",
+    "47 paired collection starts verified and1 unverified; do not claim48/48.",
+    "Sampling preflight is not actual selected epoch60 successful-update exposure; checkpoint ledgers must establish >=50 without ancestors, padding, duplicate slots or unlabeled handover.",
+    "A/B DP target spaces differ; nominal loss cannot rank groups.",
+    "No old-data equal-update control, so only the expanded-family + own-correction + matched-training package can be evaluated.",
+    "Training completion, convergence, independent generalization and next causal intervention are not inferred by this fact sheet."
+  ],
+  "prior_handoff_source_sha_matches": {
+    "collection_summary": true,
+    "collection_results": true,
+    "expert_summary": true,
+    "expert_results": true,
+    "actual_parent_ages": true
+  },
+  "sources": {
+    "handoff_markdown": {
+      "path": "outputs/diagnostics/tight_paired_dagger_20261122_01/HANDOFF_REPORT_AUDIT.md",
+      "sha256": "733838ee3df8fd0bedbad0e40e155eabc32154c3cff9bb3653b6821c482543aa",
+      "bytes": 6406
+    },
+    "handoff_json": {
+      "path": "outputs/diagnostics/tight_paired_dagger_20261122_01/HANDOFF_REPORT_AUDIT.json",
+      "sha256": "f85f6e4c2671b0d303211fc6e45f1cc1f83ef315361b142dcca2891b0680ba5a",
+      "bytes": 15135
+    },
+    "collection_summary": {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/collection_aggregate_recovery05/collection_summary.json",
+      "sha256": "772f98733cdc819fcba120b054d112ec47268af04b03bd7c79845d0677d3b637",
+      "bytes": 3086
+    },
+    "collection_results": {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/collection_aggregate_recovery05/results.json",
+      "sha256": "2637f4268bd3e42adc781af56347f528510d583b105594b0eb4c808a11b631a5",
+      "bytes": 2400181
+    },
+    "collection_integrity": {
+      "path": "outputs/diagnostics/tight_paired_dagger_20261122_01/collection_integrity_recovery05_actual01/integrity.json",
+      "sha256": "8351353045b61e255da78ce060895a4727fca92e52ffc9db9d8302b1ca3edb6a",
+      "bytes": 173713
+    },
+    "expert_summary": {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/experts_shared/result.json",
+      "sha256": "279fb824dfbd9000b6fb34446d2a89163dc06558e7b227af7ee7e5dcc248dadd",
+      "bytes": 800
+    },
+    "expert_results": {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/experts_shared/results.json",
+      "sha256": "1c49f040a96ee63bbb6acbf8d7122eeccdd3994b7f5385c8ba53fee078f48faa",
+      "bytes": 100471
+    },
+    "family_admission": {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/training_family_admission_amendment.json",
+      "sha256": "2886f9b4b7d45fe85d282d674bc53cbe5013e6039ba4d7e67eba1b4366ce1fc0",
+      "bytes": 6034
+    },
+    "actual_parent_ages": {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/actual_parent_ages.json",
+      "sha256": "e6cb3233f1cef7c25ef692f610b403464294f265cc786325c8f5ce3f48af82d4",
+      "bytes": 1032
+    },
+    "parent_pairs": {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/parent_pairs.json",
+      "sha256": "a69ac133caf3aa80c5231cea624eed15c15b415f326fe5835ceeeabad4a4d0d6",
+      "bytes": 2937
+    },
+    "parent_reconstruction": {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/parent_reconstruction_amendment.json",
+      "sha256": "dc6221d2e593c0b8c7ab4c29410233f6920d37bfe62e5b6c4089358a4066e774",
+      "bytes": 26490
+    },
+    "training_budget": {
+      "path": "outputs/diagnostics/tight_paired_dagger_20261122_01/ACTUAL_TRAINING_BUDGET_SHARED06.json",
+      "sha256": "899287f10f21edaafd55356f61ae985e4cc0b7745c52c2d4d763f3baaa4693aa",
+      "bytes": 1957
+    },
+    "exposure_preflight": {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/complete_exposure_preflight.json",
+      "sha256": "4a1ae94bb49dfa84ac241c981ed40968ca389d68362616c50464adf619d6347b",
+      "bytes": 6834
+    },
+    "dp_A_configuration": {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/A/training/configuration.json",
+      "sha256": "00092f2dd904a066e09674f97f5819d6c6497f2d4e651ec3428c1ce0e59c3977",
+      "bytes": 75526
+    },
+    "dp_B_configuration": {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/B/training/configuration.json",
+      "sha256": "a16f02480e405ebfeeb7aaa5f21ab8cf5a382d1b132d831bdb8e002b9ef09a85",
+      "bytes": 75451
+    },
+    "training_sampling": {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/training_sampling.json",
+      "sha256": "582e1d4d307d21dfd08288fee3683fc2db7f1547def21ef489328ae2e3e29371",
+      "bytes": 1582
+    },
+    "backend_episode_sampling": {
+      "path": "outputs/visuotactile/run/tight_paired_dagger_20261122_01/learning/backend_episode_sampling.json",
+      "sha256": "2b3ec9d551beaeb71cdc0dbe83eda07e65cd8bfafae77ef4874e91e62d1034ce",
+      "bytes": 22308
+    },
+    "historical_scope": {
+      "path": "research_docs/TIGHT_PREMATURE_SCOPE_20261122.md",
+      "sha256": "8c0855503d7aab77b310e2a2292941e109a844d789d5b112d33b06124785f2e4",
+      "bytes": 13931
+    },
+    "historical_final24": {
+      "path": "research_docs/TIGHT_ENTRY_FINAL24_20261122.md",
+      "sha256": "ba258cb377cc185a55bc02993f76d9c380449dfe5c4ea56b26b140a211065069",
+      "bytes": 10293
+    },
+    "historical_entry_phase": {
+      "path": "research_docs/TIGHT_ENTRY_PHASE_20261122.md",
+      "sha256": "03b0735be7d34a403f817db7ea7b1a017be2f176d1eb5611cbee6307dcd45a32",
+      "bytes": 19213
+    },
+    "historical_adaptive": {
+      "path": "research_docs/TIGHT_ADAPTIVE_DAGGER_20261119_RESULTS.md",
+      "sha256": "ad8f9ffd8cb947c80229673e784c2253bed1da575210e8cc15c7e19c57bb59ae",
+      "bytes": 13242
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "version": "host_init18_independent_source_review_v1",
+  "status": "source_and_synthetic_review_passed_no_activation_by_reviewer",
+  "reviewer": "/root/final13_sources",
+  "utc": "2026-11-24T07:35:36.910976+00:00",
+  "blockers": [],
+  "source_sha256": {
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity18.py": "7ac5bb977213647e8461fe8fc2e500eea1b48fa557a56dbeca2b3352983c3cc2",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/test_host_init_capacity18.py": "4becbb8574a6dae844a995e1938fb828f1ef4a4e9f53bc0f5818039a3f021c42",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/test_independent_host_init_capacity18_review.py": "1a0ae247cb94df9bb253dca8158bc3abffd2dcfe7dcb4ea03fa1a13b3864f9c9",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/test_final13_host_init18_review.py": "64008ac724e6eb834601114a8fd980e30aa1d33d4f687ab2475ab22757848373",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/run_test_continuation15.py": "2b99c3383172ed654c78dafe29074ffe52a9c9bf1768e0f1d69d4194a52aa192",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/shared_capacity15.py": "18615cf1ed3d44e3779eaafd0c475d04816b9d29fc4d300a895651ccb9fb6c2d",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/test_fragment13.py": "79e43e6f2496b0ccfbd40e200f1dcb53ca1d9c2579083ef27632c69997e03647"
+  },
+  "report_sha256": "2bcb9be689fdf9afa232e021fabe566717c6c713a1be285eedbe3afffdb2b85a",
+  "tests": {
+    "passed": 100,
+    "failed": 0,
+    "seconds": 0.23,
+    "author": 53,
+    "other_independent": 25,
+    "this_independent": 22,
+    "command": "PYTHONDONTWRITEBYTECODE=1 /home/CNS2025331827/miniconda3/envs/isaaclab/bin/python -m pytest -q -p no:cacheprovider outputs/diagnostics/tight_paired_dagger_20261122_01/test_host_init_capacity18.py outputs/diagnostics/tight_paired_dagger_20261122_01/test_independent_host_init_capacity18_review.py outputs/diagnostics/tight_paired_dagger_20261122_01/test_final13_host_init18_review.py --disable-warnings --maxfail=2",
+    "compile_files": 7
+  },
+  "scope": {
+    "source_only": true,
+    "temporary_synthetic_fixtures_only": true,
+    "actual_lifecycle_receipts_read": false,
+    "main64_outcomes_read": false,
+    "weights_caches_or_rollout_payloads_read": false,
+    "live_processes_queried": false,
+    "affinity_or_priority_changed": false,
+    "signals_sent": 0,
+    "activation_performed": false,
+    "final15_or_closure15_tests_repeated": false
+  },
+  "fixed_findings": [
+    "constructor phase must be rechecked under lock and around per-thread writes",
+    "CPU whitelist and max2 must be validated before writes",
+    "restore failure must attempt global OWNER/STOP even if exact worker already exited",
+    "queue abort request must be distinguished from committed STOP",
+    "elapsed must be preserved even when restore fails"
+  ],
+  "old16_counterexamples_reproduced": [
+    "PID reused after old status rejected",
+    "readiness race performs zero expansion and restoration syscalls",
+    "restore failure still attempts exit and retains lifecycle lock through exact worker exit"
+  ],
+  "reviewed_contract": {
+    "eligible_indices": [
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "candidate_cpus": [
+      1,
+      2,
+      4,
+      5
+    ],
+    "maximum_extra_cpus": 2,
+    "old_mask": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "nice": 10,
+    "minimum_worker_age_seconds": 60,
+    "placement_cap_seconds": 40,
+    "physics_initialization_overlap_authorized": true,
+    "python_initialization_commit_and_control_fenced": true,
+    "global_stop_on_restore_failure": true,
+    "no_fabricated_normal_startup1800_stop": true,
+    "once_per_wave": true
+  },
+  "remaining_runtime_requirements": [
+    "root exact registry/review/owner identity review before activation",
+    "independent actual per-intent extension/restoration/exit review after helper closure",
+    "host-init18 actual evidence must be added separately; closure15 excludes18"
+  ],
+  "limitations": [
+    "SIGKILL, host loss and kernel failures cannot be covered by Python finally/flock",
+    "thread affinity and CPU observations are sequential rather than one atomic process-wide snapshot",
+    "restoration may extend elapsed beyond40 seconds; cap is not a hard total closure bound",
+    "no measured performance or external-test noninterference claim from source-only fixtures",
+    "scientific contracts/noise sources are pinned; outcomes were not opened or re-evaluated"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "version": "final_error_cleanup20_independent_source_review_v1",
+  "utc": 1795654159.4597108,
+  "status": "source_review_passed_inactive_only",
+  "source_sha256": "a1d7d87325160028e9e3a1176ed9bea96ce7e627e7dc811f59554f4b1dc3a658",
+  "tests_sha256": "aeb51f5360a583aea0f2834277b72ecc86dbe5a72be3b9cd513806b76e4993ff",
+  "scope": "Only inactive helper source and CPU safety fixtures; no runtime activation, real signal, process mutation or main evaluation outcomes read.",
+  "tests": {
+    "command": "python -m unittest outputs.diagnostics.tight_paired_dagger_20261122_01.test_final_error_cleanup20",
+    "passed": 21,
+    "signals": "All signal syscalls mocked."
+  },
+  "original_source_review": {
+    "sha256": "bc2c7a184c00e36391c5a17ec6559c801bc35b3708da82ea283b54e66ccad35e",
+    "finding": "A helper-local STOP created before cleanup did not prevent SIGTERM. A mocked-only reproduction delivered one mocked SIGTERM.",
+    "resolution": "Revised cleanup_guard checks local STOP, registration digest and source-bound registration before each signal, including after durable intent I/O. The real-guard counterexample now produces zero signal calls."
+  },
+  "passed_boundaries": [
+    "Only original waves59..63 under original finite deadline; unchanged science plans and no consumed-wave retry.",
+    "Complete last RAM-reserve traceback plus unchanged actual progress/log for at least120 monotonic seconds; no performance or scientific outcome trigger.",
+    "Exact original driver/owner identities, ancestry/cwd/command and frozen registry/source/job/session/launch/dispatch/plan identities; independent process-group ancestry census.",
+    "Shared schedule lock through signal sequence; fresh identity/progress/census after each durable per-signal intent.",
+    "SIGTERM first; at least15 seconds before SIGKILL, unless exact leader exits; fresh identity check required for KILL.",
+    "Helper-local STOP, original owner STOP/deadline and changed source/registration prevent a subsequent signal.",
+    "Exclusive fixed actual01 receipt directory; no helper-created global/startup STOP and no queue-complete or owner-exit fabrication."
+  ],
+  "limits": [
+    "No filesystem receipt and signal syscall can be atomic. A durable intent proves intended action only; a missing post-signal receipt cannot prove nondelivery. Final audit must retain any intent/failure and reconcile with native-owner records.",
+    "Process-group enumeration and killpg are not kernel-atomic. The source narrows the race with repeated exact identity and ancestry checks while holding the schedule lock; no absolute PID-reuse or uncooperative external mutation guarantee is claimed.",
+    "After SIGTERM, log/progress changes or natural identity disappearance cause conservative failure/no KILL. This may leave work for native-owner cleanup and must not be called successful complete cleanup.",
+    "A zombie/exited leader does not prove every descendant exited. The helper explicitly leaves reaping to the native owner; final exact helper/worker/descendant census and native-owner closure remain required.",
+    "Evidence I/O failure may prevent final receipt writing. Source does not manufacture successful reaping or queue completion; final closure must inspect actual process and owner state."
+  ],
+  "activation": "Not performed or authorized by this review. Any optional activation still requires separate concrete root registration and actual closure review."
+}

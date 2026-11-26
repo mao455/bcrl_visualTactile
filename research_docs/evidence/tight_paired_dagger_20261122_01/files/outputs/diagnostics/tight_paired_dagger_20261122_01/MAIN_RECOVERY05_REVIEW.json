@@ -1,0 +1,154 @@
+{
+  "version": "main_recovery05_independent_review_v1",
+  "utc": 1795399667.9961374,
+  "activated": false,
+  "actual_gpu_or_simulator_launches": 0,
+  "production_mutations": 0,
+  "live_identity_chain": {
+    "2191378": {
+      "pid": 2191378,
+      "ppid": 2184,
+      "created": 1795398773.47,
+      "command": [
+        "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+        "-m",
+        "outputs.diagnostics.tight_paired_dagger_20261122_01.coexistence_watch_recovery05",
+        "--audit",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/watch_service_recovery05",
+        "--apply"
+      ],
+      "cwd": "/home/CNS2025331827/docs/bc+rl_RSS"
+    },
+    "2191552": {
+      "pid": 2191552,
+      "ppid": 2191384,
+      "created": 1795398803.82,
+      "command": [
+        "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+        "-m",
+        "outputs.diagnostics.tight_paired_dagger_20261122_01.collection_recovery05",
+        "project",
+        "dagger",
+        "--job",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/collection_recovery05_job.json"
+      ],
+      "cwd": "/home/CNS2025331827/docs/bc+rl_RSS"
+    },
+    "2191559": {
+      "pid": 2191559,
+      "ppid": 2191552,
+      "created": 1795398804.06,
+      "command": [
+        "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+        "-m",
+        "outputs.diagnostics.tight_paired_dagger_20261122_01.collection_recovery05",
+        "worker",
+        "--output",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/collection_recovery05"
+      ],
+      "cwd": "/home/CNS2025331827/docs/bc+rl_RSS"
+    },
+    "2191384": {
+      "pid": 2191384,
+      "ppid": 2184,
+      "created": 1795398773.61,
+      "command": [
+        "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/run_collection_recovery05.py"
+      ],
+      "cwd": "/home/CNS2025331827/docs/bc+rl_RSS"
+    }
+  },
+  "watcher_snapshot": {
+    "paused": false,
+    "reason": "no_external_gpu",
+    "external_gpu_processes": [],
+    "external_test_python_processes": [],
+    "external_test_python_scan_errors": [],
+    "registered_workers_excluded": [
+      {
+        "pid": 2191559,
+        "created": 1795398804.06,
+        "name": "collection_recovery05",
+        "output": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/collection_recovery05",
+        "owner_pid": 2191552,
+        "owner_created": 1795398803.82
+      }
+    ],
+    "errors": [],
+    "active_resource_roots": [
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/collection_recovery05"
+    ],
+    "raw_monitor_rows": [
+      {
+        "owner": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/collection_recovery05",
+        "name": "collection_recovery05",
+        "raw": {
+          "pid": 2191554,
+          "utc_epoch": 1795399666.4389708,
+          "elapsed_s": 861.6627168282866,
+          "gpu_util_percent": 14.0,
+          "gpu_used_mib": 10341.0,
+          "gpu_free_mib": 13743.0,
+          "ram_available_bytes": 25917136896,
+          "process_rss_bytes": 19001344,
+          "cuda_allocated_bytes": null,
+          "cuda_reserved_bytes": null,
+          "rolling_60s_percent": 17.499694368833055,
+          "rolling_300s_percent": 16.576467606226604,
+          "gpu_processes": [
+            {
+              "pid": 2191559,
+              "name": "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+              "vram_mib": 9726,
+              "owned": false
+            }
+          ],
+          "external_gpu_processes": [
+            {
+              "pid": 2191559,
+              "name": "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+              "vram_mib": 9726,
+              "owned": false
+            }
+          ],
+          "process_telemetry_errors": [],
+          "external_throughput_available": false,
+          "ownership_scope": "declared_real_root_or_registered_batch_output_descendant_v3",
+          "target_pacing_ratio": 0.0,
+          "pause_reasons": [],
+          "pacing_ratio": 0.0
+        }
+      }
+    ],
+    "utc": 1795399667.295185,
+    "pid": 2191378,
+    "modified_schedules": 0,
+    "schedule_conflicts": []
+  },
+  "matched_parent_source_count": 295,
+  "parallel_registered_sources_current": true,
+  "tests": {
+    "new_driver": 52,
+    "combined_driver_parallel_watcher": 99,
+    "command": "python -m pytest -q outputs/diagnostics/tight_paired_dagger_20261122_01/test_run_main_recovery05.py outputs/diagnostics/tight_paired_dagger_20261122_01/test_parallel_rear_proposal.py outputs/diagnostics/tight_paired_dagger_20261122_01/test_coexistence_watch_recovery05.py --tb=short"
+  },
+  "source_sha256": {
+    "run_main_recovery05.py": "3edbb158e0845cc4f51bfee0e27e1552c79fc8455613d8e610a40036a5e9002f",
+    "test_run_main_recovery05.py": "ed4d5aa7f2db1a33e889f7b07f01ec6877b35558084c6bc4f3aa1944fc7c92ba"
+  },
+  "limitations": [
+    "Read-only live identity snapshot; not proof of uninterrupted future coexistence.",
+    "Only rear trainer overlap is planned; no zero-interference or speedup claim.",
+    "Driver has not started and requires closed truthful aggregate plus capacity.",
+    "Current parallel job registration is unactivated metadata; generated serial fallback is checked after job registration and before cache/train.",
+    "Collection audit implementation belongs to collection recovery agent; no concurrent edits."
+  ],
+  "revision": "startup_idle_gap_and_standalone_admission_v2",
+  "revision_utc": 1795400126.7137926,
+  "startup_gate_revision": {
+    "owner_start": "Exact fresh reviewed watcher; all scans/errors/conflicts clear. May accept only paused reason no_fresh_owned_telemetry with empty active roots, raw monitor rows and excluded workers. Does not unpause schedules or alter watcher.",
+    "standalone": "Exact idle watcher plus independent nvidia-smi GPU0 capacity/process queries, proc external-test scan, RAM/disk availability; no resident compute process allowed; reserve plus 1024MiB VRAM and2GiB RAM allowance; no owner telemetry manufactured. Recheck watcher after query.",
+    "execution": "No live watcher/source/config/runtime changed and no actual nvidia-smi sample or CUDA/physics/training run by revision tests. Root activation required."
+  }
+}

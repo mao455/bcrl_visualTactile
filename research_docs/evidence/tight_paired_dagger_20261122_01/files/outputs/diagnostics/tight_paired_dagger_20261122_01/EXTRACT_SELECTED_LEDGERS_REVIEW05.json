@@ -1,0 +1,74 @@
+{
+  "status": "source_schema_and_synthetic_cpu_round_trip_passed_not_activated",
+  "observed_utc": 1795404995.7497637,
+  "sources": {
+    "extract_selected_ledgers_recovery05.py": {
+      "sha256": "197eb8881358740ecba907042d4dc65ed93b268a70c96d32eb0bc4132b58f678",
+      "bytes": 16329
+    },
+    "test_extract_selected_ledgers_recovery05.py": {
+      "sha256": "3a2118a9c4134736ce6e2d716a7530cf077ef7dc02cdbc66417e6ae52f2405e5",
+      "bytes": 19758
+    }
+  },
+  "production_schema_sources": {
+    "tools/tight_fresh_train.py": {
+      "sha256": "fcc7cb770af2f3e8c983ef806b68ff71740db5731cbdac0949ea2c0295960b59"
+    },
+    "tools/tight_fresh_backend.py": {
+      "sha256": "5d1200fefe5df082056653199b11ca0090555350606b68556d194b1a4fa1727d"
+    },
+    "tools/tight_paired_learning.py": {
+      "sha256": "79af140c6ac3a934c3f175764305bf774c6da40fe1b308f6e815ba57dd0f1f39"
+    },
+    "visuotactile/anchor_continue.py": {
+      "sha256": "1e866c344e237b329057e70040c34c5050eabd6af06313ea7c9c6baaca99fdc2"
+    },
+    "visuotactile/checkpointing.py": {
+      "sha256": "afe7277f5e63057b98976f39dc6ef740d2737d1fc6d456336f995e5f6c5150b5"
+    },
+    "visuotactile/effective_exposure.py": {
+      "sha256": "9007f15c381cd0a53ffb2b47dfc7d89ac27ebfdf782d7d87a2a5c5d8c151af27"
+    },
+    "visuotactile/entry_exposure.py": {
+      "sha256": "3befbe5ddfab3e19f57b44caceb8baf2eb08969a652d540cc648b949fa61f708"
+    },
+    "visuotactile/anchor_sampling.py": {
+      "sha256": "aa7cf1c6b3b09d7864d1e95722b4fa48b0591def43613f0361f5497892b0af44"
+    },
+    "visuotactile/target_windows.py": {
+      "sha256": "77f5ebf2174d6dec9d17e0dfbd99f932309d193fbd1397511aa0dc4a0d010374"
+    }
+  },
+  "tests": {
+    "passed": 10,
+    "subtests_passed": 24,
+    "failed": 0,
+    "seconds": 2.52,
+    "warning": "Existing requests dependency warning; no test failures",
+    "command": "taskset -c 8-9 env OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 /home/CNS2025331827/miniconda3/envs/isaaclab/bin/python -m pytest -q outputs/diagnostics/tight_paired_dagger_20261122_01/test_extract_selected_ledgers_recovery05.py"
+  },
+  "checks": [
+    "DP train_ids=data.splits.train; configuration.data_sha256 binds exact manifest; training_state stores EMA optimization age and actual ledgers",
+    "Rear snapshot stores train_ids, episode_counts, epoch and actual successful update count; configuration.data_sha256 and own-DP base_sha256 match extractor fields",
+    "Real production Ledger and EntryLedger CPU counters deduplicate overlapping contributions within one update; fixtures commit sixty distinct successful step numbers",
+    "Tiny synthetic DP checkpoint uses actual training_state/cpu_snapshot then real CPU mmap loader; all eight fixture components pass extractor bindings",
+    "Actual EntryLedger boundary fixtures first legal ticks12,13,23,24,25 verify native12tick anchor and partial tail slots",
+    "Missing/active driver, summary failure, wrong64 denominator/cohort, missing policy/owner all block before any checkpoint read",
+    "All current parent manifest180 entries in A and B contain length,family,source_sha256; no raw assets read",
+    "New main manifests do not yet exist; actual eight-checkpoint verification remains gated until genuine closure"
+  ],
+  "actual_experiment_checkpoint_reads": 0,
+  "raw_hdf5_or_visual_or_cache_payload_reads": 0,
+  "gpu_or_model_forward_launches": 0,
+  "synthetic_checkpoint_reads": 8,
+  "active_source_modified": false,
+  "extractor_changed_this_review": false,
+  "test_only_changes": true,
+  "activation_owner": "root after genuine main closure",
+  "limitations": [
+    "Selected counters attest distinct successful-step participation under production Ledger semantics; no reconstruction of individual update IDs",
+    "Raw all-record segment/mask SHA remains a provenance reference; no raw-mask recomputation",
+    "No evidence that current real final ledgers pass until root activates after closure; no inference of nonzero gradients or autonomous capability"
+  ]
+}

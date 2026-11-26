@@ -384,9 +384,15 @@ def restore_residual_training(saved,model,optimizer,generator,configuration,trai
         if configuration.get(contract_key)!=expected or saved.get(version_key)!=(expected or {}).get('version'):
             raise ValueError('Residual restore '+contract_key+' identity differs')
     order=saved['episode_order'];next_group=saved['next_episode_group']
+    paired_deck=configuration.get('paired_group_deck')
+    if paired_deck is not None:
+        from .paired_training_decks import validate_progress
+        validate_progress(paired_deck,saved)
     stratified=bool(configuration.get('sampling_strata'))
     valid_order=bool(order) and set(order)<=set(train_ids) if stratified else len(order)==len(train_ids) and set(order)==set(train_ids)
-    if configuration.get('episode_sampling') is not None:
+    if paired_deck is not None:
+        valid_order=True
+    elif configuration.get('episode_sampling') is not None:
         # The caller already validates this deck against the hash-bound dataset.
         # A repeated visit is not a new trajectory; restore its exact saved order.
         from collections import Counter
@@ -401,7 +407,8 @@ def restore_residual_training(saved,model,optimizer,generator,configuration,trai
         raise ValueError('Residual restore multiplicities require an explicit sampling contract')
     if saved.get('train_ids')!=train_ids or not valid_order:
         raise ValueError('Residual restore episode population/order differs')
-    if not 0<=next_group<=len(order) or saved['epoch']<1 or saved['updates']<0:
+    group_limit=len(paired_deck['epoch_groups'][saved['epoch']-1]) if paired_deck else len(order)
+    if not 0<=next_group<=group_limit or saved['epoch']<1 or saved['updates']<0:
         raise ValueError('Invalid residual complete episode-group restore cursor')
     model.load_state_dict(saved['model'],strict=True);optimizer.load_state_dict(saved['optimizer'])
     generator.set_state(saved['schedule_rng']);torch.set_rng_state(saved['torch_rng'])
@@ -1113,14 +1120,14 @@ def residual_setup(root, *, selected=False, smoke=False):
     if index['base_sha256']!=base['sha256'] or index['data_sha256']!=sha256(root/'state_data/data.json'):
         raise ValueError('Nominal cache identity mismatch')
     residual_statistics_path=Path(v['residual_statistics_path'])
-    from .fresh_contracts import residual_normalization
+    from .fresh_contracts import residual_normalization, FRESH_AGGREGATE_CONTRACT, FRESH_PAIRED_AGGREGATE_CONTRACT
     residual_normalization_identity=residual_normalization(read(root/'state_data/data.json'),v)
     if not residual_statistics_path.is_absolute():raise ValueError('Residual statistics path must be absolute')
     residual_data=read(residual_statistics_path.parent/'data.json')
     if residual_data.get('normalization_identity')!=residual_normalization_identity:
         raise ValueError('New residual requires common u_expert training affine')
     expected_train=read(root/'state_data/data.json')['splits']['train']
-    fresh_aggregate=v.get('fresh_data_contract')=='fresh30_actual_takeover_aggregate_v1'
+    fresh_aggregate=v.get('fresh_data_contract') in (FRESH_AGGREGATE_CONTRACT, FRESH_PAIRED_AGGREGATE_CONTRACT)
     normalization_train=data.get('normalization_train_ids',expected_train) if v.get('continuation_from') or fresh_aggregate else expected_train
     residual_normalization_train=residual_data.get('normalization_train_ids',residual_data['splits']['train'])
     if residual_normalization_train!=normalization_train or not set(normalization_train)<=set(expected_train) or not set(normalization_train)<=set(residual_data['splits']['train']):
@@ -1367,9 +1374,21 @@ def residual_train(root, *, smoke=False, probe=False):
     if rear_sampling is not None:
         if strata: raise ValueError('Explicit rear deck cannot be combined with legacy strata')
         _, multiplicities, unique_population, population = rear_plan(data, records, rear_sampling)
+    paired_deck=v.get('paired_group_deck')
+    if paired_deck is not None:
+        from .paired_training_decks import validate_deck, validate_progress
+        if disposable or strata or window is None or extension or v.get('matched_update_stop') or formal_epochs!=paired_deck.get('epochs') or v['microbatch']!=4:
+            raise ValueError('Paired decks require formal60epoch fixed128window/32chunk/microbatch4 training')
+        paired_deck=validate_deck(paired_deck,data,records,
+            data_sha256=configuration['data_sha256'],role=root.name)
+        if rear_sampling!=paired_deck['sampling']:
+            raise ValueError('Paired deck/rear sampling differs')
+    finite_deck = paired_deck is not None and paired_deck['version'] == 'paired_complete_group_decks_finite_v1'
     from .effective_exposure import validate as validate_exposure_policy, Ledger
     exposure_policy=validate_exposure_policy(v.get('effective_exposure'))
     ledger=Ledger({i:records[i]['supervision_mask'] for i in ids}) if exposure_policy else None
+    if paired_deck is not None and exposure_policy is None:
+        raise ValueError('Paired training requires actual successful-step legal tick exposure accounting')
     if exposure_policy and (disposable or window is None):raise ValueError('Effective exposure requires formal tick-window training')
     target_ticks=v['maximum_control_tick_epochs']*population
     matched=v.get('matched_update_stop')
@@ -1411,6 +1430,10 @@ def residual_train(root, *, smoke=False, probe=False):
     signal.signal(signal.SIGTERM,lambda *_:request.append('SIGTERM'))
     plateau=Plateau(extension,saved.get('plateau_state') if (out/'last.pt').exists() else None) if extension else None
     def snapshot(epoch,next_group):
+        if paired_deck is not None:
+            validate_progress(paired_deck,dict(epoch=epoch,next_episode_group=next_group,
+                episode_order=order,episode_counts=episode_counts,updates=updates,
+                supervised_ticks=draws,control_ticks=ticks))
         return cpu_snapshot(dict(residual_version=model.version,group='I-HistoryDP',contract=s['base_contracts'][root.name],
             **({'residual_loss_version':model.loss_contract['version']} if getattr(model,'loss_contract',None) else {}),
             **({'residual_history_version':model.history_contract['version']} if getattr(model,'history_contract',None) else {}),
@@ -1426,10 +1449,21 @@ def residual_train(root, *, smoke=False, probe=False):
             selection_baseline=selection_baseline,episode_counts=episode_counts,ema=False,
             **({'effective_exposure_state':ledger.state_dict()} if exposure_policy else {}),
             **({'plateau_state':plateau.state} if plateau else {})))
+    from .paired_curve_diagnostics import validate as validate_curve_diagnostics, Recorder
+    curve_diagnostics=validate_curve_diagnostics(v.get('family_phase_diagnostics'))
+    curves=(Recorder(out,data,component='Transformer',role=root.name,action_scale=model.action_scale)
+        if curve_diagnostics is not None else None)
     def validate(epoch):
         nonlocal best,selection_baseline
-        validation,_=residual_metrics(model,records,vals,lease)
-        train,_=residual_metrics(model,records,ids[:2],lease)
+        if curves is None:
+            validation,_=residual_metrics(model,records,vals,lease)
+            train,_=residual_metrics(model,records,ids[:2],lease)
+        else:
+            validation,predictions=residual_metrics(model,records,vals,lease)
+            curves.residual_evaluation(epoch,updates,'validation',vals,records,predictions)
+            train,predictions=residual_metrics(model,records,ids[:2],lease)
+            curves.residual_evaluation(epoch,updates,'train_evaluation',ids[:2],records,predictions)
+            curves.export(updates)
         row=dict(epoch=epoch,update=updates,control_tick_epochs=draws/population,control_epoch=ticks/native_population,
             train=train,validation=validation,wall_s=time.time()-began,wait_s=lease.wait_s)
         score=validation['all']['normalized_equal_mse']
@@ -1454,7 +1488,7 @@ def residual_train(root, *, smoke=False, probe=False):
                 for group in opt.param_groups:group['lr']=rate
                 row['matched_next_learning_rate']=rate
         if exposure_policy:row['effective_exposure']=ledger.summary(episode_counts)
-        row['selection_eligible']=not exposure_policy or row['effective_exposure']['eligible']
+        row['selection_eligible']=finite_deck or not exposure_policy or row['effective_exposure']['eligible']
         history.append(row);atomic_json(out/'validation.json',history)
         if row['selection_eligible'] and score<best and (matched is None or updates==matched['updates']):
             best=score;save(out/'best.pt',snapshot(max(epoch,1),next_group))
@@ -1466,12 +1500,13 @@ def residual_train(root, *, smoke=False, probe=False):
     def next_order():
         return (episode_deck(ids,multiplicities,generator) if rear_sampling is not None else
                 stratified_episode_order(ids,records,strata,v.get('sampling_weights'),generator))
-    order=resume_order or next_order()
+    order=resume_order or (sum(paired_deck['epoch_groups'][resume_epoch-1],[]) if paired_deck else next_order())
     if rear_sampling is not None and updates == 0:
         from .rear_episode_sampling import latest_fit
         atomic_json(out/'latest_fit_initial.json', latest_fit(model,records,data,lease))
     next_group=resume_group
     def exposure_complete():
+        if paired_deck is not None:return False
         if matched is not None:return updates>=matched['updates']
         if draws<target_ticks:return False
         if not strata:return True
@@ -1484,14 +1519,16 @@ def residual_train(root, *, smoke=False, probe=False):
     for epoch in range(resume_epoch,v['maximum_control_tick_epochs']+1):
         if v.get('matched_learning_rates') is not None:
             for group in opt.param_groups:group['lr']=v['matched_learning_rates'][epoch-1]
-        if epoch!=resume_epoch:order=next_order()
+        if epoch!=resume_epoch:order=sum(paired_deck['epoch_groups'][epoch-1],[]) if paired_deck else next_order()
         next_group=resume_group if epoch==resume_epoch else 0
-        for offset in range(resume_group if epoch==resume_epoch else 0,len(order),v['microbatch']):
+        epoch_groups=paired_deck['epoch_groups'][epoch-1] if paired_deck else None
+        for offset in range(resume_group if epoch==resume_epoch else 0,len(epoch_groups) if paired_deck else len(order),1 if paired_deck else v['microbatch']):
             if exposure_complete():break
             if (out/'STOP').exists() or (root/'STOP').exists() or request:
                 stop='requested_stop';break
             group_began=time.time()
-            selected=[records[i] for i in order[offset:offset+v['microbatch']]];state=None;prefix_inputs=[]
+            selected_ids=epoch_groups[offset] if paired_deck else order[offset:offset+v['microbatch']]
+            selected=[records[i] for i in selected_ids];state=None;prefix_inputs=[]
             history_dirty=False
             exposure_pending=[]
             for start in range(0,max(len(r['robot']) for r in selected),32):
@@ -1515,13 +1552,13 @@ def residual_train(root, *, smoke=False, probe=False):
                         action,delta=model.compose(*compose_args,**compose_kwargs)
                     loss_mask=supervised;weight_report={}
                     if recovery:
-                        loss_mask,early=residual_recovery_weights([recovery_masks[i] for i in order[offset:offset+len(selected)]],
+                        loss_mask,early=residual_recovery_weights([recovery_masks[i] for i in selected_ids],
                             start,end,supervised,recovery['backend_weight'])
                         weight_report=dict(initial_recovery_supervised_ticks=int(early.sum()),
                             remaining_supervised_ticks=int((supervised&~early).sum()),loss_weight_mass=float(loss_mask.sum()),
                             recovery_prefix_weight=recovery['backend_weight'],loss_weight_mass_is_exposure=False)
                     if fresh_weighting is not None:
-                        loss_mask,early=residual_recovery_weights([fresh_masks[i] for i in order[offset:offset+len(selected)]],
+                        loss_mask,early=residual_recovery_weights([fresh_masks[i] for i in selected_ids],
                             start,end,supervised,fresh_weighting['backend_weight'])
                         weight_report=dict(initial_recovery_supervised_ticks=int(early.sum()),
                             remaining_supervised_ticks=int((supervised&~early).sum()),loss_weight_mass=float(loss_mask.sum()),
@@ -1535,15 +1572,19 @@ def residual_train(root, *, smoke=False, probe=False):
                     else:
                         loss=model.objective(action,residual_aux(selected,start,end,'target',device),delta,loss_mask)
                     if not torch.isfinite(loss):raise FloatingPointError('Nonfinite residual loss')
+                    if curves is not None and supervised.any():
+                        curves.residual_chunk(selected_ids,start,action,
+                            residual_aux(selected,start,end,'target',device),supervised)
                     if supervised.any():
                         if exposure_policy:
-                            for identity,mask in zip(order[offset:offset+len(selected)],loss_mask):
+                            for identity,mask in zip(selected_ids,loss_mask):
                                 exposure_pending.append((identity,(mask.gt(0).nonzero().flatten()+start).cpu().tolist()))
                         if window is None:
                             opt.zero_grad(set_to_none=True);loss.backward()
                             norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
                             if not torch.isfinite(norm):raise FloatingPointError('Nonfinite residual gradient')
                             opt.step();updates+=1
+                            if curves is not None:curves.commit(epoch,updates)
                             with (out/'loss.jsonl').open('a') as f:f.write(json.dumps(dict(update=updates,epoch=epoch,
                                 loss=float(loss.detach()),contact_ticks=int((gate&supervised).sum()),supervised_ticks=int(supervised.sum()),
                                 history_ticks=int(inputs['valid'].sum()),gradient_norm=float(norm),**weight_report))+'\n')
@@ -1554,6 +1595,7 @@ def residual_train(root, *, smoke=False, probe=False):
                         draws+=int(supervised.sum());contact_ticks+=int((gate&supervised).sum())
                     if window is not None and window.pending and (window.ready or end==max(len(r['robot']) for r in selected)):
                         report=window.step(model,opt);updates+=1;history_dirty=True
+                        if curves is not None:curves.commit(epoch,updates)
                         if exposure_policy:
                             report['effective_tick_contributions']=ledger.step(updates,exposure_pending)
                             exposure_pending=[]
@@ -1574,8 +1616,8 @@ def residual_train(root, *, smoke=False, probe=False):
             # Only complete episode groups are resumable: no mid-prefix hidden
             # state is invented, and unsupervised prefixes still advance state.
             training_wall_s+=time.time()-group_began
-            for identity in order[offset:offset+len(selected)]:episode_counts[identity]+=1
-            next_group=offset+len(selected)
+            for identity in selected_ids:episode_counts[identity]+=1
+            next_group=offset+(1 if paired_deck else len(selected))
             if matched is not None and updates>matched['updates']:raise ValueError('Matched update budget overshot')
             if matched is not None and updates==matched['updates']:stop='registered_matched_update_boundary'
             if resumable:save(out/'last.pt',snapshot(epoch,next_group))
@@ -1595,18 +1637,28 @@ def residual_train(root, *, smoke=False, probe=False):
             stop='validation_plateau_after_lr_reduction';break
         # Minimum exposure and a fixed validation trend define bounded stopping;
         # Whole causal episode groups are the exposure rounding unit.
-        if not extension and draws>=v['minimum_control_tick_epochs']*population and len(history)>=4:
+        if not paired_deck and not extension and draws>=v['minimum_control_tick_epochs']*population and len(history)>=4:
             scores=[r['selection_score'] for r in history[-4:]]
             if (scores[0]-min(scores[1:]))/max(scores[0],1e-12)<.01:stop='validation_plateau_after_minimum_exposure';break
         if exposure_complete():break
+    if paired_deck is not None and stop=='maximum_control_tick_exposure':
+        if epoch!=paired_deck['epochs'] or next_group!=len(paired_deck['epoch_groups'][-1]) or updates!=paired_deck['epochs']*paired_deck['updates_per_epoch']:
+            raise ValueError('Paired training did not complete all60 registered matched-update decks')
     if not history or history[-1]['update']!=updates:validate(epoch)
+    if curves is not None:curves.export(updates,plot=True)
     save(out/'last.pt',snapshot(epoch,next_group))
     if stop=='requested_stop':raise InterruptedError('Residual saved at complete episode-group boundary; stage remains resumable')
     if exposure_policy:
         selected_saved=torch.load(out/'best.pt',map_location='cpu',weights_only=False)
         selected_exposure=Ledger(ledger.legal,selected_saved['effective_exposure_state']).summary(selected_saved['episode_counts'])
-        if not selected_exposure['eligible']:raise ValueError('Selected rear fails actual exposure minimum')
+        if not selected_exposure['eligible'] and not finite_deck:raise ValueError('Selected rear fails actual exposure minimum')
     atomic_json(out/'finished.json',dict(stop_reason=stop,updates=updates,control_tick_epochs=draws/population,
+        **(dict(paired_group_deck_sha256=paired_deck['sha256'],
+            paired_complete_epochs=epoch,matched_updates_per_epoch=paired_deck['updates_per_epoch'],
+            primary_visits={i:paired_deck['epochs']*n for i,n in paired_deck['base_multiplicities'].items()},
+            extra_real_replay_visits=paired_deck['extra_replay_visits'],actual_episode_visits=episode_counts,
+            paired_decks_complete=epoch==paired_deck['epochs'] and next_group==len(paired_deck['epoch_groups'][-1]),
+            finite_diagnostic=finite_deck, fifty_step_requirement_applied=not finite_deck) if paired_deck else {}),
         **({'selected_effective_exposure':selected_exposure} if exposure_policy else {}),
         **(dict(bounded_extension=extension,plateau_state=plateau.state,
                 bounded_training_complete=bool(draws>=target_ticks or

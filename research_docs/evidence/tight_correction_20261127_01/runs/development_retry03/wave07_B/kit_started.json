@@ -1,0 +1,37 @@
+{
+  "requested": {
+    "kit_tasking_threads": 4,
+    "physics_threads": 2,
+    "requested_kit_args": "--/renderer/multiGpu/enabled=false --/plugins/carb.tasking.plugin/threadCount=4 --/persistent/physics/numThreads=2 --/app/extensions/fsWatcherEnabled=false --/rtx/descriptorSets=360000 --/rtx/reservedDescriptors=900000",
+    "explicit_override": true,
+    "execution_backend": {
+      "version": "tight_execution_backend_v2",
+      "physics_device": "cuda:0",
+      "camera_backend": "standard",
+      "kit_tasking_threads": 4,
+      "physics_threads": 2,
+      "renderer_descriptor_sets": 360000,
+      "renderer_reserved_descriptors": 900000
+    },
+    "scope": "Registered execution backend candidate; task, assets, dt, control and success unchanged"
+  },
+  "observed_settings": {
+    "kit_tasking_threads": 4,
+    "physics_threads": 2
+  },
+  "note": "Kit configuration readback, not a count of active OS threads or completed physics initialization",
+  "utc": 1795711602.6459653,
+  "renderer_resources": {
+    "requested": {
+      "/rtx/descriptorSets": 360000,
+      "/rtx/reservedDescriptors": 900000
+    },
+    "observed": {
+      "/rtx/descriptorSets": 360000,
+      "/rtx/reservedDescriptors": 900000
+    },
+    "matched": true,
+    "view_tile_limit_observed": 1000000,
+    "scope": "Process-local renderer capacity; no image quality, camera calibration or physics change"
+  }
+}

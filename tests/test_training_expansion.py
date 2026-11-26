@@ -240,3 +240,21 @@ def test_actual_hdf5_expansion_keeps_masks_statistics_and_validation(setup_regis
     assert torch.equal(recorded['robot'], original['robot'])
     assert torch.equal(recorded['command'], original['command'])
     assert not torch.equal(recorded['q_reached'][24:], recorded['u_expert'][24:])
+
+
+def test_explicit_layout_is_materialized_and_verified(setup_registry):
+    from scripts.tight_layout_20261116.pilot import displacement,reset_configuration
+    from visuotactile.training_expansion import configuration_for_layout
+    a=setup_registry;domain=a['domain']
+    layout=dict(version='peg_spacing_reset_v1',distance_m=.1,
+        translation_xy_m=displacement(domain,.1).tolist(),hole_unchanged=True)
+    registry=make_registry('layout_check',domain,[6000],a['manifests'],a['partition'],a['families'],
+        created_utc=time.time(),reset_layout=layout)
+    row=next(iter(registry['families'].values()))
+    assert row['narrow_reset']==reset_configuration(domain,6000,.1)
+    assert row['narrow_reset']!=direct_configuration(domain,6000)
+    binding=registry_binding(write(a['root']/'layout_registry.json',registry))
+    assert read_registry(binding)['reset_layout']==layout
+    damaged=copy.deepcopy(registry);next(iter(damaged['families'].values()))['narrow_reset']=direct_configuration(domain,6000)
+    binding=registry_binding(write(a['root']/'wrong_layout_registry.json',damaged))
+    with pytest.raises(ValueError,match='configuration identity'):read_registry(binding)

@@ -1,0 +1,639 @@
+{
+  "version": "host_init19_actual_closure_review_v1",
+  "utc": 1795653718.9191341,
+  "status": "closed_with_recorded_error_no_pending_affinity",
+  "scope": "Exact aid19 only; independent read-only metadata, source, process, cgroup and journal review. No main64 outcomes or scientific payloads read.",
+  "helper_identity": {
+    "service": "tight-paired-host-init-capacity19.service",
+    "invocation_id": "34b4aabd29454f7ab57f414fbb67a41a",
+    "pid": 3542303,
+    "created": 1795506788.47
+  },
+  "actual_exit": {
+    "pid": 3542303,
+    "created": 1795506788.47,
+    "utc": 1795508153.012024,
+    "attempted": [
+      "wave46",
+      "wave47",
+      "wave48"
+    ],
+    "durable_attempts": [
+      "wave46_expansion_intent.json",
+      "wave46_intent.json",
+      "wave47_expansion_intent.json",
+      "wave47_intent.json",
+      "wave48_intent.json"
+    ],
+    "error": "ValueError('Raw PID/birth changed before clock mapping')",
+    "signals_sent": 0,
+    "external_mutations": 0,
+    "scientific_payloads_read": false,
+    "original_startup_timeout_receipts_untouched": true
+  },
+  "service_observation": {
+    "command": [
+      "systemctl",
+      "--user",
+      "show",
+      "tight-paired-host-init-capacity19.service",
+      "--property=MainPID,ExecMainPID,ExecMainStatus,Result,ActiveState,SubState,InvocationID,ControlGroup,ExecMainExitTimestamp,ExecMainStartTimestamp,LoadState"
+    ],
+    "returncode": 0,
+    "stdout": "MainPID=0\nResult=exit-code\nExecMainStartTimestamp=Tue 2026-11-24 15:53:09 CST\nExecMainExitTimestamp=Tue 2026-11-24 16:15:53 CST\nExecMainPID=3542303\nExecMainStatus=1\nControlGroup=\nLoadState=loaded\nActiveState=failed\nSubState=failed\nInvocationID=34b4aabd29454f7ab57f414fbb67a41a\n",
+    "stderr": "",
+    "stdout_sha256": "43f368d6f48c885b1e6e91b39d08e83cd8f9ed1cc154440547d93790c6be52e9"
+  },
+  "service_properties": {
+    "MainPID": "0",
+    "Result": "exit-code",
+    "ExecMainStartTimestamp": "Tue 2026-11-24 15:53:09 CST",
+    "ExecMainExitTimestamp": "Tue 2026-11-24 16:15:53 CST",
+    "ExecMainPID": "3542303",
+    "ExecMainStatus": "1",
+    "ControlGroup": "",
+    "LoadState": "loaded",
+    "ActiveState": "failed",
+    "SubState": "failed",
+    "InvocationID": "34b4aabd29454f7ab57f414fbb67a41a"
+  },
+  "journal_observation": {
+    "command": [
+      "journalctl",
+      "--user",
+      "--no-pager",
+      "--output=json",
+      "_SYSTEMD_INVOCATION_ID=34b4aabd29454f7ab57f414fbb67a41a"
+    ],
+    "returncode": 0,
+    "stdout_sha256": "dec5220f07165eb2f19856a8f6e5cc4868404529f7527c394ecb9d1264608d2e",
+    "stderr": "",
+    "record_count": 18,
+    "records": [
+      {
+        "message": "Traceback (most recent call last):",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153018202"
+      },
+      {
+        "message": "  File \"<frozen runpy>\", line 198, in _run_module_as_main",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153018202"
+      },
+      {
+        "message": "  File \"<frozen runpy>\", line 88, in _run_code",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153018202"
+      },
+      {
+        "message": "  File \"/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19.py\", line 637, in <module>",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153018202"
+      },
+      {
+        "message": "    main()",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      },
+      {
+        "message": "  File \"/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19.py\", line 616, in main",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      },
+      {
+        "message": "    row = probe(status)",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      },
+      {
+        "message": "          ^^^^^^^^^^^^^",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      },
+      {
+        "message": "  File \"/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19.py\", line 492, in probe",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      },
+      {
+        "message": "    identity(status, proc, birth, wave)",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      },
+      {
+        "message": "  File \"/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19.py\", line 239, in identity",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      },
+      {
+        "message": "    worker_clock = mapped_birth(proc, birth)",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      },
+      {
+        "message": "                   ^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      },
+      {
+        "message": "  File \"/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19.py\", line 189, in mapped_birth",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      },
+      {
+        "message": "    require(same(proc, raw_birth), 'Raw PID/birth changed before clock mapping')",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      },
+      {
+        "message": "  File \"/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19.py\", line 60, in require",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      },
+      {
+        "message": "    raise ValueError(message)",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      },
+      {
+        "message": "ValueError: Raw PID/birth changed before clock mapping",
+        "pid": "3542303",
+        "invocation": "34b4aabd29454f7ab57f414fbb67a41a",
+        "realtime_usec": "1795508153020183"
+      }
+    ]
+  },
+  "current_process_observations": [
+    {
+      "pid": 3542303,
+      "registered_birth": 1795506788.47,
+      "pid_absent": true,
+      "exact_identity_alive": false
+    },
+    {
+      "pid": 3538948,
+      "registered_birth": 1795506550.85,
+      "pid_absent": true,
+      "exact_identity_alive": false
+    },
+    {
+      "pid": 3545789,
+      "registered_birth": 1795507070.07,
+      "pid_absent": true,
+      "exact_identity_alive": false
+    },
+    {
+      "pid": 3554275,
+      "registered_birth": 1795507741.3,
+      "pid_absent": true,
+      "exact_identity_alive": false
+    }
+  ],
+  "exact_module_census": {
+    "module": "outputs.diagnostics.tight_paired_dagger_20261122_01.host_init_capacity19",
+    "scanned_processes": 589,
+    "matches": [],
+    "errors": []
+  },
+  "cgroup_observation": {
+    "uid": 1001,
+    "scan_root": "/sys/fs/cgroup/user.slice/user-1001.slice",
+    "matching_unit_cgroups": [],
+    "reported_ControlGroup": ""
+  },
+  "source_and_binding_pins": [
+    {
+      "kind": "source_sha256",
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19.py",
+      "expected": "c7374e679a2a67156fc1ce942852cc1aee9978d695e185e94d9870ae7dda56b9",
+      "actual": "c7374e679a2a67156fc1ce942852cc1aee9978d695e185e94d9870ae7dda56b9",
+      "is_symlink": false,
+      "matches": true
+    },
+    {
+      "kind": "source_sha256",
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/run_test_continuation15.py",
+      "expected": "2b99c3383172ed654c78dafe29074ffe52a9c9bf1768e0f1d69d4194a52aa192",
+      "actual": "2b99c3383172ed654c78dafe29074ffe52a9c9bf1768e0f1d69d4194a52aa192",
+      "is_symlink": false,
+      "matches": true
+    },
+    {
+      "kind": "source_sha256",
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/shared_capacity15.py",
+      "expected": "18615cf1ed3d44e3779eaafd0c475d04816b9d29fc4d300a895651ccb9fb6c2d",
+      "actual": "18615cf1ed3d44e3779eaafd0c475d04816b9d29fc4d300a895651ccb9fb6c2d",
+      "is_symlink": false,
+      "matches": true
+    },
+    {
+      "kind": "source_sha256",
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/test_fragment13.py",
+      "expected": "79e43e6f2496b0ccfbd40e200f1dcb53ca1d9c2579083ef27632c69997e03647",
+      "actual": "79e43e6f2496b0ccfbd40e200f1dcb53ca1d9c2579083ef27632c69997e03647",
+      "is_symlink": false,
+      "matches": true
+    },
+    {
+      "kind": "binding_sha256",
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/TEST_CONTINUATION15_REGISTRATION.json",
+      "expected": "9873b3fe5d14ada55c1510752550eef319241d042465654fa5c6d94a61817cee",
+      "actual": "9873b3fe5d14ada55c1510752550eef319241d042465654fa5c6d94a61817cee",
+      "is_symlink": false,
+      "matches": true
+    },
+    {
+      "kind": "binding_sha256",
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/ROOT_TEST_CONTINUATION15_REVIEW.json",
+      "expected": "35c2d2b1f044776d9825ca375fc1f84a0c87097e90e44291dc5b5df32229bf8e",
+      "actual": "35c2d2b1f044776d9825ca375fc1f84a0c87097e90e44291dc5b5df32229bf8e",
+      "is_symlink": false,
+      "matches": true
+    },
+    {
+      "kind": "binding_sha256",
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/TEST_CONTINUATION15_ACTIVATED.json",
+      "expected": "943eb27f1667393a06110599d039fc01c56260bd855caeb4bfc577491b109b39",
+      "actual": "943eb27f1667393a06110599d039fc01c56260bd855caeb4bfc577491b109b39",
+      "is_symlink": false,
+      "matches": true
+    },
+    {
+      "kind": "binding_sha256",
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/test_continuation15_job.json",
+      "expected": "9cd7d2369ec088f330844c1d8d13aa3297c1c927193f25d896063ad897c6645b",
+      "actual": "9cd7d2369ec088f330844c1d8d13aa3297c1c927193f25d896063ad897c6645b",
+      "is_symlink": false,
+      "matches": true
+    },
+    {
+      "kind": "binding_sha256",
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/registration.json",
+      "expected": "0c0b642b3ec584f3c52453522500eea6d22346a3049078212dd62292d733655a",
+      "actual": "0c0b642b3ec584f3c52453522500eea6d22346a3049078212dd62292d733655a",
+      "is_symlink": false,
+      "matches": true
+    }
+  ],
+  "activation_and_started_bindings_match": true,
+  "actual_wave_inventory": [
+    "exit.json",
+    "started.json",
+    "wave46_exit.json",
+    "wave46_expansion_intent.json",
+    "wave46_intent.json",
+    "wave47_exit.json",
+    "wave47_expansion_intent.json",
+    "wave47_intent.json",
+    "wave48_exit.json",
+    "wave48_intent.json"
+  ],
+  "wave_audits": [
+    {
+      "pid": 3538948,
+      "created": 1795506550.85,
+      "stage": 29,
+      "old": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "chosen": [
+        5
+      ],
+      "mutation_attempted": true,
+      "affinity_writes": 268,
+      "expansion_writes": 134,
+      "restoration_writes": 134,
+      "restored": true,
+      "signals_sent": 0,
+      "external_mutations": 0,
+      "infrastructure_abort": false,
+      "original_thread_count": 134,
+      "restored_thread_count": 134,
+      "actual_placement_elapsed_seconds": 0.43973639560863376,
+      "mutation_start_utc": 1795506792.7742784,
+      "mutation_end_utc": 1795506793.2140145,
+      "retracted_for_external_cpu_activity": true,
+      "placement_end_verified": true,
+      "historical_restoration_evidence": "source protocol plus durable helper summary; wave46 also has prior independent live per-TID re-observation",
+      "immutable_receipt_checks": {
+        "plan_sha256": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave46/plan.json",
+          "expected": "1f85b086227bb39a2cc1b54944411d0b0ad32444ea2e9c547c7badfaa5f331c2",
+          "actual": "1f85b086227bb39a2cc1b54944411d0b0ad32444ea2e9c547c7badfaa5f331c2",
+          "matches": true
+        },
+        "launch_sha256": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/launches/wave46.json",
+          "expected": "b3f24aac5526ffea19fd044b6c30485a704a737cea628aed185806c736ccdb31",
+          "actual": "b3f24aac5526ffea19fd044b6c30485a704a737cea628aed185806c736ccdb31",
+          "matches": true
+        },
+        "dispatch_sha256": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/dispatches/wave46.json",
+          "expected": "c7d5ad006d0d56eab70e2a25b201b5cef37dc3a354dca890391e6eccb9549d24",
+          "actual": "c7d5ad006d0d56eab70e2a25b201b5cef37dc3a354dca890391e6eccb9549d24",
+          "matches": true
+        }
+      }
+    },
+    {
+      "pid": 3545789,
+      "created": 1795507070.07,
+      "stage": 30,
+      "old": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "chosen": [
+        1
+      ],
+      "mutation_attempted": true,
+      "affinity_writes": 266,
+      "expansion_writes": 133,
+      "restoration_writes": 133,
+      "restored": true,
+      "signals_sent": 0,
+      "external_mutations": 0,
+      "infrastructure_abort": false,
+      "original_thread_count": 133,
+      "restored_thread_count": 133,
+      "actual_placement_elapsed_seconds": 0.4398156809620559,
+      "mutation_start_utc": 1795507134.366519,
+      "mutation_end_utc": 1795507134.806334,
+      "retracted_for_external_cpu_activity": true,
+      "placement_end_verified": true,
+      "historical_restoration_evidence": "source protocol plus durable helper summary; wave46 also has prior independent live per-TID re-observation",
+      "immutable_receipt_checks": {
+        "plan_sha256": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave47/plan.json",
+          "expected": "78a3dbbbfa9b263c80fd2ca54e4b119450d47dbcba72bfe27aa500e5f8e0fab9",
+          "actual": "78a3dbbbfa9b263c80fd2ca54e4b119450d47dbcba72bfe27aa500e5f8e0fab9",
+          "matches": true
+        },
+        "launch_sha256": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/launches/wave47.json",
+          "expected": "11ee1b97e867b3065f36059174522db7007b107533ebc714008934ee161a1f25",
+          "actual": "11ee1b97e867b3065f36059174522db7007b107533ebc714008934ee161a1f25",
+          "matches": true
+        },
+        "dispatch_sha256": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/dispatches/wave47.json",
+          "expected": "ed8561081eed9ce4060ca59d4beffe810b0b091ce55cd6bfce3be2fb175f288b",
+          "actual": "ed8561081eed9ce4060ca59d4beffe810b0b091ce55cd6bfce3be2fb175f288b",
+          "matches": true
+        }
+      }
+    },
+    {
+      "pid": 3554275,
+      "created": 1795507741.3,
+      "stage": 31,
+      "old": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "chosen": [],
+      "mutation_attempted": false,
+      "affinity_writes": 0,
+      "expansion_writes": 0,
+      "restoration_writes": 0,
+      "restored": null,
+      "signals_sent": 0,
+      "external_mutations": 0,
+      "infrastructure_abort": false,
+      "no_change_reason": "capacity_stop_or_readiness_race",
+      "no_affinity_writes": true,
+      "immutable_receipt_checks": {
+        "plan_sha256": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave48/plan.json",
+          "expected": "8cac5eef60bb02f12f3dfb455539512d8ddc1e57f30490633432d18887c156b1",
+          "actual": "8cac5eef60bb02f12f3dfb455539512d8ddc1e57f30490633432d18887c156b1",
+          "matches": true
+        },
+        "launch_sha256": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/launches/wave48.json",
+          "expected": "8ca4f9fb36ecced3afff32156668c264264d8000543624a39addda6cb43d9932",
+          "actual": "8ca4f9fb36ecced3afff32156668c264264d8000543624a39addda6cb43d9932",
+          "matches": true
+        },
+        "dispatch_sha256": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/dispatches/wave48.json",
+          "expected": "9ddc3d94b5ca473e4b9eaf5b1f65d3854126a2e870b670b0e0d23d161a25bbd2",
+          "actual": "9ddc3d94b5ca473e4b9eaf5b1f65d3854126a2e870b670b0e0d23d161a25bbd2",
+          "matches": true
+        }
+      }
+    }
+  ],
+  "checks": {
+    "exact_invocation_exited_nonzero": true,
+    "exact_helper_absent": true,
+    "exact_module_census_empty": true,
+    "unit_cgroup_absent": true,
+    "all_actual_intents_have_exit": true,
+    "two_actual_expansions_have_matching_restoration": true,
+    "one_noop_has_zero_affinity_writes": true,
+    "no_actual_infrastructure_abort_receipt": true,
+    "source_and_registered_bindings_unchanged": true,
+    "all_three_wave_launch_dispatch_plan_hashes_match": true,
+    "no_new19_restart_requested_or_performed_by_reviewer": true
+  },
+  "error_interpretation": "The exact journal locates the terminal error at probe line492 identity(), before this invocation of probe creates a durable intent or mutates affinity. The failed live-identity check does not distinguish exited/zombie/reused PID and is not itself proof of PID reuse. The last durable attempt remains wave48; no later aid19 intent/expansion exists.",
+  "closure_conclusion": "Exact helper and all three touched worker identities are absent; both expanded-wave exit receipts report complete restoration, the noop reports zero writes, and exact unit/invocation has exited status1 with no cgroup. No pending live affinity extension from aid19 is evidenced. This certifies aid19 closure with its error preserved, not main evaluation or queue completion.",
+  "limitations": [
+    "Wave47 historical all-thread restoration is supported by the frozen source protocol and durable helper summary, not a separate contemporaneous reviewer per-thread snapshot. Wave46 has a prior independent live per-TID re-observation; at final review both workers are gone.",
+    "Sequential per-TID Tgid/starttick scans are not atomic whole-process snapshots. Python finally/flock cannot protect against SIGKILL or host loss; no such event is asserted here.",
+    "External retraction flags are recorded, but the wave receipts do not persist external PID/birth/counter snapshots. This review cannot independently attribute external activity or prove absence of contention.",
+    "Host placement may overlap native physical initialization. Lifecycle lock/source protocol fences the later Python initialization commit and control; hidden PhysX equivalence and speedup are not proven.",
+    "Current realtime/BOOTTIME mapping has an historical-offset-stability assumption; no historical clock anchor proves arbitrary wall-clock steps absent.",
+    "No later19restart or main64 scientific outcome was examined; other evaluation actors are outside this closure certification."
+  ],
+  "input_files": {
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19_actual01/exit.json": {
+      "sha256": "6e97ef5a058e00020855835c442882690cf9d1a2e06d29f13c5771b901ca09dd",
+      "size": 528
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19_actual01/started.json": {
+      "sha256": "ad85e6f229b497c6bc1940bab24411a4db856173dfe3a1cd21ffd4210feac426",
+      "size": 744
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19_actual01/wave46_exit.json": {
+      "sha256": "ee7fb607dd0708c7e53b25a2f8f1e68d381fa5d4087464b5493410c189742372",
+      "size": 42855
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19_actual01/wave46_expansion_intent.json": {
+      "sha256": "e79f4c5c78169ecf24dec6bb814c08750ef5bbc56b493c4cd73f7a073465be62",
+      "size": 42283
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19_actual01/wave46_intent.json": {
+      "sha256": "2bb82e8ff5c271b0e57aee1008131cba0f91daaa17e6b25a923e45839be8999e",
+      "size": 936
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19_actual01/wave47_exit.json": {
+      "sha256": "fe881515328002e49002728d89d487f8b8b0fbac6f503847bd33d04d9b8ab758",
+      "size": 42569
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19_actual01/wave47_expansion_intent.json": {
+      "sha256": "7697f3135b1d6ab9812a98f0f15e4bdff76ae5a22ed230a3f6e9b3509cd92ba9",
+      "size": 42000
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19_actual01/wave47_intent.json": {
+      "sha256": "6b29d89f8ac3e71dd83b3e8af77a9de26807ab574d6d075c2c8a44744c17fa96",
+      "size": 952
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19_actual01/wave48_exit.json": {
+      "sha256": "d29da5e7c1402ec1580bcdb8bd3f826db0ea41a029a65df605f76dae6b188a7c",
+      "size": 2793
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19_actual01/wave48_intent.json": {
+      "sha256": "efb8bcd7e3b36f2af77263549d0ce65465043dc13c2f7538837239a7ccd95371",
+      "size": 976
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/ROOT_HANDOFF18.md": {
+      "sha256": "9730e8a42519621c6efcfc5edfbd6be81c6b9724668e15a413c40428c782ee0d",
+      "size": 5322
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/HOST_INIT_CAPACITY19_REGISTRATION.json": {
+      "sha256": "428b9f5784039eccba8ef804def492d46b6d090e122e53412ea74f3244e65c33",
+      "size": 3467
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/HOST_INIT_CAPACITY19_ACTIVATED.json": {
+      "sha256": "94cd7f4078cf9fa26a591769ac076c91a3ef21147f20b5d5f0b0796faefe84e6",
+      "size": 1248
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/ROOT_HOST_INIT_CAPACITY19_REVIEW.json": {
+      "sha256": "f45a4b6e835dd79a9467281b6124445389e4fadd396953c0cb445940951589ad",
+      "size": 1038
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/ROOT_HOST_INIT_CAPACITY19_ACTUAL_PREFLIGHT.json": {
+      "sha256": "a7e85ddd5568e6e859d1672e8e5299165c0855395716af86bdc5703ca941efeb",
+      "size": 2423
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/HOST_INIT19_INDEPENDENT_REVIEW.json": {
+      "sha256": "14ddd3fa390b5b2a3d0b2204770de9acb7aa7878126a8ad9aa09ff6d536b49b7",
+      "size": 4507
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/HOST_INIT19_INDEPENDENT_REVIEW.md": {
+      "sha256": "0219f4667aff3cac6869957f57794b5ee69bab58ee6341682aefc2fdb6874574",
+      "size": 3047
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/HOST_INIT19_ACTUAL_FIRST_INTENT_REVIEW.json": {
+      "sha256": "391395c586ef08b91a1b0ec3eff40f745f30c4fee190aa03786510f465cce80e",
+      "size": 68304
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/HOST_INIT19_ACTUAL_FIRST_INTENT_REVIEW.md": {
+      "sha256": "953e927d258b78eaf8a0c3d90accdf022ddc7fbd83001bcc69a79fab6c3a40dd",
+      "size": 2151
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/host_init_capacity19.py": {
+      "sha256": "c7374e679a2a67156fc1ce942852cc1aee9978d695e185e94d9870ae7dda56b9",
+      "size": 30691
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave46/plan.json": {
+      "sha256": "1f85b086227bb39a2cc1b54944411d0b0ad32444ea2e9c547c7badfaa5f331c2",
+      "size": 46463
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/launches/wave46.json": {
+      "sha256": "b3f24aac5526ffea19fd044b6c30485a704a737cea628aed185806c736ccdb31",
+      "size": 524
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/dispatches/wave46.json": {
+      "sha256": "c7d5ad006d0d56eab70e2a25b201b5cef37dc3a354dca890391e6eccb9549d24",
+      "size": 636
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave47/plan.json": {
+      "sha256": "78a3dbbbfa9b263c80fd2ca54e4b119450d47dbcba72bfe27aa500e5f8e0fab9",
+      "size": 46479
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/launches/wave47.json": {
+      "sha256": "11ee1b97e867b3065f36059174522db7007b107533ebc714008934ee161a1f25",
+      "size": 524
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/dispatches/wave47.json": {
+      "sha256": "ed8561081eed9ce4060ca59d4beffe810b0b091ce55cd6bfce3be2fb175f288b",
+      "size": 636
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/evaluation/test/wave48/plan.json": {
+      "sha256": "8cac5eef60bb02f12f3dfb455539512d8ddc1e57f30490633432d18887c156b1",
+      "size": 46467
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/launches/wave48.json": {
+      "sha256": "8ca4f9fb36ecced3afff32156668c264264d8000543624a39addda6cb43d9932",
+      "size": 523
+    },
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/dispatches/wave48.json": {
+      "sha256": "9ddc3d94b5ca473e4b9eaf5b1f65d3854126a2e870b670b0e0d23d161a25bbd2",
+      "size": 636
+    }
+  },
+  "reviewer_actions": {
+    "read_only_process_and_evidence_observations": true,
+    "signals_sent": 0,
+    "affinity_or_priority_changes": 0,
+    "process_stops_or_activations": 0,
+    "main64_outcome_reads": 0,
+    "scientific_payload_reads": 0,
+    "source_edits": 0
+  },
+  "public_binding_recommendation": "Bind registry/review/activation/preflight/source, started, all eight actual per-wave intent/expansion/exit files, global exit, source/first-intent independent reviews, and this final review. Preserve failed exit and local journal; do not present this as successful helper execution."
+}

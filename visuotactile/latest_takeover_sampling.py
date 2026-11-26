@@ -26,6 +26,19 @@ def sampling_plan(data, spec):
     multiplicities = dict.fromkeys(identities, 1)
     if spec is None:
         return None, multiplicities
+    if isinstance(spec, dict) and spec.get('version') == 'paired_dagger_replay_v1':
+        from .paired_training_decks import validate_pool
+        parts = validate_pool(data)
+        if set(spec) != {'version', 'extra_replays'} or not isinstance(spec['extra_replays'], dict):
+            raise ValueError('Paired replay requires explicit per-ID extra real visits')
+        extras = spec['extra_replays']
+        if set(extras) != set(identities) or any(type(n) is not int or n < 0 for n in extras.values()):
+            raise ValueError('Paired replay extras require every own training ID and nonnegative integers')
+        full = set(data['normalization_train_ids']) | set(parts['shared_full_ids'])
+        multiplicities = {i: (3 if i in full else 1) + extras[i] for i in identities}
+        if any(n not in REPEAT_FACTORS for n in multiplicities.values()):
+            raise ValueError('Paired epoch multiplicities must remain within [1,32]')
+        return dict(version=spec['version'], extra_replays=dict(extras)), multiplicities
     if isinstance(spec,dict) and spec.get('version')=='original_demonstration_replay_v1':
         if set(spec)!={'version','original_repeat'} or type(spec['original_repeat']) is not int or spec['original_repeat'] not in (2,3):
             raise ValueError('Original demonstration replay requires bounded repeat2/3')

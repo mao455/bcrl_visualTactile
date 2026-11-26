@@ -1,0 +1,28 @@
+/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/site-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (2.6.3) or chardet (7.4.3)/charset_normalizer (3.3.2) doesn't match a supported version!
+  warnings.warn(
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_fresh_dagger.py", line 152, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_fresh_dagger.py", line 149, in main
+    else:cache(a.output.resolve(),reuse_index=a.reuse_index,payload_audit_memo=a.payload_audit_memo)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_fresh_dagger.py", line 129, in cache
+    cache_visual_pair(output/role,reuse_index=index,payload_audit=audit)
+  File "/home/CNS2025331827/docs/bc+rl_RSS/visuotactile/native_data.py", line 545, in cache_visual_pair
+    with lease.block():dino=NativeDinoSpatial().cuda().eval()
+  File "/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/CNS2025331827/docs/bc+rl_RSS/visuotactile/state_resources.py", line 216, in block
+    row=json.loads((self.root/'shared_resources.json').read_text())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/pathlib.py", line 1058, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/pathlib.py", line 1044, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_machine_review_20261126_01/fresh_rescue_history02/A/shared_resources.json'

@@ -1,0 +1,93 @@
+{
+  "version": "tight_project_job_v1",
+  "operation": "train",
+  "resource_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/parent_train_recovery01",
+  "stages": [
+    {
+      "entry": "paired_frontend",
+      "args": [
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents",
+        "--role",
+        "A"
+      ]
+    },
+    {
+      "entry": "paired_frontend",
+      "args": [
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents",
+        "--role",
+        "B"
+      ]
+    },
+    {
+      "entry": "paired_rear_prepare",
+      "args": [
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents",
+        "--role",
+        "A"
+      ]
+    },
+    {
+      "entry": "backend_cache",
+      "args": [
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend"
+      ]
+    },
+    {
+      "entry": "paired_rear_train",
+      "args": [
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend/A"
+      ]
+    },
+    {
+      "entry": "backend_offline",
+      "args": [
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend/A",
+        "--job",
+        "image",
+        "--output",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/A/backend/A/offline"
+      ]
+    },
+    {
+      "entry": "paired_rear_prepare",
+      "args": [
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents",
+        "--role",
+        "B"
+      ]
+    },
+    {
+      "entry": "backend_cache",
+      "args": [
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend"
+      ]
+    },
+    {
+      "entry": "paired_rear_train",
+      "args": [
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend/B"
+      ]
+    },
+    {
+      "entry": "backend_offline",
+      "args": [
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend/B",
+        "--job",
+        "image",
+        "--output",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/common180_parents/B/backend/B/offline"
+      ]
+    }
+  ]
+}

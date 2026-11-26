@@ -1,0 +1,327 @@
+"""Measured numerical parity and stage/motion diagnostics for the repair run."""
+import argparse
+from collections import Counter, defaultdict
+import json
+from pathlib import Path
+import time
+
+import h5py
+import numpy as np
+import torch
+
+from tools.runtime import read, write, sha
+
+
+def stats(x):
+    from visuotactile.state_motion import distribution
+    return distribution(x)
+
+
+@torch.no_grad()
+def gpu(root):
+    from visuotactile.precision import snapshot, state_fp32
+    from visuotactile.state_resources import lease_for
+    from visuotactile.state_history import PersistentState, HistoryBank
+    from visuotactile.state_image_loss import GeometryObjective
+    from visuotactile.anchor_sampling import anchor_batch
+    from visuotactile.position_control import bounded_targets
+    s=read(root/'session.json');parent=Path(s['parent'])
+    lease=lease_for(root,deadline=s['gate_deadline'])
+    data=read(parent/'state_data/data.json')
+    cached=torch.load(parent/'state_data/numeric.pt',map_location='cpu',weights_only=False)
+    saved=torch.load(parent/'training/best.pt',map_location='cpu',weights_only=False)
+    ids=[data['splits']['train'][0],data['splits']['validation'][0]]
+    with h5py.File(data['entries'][ids[0]]['path']) as f:meta=json.loads(f.attrs['metadata_json'])
+    fk=GeometryObjective(meta).fk
+    report=dict(checkpoint_sha256=sha(parent/'training/best.pt'),default_precision=snapshot(),
+        thresholds=dict(condition_max_abs=2e-5,target_max_abs_rad=2e-5,fk_max_mm=.02),
+        identical_noise_seed=7091,optimizer_updates=0,rows=[],passed=False)
+    all_predictions={}
+    with lease.block():
+        model=PersistentState('dp',saved['contract']).cuda().eval();model.load_state_dict(saved['ema'])
+        records={i:{k:v.cuda() for k,v in cached['records'][i].items()} for i in ids}
+    for mode in ('legacy_default','unified_fp32'):
+        if mode=='legacy_default':
+            torch.backends.cuda.matmul.allow_tf32=report['default_precision']['matmul_tf32']
+            torch.backends.cudnn.allow_tf32=report['default_precision']['cudnn_tf32']
+        else:state_fp32()
+        for identity in ids:
+            r=records[identity];conditions=[];bank=HistoryBank()
+            with lease.block():full,anchors,_=model.encode(r)
+            for t in range(len(r['time'])):
+                with lease.block():
+                    c=bank.observe(0,1,t,model,r['actor'][t],r['robot'][t],r['geometry'][t],r['time'][t])
+                    if c is not None:conditions.append(c)
+            online=torch.cat(conditions)
+            chosen=sorted(set([0,len(anchors)-1,*range(0,len(anchors),4)]))
+            row=dict(mode=mode,identity=identity,precision=snapshot(),ticks=len(r['time']),
+                condition_max_abs=float((full-online).abs().max()),condition_rms=float((full-online).square().mean().sqrt()),
+                sampled_anchors=[int(anchors[i]) for i in chosen],predictions=[])
+            all_predictions[mode,identity]=[]
+            for index in chosen:
+                t=int(anchors[index]);pred=[]
+                with lease.block():
+                    segmented=anchor_batch(model,records,[(identity,t)])[0]
+                    model.train();train_condition=anchor_batch(model,records,[(identity,t)])[0];model.eval()
+                    for condition in (full[index:index+1],online[index:index+1],segmented):
+                        pred.append(model.predict(condition,torch.Generator(device='cuda').manual_seed(7091)))
+                    a,b,c=pred;qa=bounded_targets(a[0,:12],r['joint_limits']);qb=bounded_targets(b[0,:12],r['joint_limits'])
+                    xa,_=fk(qa);xb,_=fk(qb)
+                    item=dict(tick=t,prefix12_raw_max_rad=float((a[:,:12]-b[:,:12]).abs().max()),
+                        target_max_rad=float((qa-qb).abs().max()),fk_max_mm=float((xa[:,0]-xb[:,0]).norm(dim=-1).max()*1000),
+                        full_vs_training_condition_max=float((full[index:index+1]-segmented).abs().max()),
+                        train_vs_eval_condition_max=float((segmented-train_condition).abs().max()),
+                        training_vs_online_target_max_rad=float((c[:,:12]-b[:,:12]).abs().max()))
+                    row['predictions'].append(item);all_predictions[mode,identity].append(qb.cpu())
+                write(root/'heartbeat.json',dict(stage='gpu_parity',mode=mode,identity=identity,tick=t,utc=time.time()))
+            # Independent episode reset must reproduce tick0 without truncating its history.
+            with lease.block():
+                c=bank.observe(0,2,0,model,r['actor'][0],r['robot'][0],r['geometry'][0],r['time'][0])
+                row['episode_reset_error']=float((c-online[:1]).abs().max())
+            report['rows'].append(row);write(root/'gpu_parity.json',report)
+    report['precision_effect']=[]
+    for identity in ids:
+        a=torch.cat(all_predictions['legacy_default',identity]);b=torch.cat(all_predictions['unified_fp32',identity])
+        xa,_=fk(a);xb,_=fk(b)
+        report['precision_effect'].append(dict(identity=identity,target_max_abs_rad=float((a-b).abs().max()),
+            target_rms_rad=float((a-b).square().mean().sqrt()),fk_max_mm=float((xa[:,0]-xb[:,0]).norm(dim=-1).max()*1000)))
+    good=[r for r in report['rows'] if r['mode']=='unified_fp32']
+    report['passed']=all(r['condition_max_abs']<2e-5 and r['episode_reset_error']<2e-5 and all(
+        p['prefix12_raw_max_rad']<2e-5 and p['target_max_rad']<2e-5 and p['fk_max_mm']<.02 and
+        p['full_vs_training_condition_max']<2e-5 and p['train_vs_eval_condition_max']<2e-5 and
+        p['training_vs_online_target_max_rad']<2e-5 for p in r['predictions']) for r in good)
+    write(root/'gpu_parity.json',report)
+    if not report['passed']:raise RuntimeError('Measured GPU parity gate failed; see all actual values in gpu_parity.json')
+
+
+def stages(g):
+    """Diagnostic proxies, not new success labels or guaranteed grasp state."""
+    before=g['transition/diagnostics_before'];n=len(before['joint_position_rad'])
+    obj=before['object_pose_w'][:];z=obj[:,2]-obj[0,2]
+    force=g['transition/object_contact_force_w'][:]
+    contact=np.linalg.norm(force,axis=-1).reshape(n,-1).max(-1)>.1
+    label=np.full(n,'approach_no_object_contact',dtype=object)
+    label[contact]='contact_low_object';label[z>.03]='transport_above_3cm'
+    alignment=np.asarray(g['transition/native_alignment_condition'][:]).reshape(n,-1).any(-1)
+    label[alignment]='native_alignment'
+    sub=np.asarray(before['successes'][:]).reshape(n,-1).max(-1)
+    label[sub>=1]='second_insertion';label[sub>=2]='ordered_complete_retract'
+    return label
+
+
+def motion(g):
+    from visuotactile.state_motion import target_metrics
+    label=stages(g);n=len(label)
+    q=g['transition/diagnostics_before/joint_position_rad'][:]
+    qd=g['transition/diagnostics_before/joint_velocity_rad_s'][:]
+    target=g['transition/target_after_rad'][:];before=g['transition/target_before_rad'][:]
+    delta=(target-before)*60
+    result=dict(duration_s=n/60,steps=n,target_continuity=target_metrics(target),phases={})
+    for phase in sorted(set(label)):
+        mask=label==phase
+        result['phases'][phase]=dict(seconds=int(mask.sum())/60,ticks=int(mask.sum()),
+            arm_actual_speed_rms=float(np.sqrt(np.mean(qd[mask,:7]**2))),
+            hand_actual_speed_rms=float(np.sqrt(np.mean(qd[mask,7:]**2))),
+            arm_target_speed_rms=float(np.sqrt(np.mean(delta[mask,:7]**2))),
+            hand_target_speed_rms=float(np.sqrt(np.mean(delta[mask,7:]**2))),
+            arm_tracking_rmse=float(np.sqrt(np.mean((target[mask,:7]-q[mask,:7])**2))),
+            target_hold_fraction=float((np.linalg.norm(delta[mask],axis=-1)<1e-3).mean()))
+    result['anchor_phase_counts']=dict(Counter(label[::12]));result['tick_phase_counts']=dict(Counter(label))
+    result['h24_fraction_of_episode']=24/n
+    return result
+
+
+def slow_phase_analysis(root, prior_root):
+    """Read completed evidence only; never collect or change admission labels."""
+    prior=Path(prior_root);continuation=prior/'continuation_02'
+    historical=[json.loads(line) for line in (prior/'completed_attempts.jsonl').read_text().splitlines()]
+    historical=[r for r in historical if r.get('path') and r.get('classification') in ('task_success','task_failure')]
+    current=read(continuation/'validation_results.json')
+    captures=historical+current['references']+current['slow']
+    assert len(historical)==21 and len(captures)==33 and len({r['path'] for r in captures})==33
+    rows=[]
+    for record in captures:
+        output=Path(record['path']).parents[1]
+        with h5py.File(output/'numeric.h5') as f:
+            g=f['episode'];label=stages(g);n=len(label)
+            before=g['transition/diagnostics_before'];after=g['transition/diagnostics_after']
+            q=before['joint_position_rad'][:];qa=after['joint_position_rad'][:];qd=before['joint_velocity_rad_s'][:]
+            target=g['transition/target_after_rad'][:];previous=g['transition/target_before_rad'][:]
+            native=g['transition/speed_native_target_rad'][:]
+            sub=after['successes'][:].reshape(n,-1).max(-1)
+            macro=np.array(['approach' if x=='approach_no_object_contact' else 'grasp_lift' if x in ('contact_low_object','transport_above_3cm') else 'insertion' for x in label])
+            measures={}
+            for name,mask in [(str(k),label==k) for k in sorted(set(label))]+[(str(k),macro==k) for k in ('approach','grasp_lift','insertion')]+[('whole',np.ones(n,dtype=bool))]:
+                count=int(mask.sum());item=dict(ticks=count,seconds=count/60)
+                for group,slice_ in [('arm',slice(0,7)),('hand',slice(7,29))]:
+                    if not count:continue
+                    delta=qa[mask,slice_]-q[mask,slice_]
+                    item[group]=dict(speed_rms_rad_s=float(np.sqrt(np.mean(qd[mask,slice_]**2))),
+                        actual_path_mean_joint_rad=float(np.abs(delta).sum(0).mean()),
+                        range_mean_joint_rad=float(np.ptp(np.concatenate([q[mask,slice_],qa[mask,slice_]]),axis=0).mean()),
+                        target_speed_rms_rad_s=float(np.sqrt(np.mean(((target-previous)[mask,slice_]*60)**2))),
+                        tracking_rmse_rad=float(np.sqrt(np.mean((target[mask,slice_]-q[mask,slice_])**2))))
+                measures[name]=item
+            assert sum(measures[x]['ticks'] for x in ('approach','grasp_lift','insertion'))==n
+            dr={}
+            for key in ('external_force_probability','external_torque_probability'):
+                dr[key]=float(np.ravel(g['transition/'+key][0])[0])
+            for key in ('external_force_nonzero','external_torque_nonzero'):
+                dr[key+'_ticks']=int(np.asarray(g['transition/'+key][:]).reshape(n,-1).any(-1).sum())
+            for kind,unit in (('force','N'),('torque','Nm')):
+                values=g[f'transition/applied_wrench/{kind}_w_{unit}'][:]
+                norms=np.linalg.norm(values,axis=-1)
+                dr[f'actual_physics_{kind}_nonzero_substeps']=int(norms.reshape(n,2,-1).max(-1).astype(bool).sum())
+                dr[f'actual_{kind}_impulse_norm_sum_{unit}s']=float(norms.sum()/120)
+            scheme=record.get('speed_scheme') or dict(kind='closed_loop',arm=record['alpha'],hand=record['alpha'],phase='all')
+            expected=previous+(native-previous)*np.r_[np.full(7,scheme['arm']),np.full(22,scheme['hand'])]
+            progression_error=float(np.max(np.abs(expected-target)))
+            transitions={str(level):int(np.where(sub>=level)[0][0]+1) if np.any(sub>=level) else None for level in (1,2)}
+            result=read(output/'result.json');spec=read(output/'started.json')['spec']
+            rows.append(dict(identity=record['identity'],family=record['family'],initial_seed=record['seed'],event_seed=record.get('event_seed'),
+                event_scope='explicit post-reset stream' if record.get('event_seed') is not None else 'continuation of reset-seeded stream',
+                narrow_reset=spec['narrow_reset'],speed_scheme=scheme,source_sha256=record['source_sha256'],path=record['path'],
+                numeric_path=str(output/'numeric.h5'),numeric_sha256=sha(output/'numeric.h5'),steps=n,duration_s=n/60,phases=measures,
+                native_subgoal_completed_ticks=transitions,termination=result['reasons'],success=record['success'],
+                post_success_actions=result['post_success_actions'],dr=dr,target_progression_max_error_rad=progression_error))
+    by_id={r['identity']:r for r in rows};pairs=[]
+    for row in rows:
+        if row['speed_scheme']['arm']==row['speed_scheme']['hand']==1:continue
+        if row['identity'].startswith('fixed_'):
+            ref=by_id[row['identity'].replace('_slow','_reference')]
+        else:
+            ref=next(r for r in rows if r['family']==row['family'] and r['speed_scheme']['arm']==r['speed_scheme']['hand']==1)
+        ratios={}
+        for phase in row['phases']:
+            a=row['phases'][phase];b=ref['phases'].get(phase)
+            if not b or not b['ticks'] or not a['ticks']:continue
+            value=dict(duration_ratio=a['seconds']/b['seconds'])
+            for group in ('arm','hand'):
+                value[group]={key:a[group][key]/b[group][key] if b[group][key]>1e-12 else None
+                    for key in ('speed_rms_rad_s','actual_path_mean_joint_rad','range_mean_joint_rad')}
+            ratios[phase]=value
+        pairs.append(dict(slow=row['identity'],reference=ref['identity'],family=row['family'],duration_ratio=row['duration_s']/ref['duration_s'],
+            slow_success=row['success'],phase_ratios=ratios))
+    report=dict(captures=len(rows),slow_attempts=len(pairs),reference_attempts=len(rows)-len(pairs),new_physical_starts=0,rows=rows,pairs=pairs,
+        phases='Existing mutually exclusive diagnostic proxies, not stable-grasp labels. Native alignment, second insertion and any ordered completion/retract ticks retained separately and combined for macro insertion.',
+        amplitude='Mean per-joint sum(abs(q_after-q_before)) over phase ticks plus mean joint range. No concatenated cross-phase jumps.',
+        counts='Previous21 captures comprise15 slow+6 native; new12 comprise6 slow+6 native. Total21 slow,12 native.',
+        prior_admission_unchanged=True)
+    write(Path(root)/'slow_phase_analysis.json',report)
+    return report
+
+
+def path_speed_metrics(path):
+    """Actual transition increments, never target motion or cross-phase jumps.
+
+    Mean speed is path / elapsed phase time (including stationary ticks).
+    This permits exact time decomposition; it is not a causal intervention.
+    Palm is the recorded physical end effector; quaternion paths use radians.
+    """
+    with h5py.File(path) as f:
+        g=f['episode'];labels=stages(g);n=len(labels)
+        before=g['transition/diagnostics_before'];after=g['transition/diagnostics_after']
+        increments={}
+        for group,selection in [('arm',slice(0,7)),('hand',slice(7,29))]:
+            increments[group]=np.abs(after['joint_position_rad'][:,selection].astype('f8')-
+                before['joint_position_rad'][:,selection]).mean(-1)
+        for group,key in [('end_effector','palm_body_pose_w'),('object','object_pose_w')]:
+            a=before[key][:].astype('f8');b=after[key][:].astype('f8')
+            increments[group]=np.linalg.norm(b[:,:3]-a[:,:3],axis=-1)
+            qa=a[:,3:]/np.linalg.norm(a[:,3:],axis=-1,keepdims=True)
+            qb=b[:,3:]/np.linalg.norm(b[:,3:],axis=-1,keepdims=True)
+            increments[group+'_rotation']=2*np.arccos(np.clip(np.abs((qa*qb).sum(-1)),0,1))
+        macro=np.array(['approach' if x=='approach_no_object_contact' else 'grasp_lift' if x in
+            ('contact_low_object','transport_above_3cm') else 'insertion' for x in labels])
+        phases={}
+        for name,mask in [(k,macro==k) for k in ('approach','grasp_lift','insertion')]+[(k,labels==k) for k in sorted(set(labels))]+[('whole',np.ones(n,dtype=bool))]:
+            seconds=int(mask.sum())/60
+            phases[name]=dict(seconds=seconds,**{k:dict(path=float(v[mask].sum()),
+                mean_speed=float(v[mask].sum()/seconds) if seconds else None) for k,v in increments.items()})
+        actual=np.abs(before['joint_velocity_rad_s'][:,7:].astype('f8'))
+        requested=np.abs((g['transition/target_after_rad'][:,7:].astype('f8')-
+            g['transition/target_before_rad'][:,7:])*60)
+        distributions={}
+        for name,mask in [('whole',np.ones(n,dtype=bool)),('insertion',macro=='insertion')]:
+            if not mask.any():continue
+            distributions[name]={k:{str(p):np.quantile(v[mask],p,axis=0).tolist() for p in (.5,.75,.9,.95,.99)}
+                for k,v in [('actual_rad_s',actual),('target_rad_s',requested)]}
+        return dict(phases=phases,hand_velocity_quantiles=distributions)
+
+
+def path_speed_comparison(slow, reference):
+    """T=L/v; symmetric additive decomposition in seconds, with zero checks."""
+    result={}
+    for phase,a in slow['phases'].items():
+        b=reference['phases'].get(phase)
+        if not b or not a['seconds'] or not b['seconds']:continue
+        row=dict(duration_ratio=a['seconds']/b['seconds'],delta_seconds=a['seconds']-b['seconds'])
+        for group in ('arm','hand','end_effector','object','end_effector_rotation','object_rotation'):
+            la,lb=a[group]['path'],b[group]['path'];va,vb=a[group]['mean_speed'],b[group]['mean_speed']
+            if min(la,lb,va,vb)<=1e-12:
+                row[group]=dict(decomposition_valid=False);continue
+            path_part=.5*(la-lb)*(1/va+1/vb)
+            speed_part=.5*(la+lb)*(1/va-1/vb)
+            assert abs(path_part+speed_part-row['delta_seconds'])<1e-7
+            row[group]=dict(decomposition_valid=True,path_ratio=la/lb,mean_speed_ratio=va/vb,
+                path_contribution_seconds=path_part,speed_contribution_seconds=speed_part)
+        result[phase]=row
+    return result
+
+
+def dataset(root):
+    from visuotactile.narrow_data import record
+    from visuotactile.narrow_decision import curve_summary
+    s=read(root/'session.json');parent=Path(s['parent']);manifest=read(parent/'manifest.json')
+    data=read(parent/'state_data/data.json');cached=torch.load(parent/'state_data/numeric.pt',map_location='cpu',weights_only=False)
+    rows=[]
+    for e in manifest['episodes']:
+        assert sha(e['path'])==e['sha256']
+        key,meta,rec=record(e['path'])
+        assert meta['dataset_split']==e['split'] and meta['initial_family']==e['family']
+        assert all(torch.equal(v,cached['records'][e['id']][k]) for k,v in rec.items())
+        with h5py.File(e['path']) as f:
+            row=dict(id=e['id'],family=e['family'],split=e['split'],alpha=e['alpha'],**motion(f['episodes'][key]))
+        rows.append(row)
+        write(root/'heartbeat.json',dict(stage='original_data_audit',episode=e['id'],completed=len(rows),utc=time.time()))
+    st=torch.load(parent/'state_data/statistics.pt',map_location='cpu',weights_only=False)
+    for k in ('robot','geometry'):
+        x=torch.cat([cached['records'][i][k][::12] if k=='geometry' else cached['records'][i][k] for i in data['splits']['train']])
+        assert torch.equal(st[k+'_mean'],x.mean(0)) and torch.equal(st[k+'_std'],x.std(0).clamp_min(1e-4))
+    from visuotactile.native_data import limits_affine
+    scale,offset=limits_affine(torch.cat([cached['records'][i]['command'] for i in data['splits']['train']]))
+    assert torch.equal(scale,st['action_scale']) and torch.equal(offset,st['action_offset'])
+    native={r['family']:r for r in rows if r['alpha']==1.}
+    for r in rows:
+        ref=native.get(r['family'])
+        r['duration_ratio_same_family']=r['duration_s']/ref['duration_s'] if ref else None
+    val=[json.loads(x) for x in (parent/'training/validation.jsonl').read_text().splitlines()]
+    report=dict(passed=True,episodes=len(rows),duration=stats([r['duration_s'] for r in rows]),
+        speeds={name:dict(count=len(rr),duration=stats([r['duration_s'] for r in rr])) for name,rr in
+            [('native',[r for r in rows if r['alpha']==1]),('alpha_le_065',[r for r in rows if r['alpha']<=.65]),
+             ('alpha_gt_065_lt_1',[r for r in rows if .65<r['alpha']<1])]},
+        curve=curve_summary(val),rows=rows,train_statistics_exact=True,cache_labels_exact=True,
+        phase_scope='Mutually exclusive diagnostic proxies: contact force >0.1N, object rise>3cm, native alignment/subgoals; not stable-grasp truth',
+        modality=dict(state_valid=len(rows),multi_view_valid=0,old_blank_fixed_RGB_preserved=True))
+    best=torch.load(parent/'training/best.pt',map_location='cpu',weights_only=False)
+    last=torch.load(parent/'training/last.pt',map_location='cpu',weights_only=False)
+    report['checkpoints']=dict(best_update=best['updates'],last_update=last['updates'],
+        ema_equal=all(torch.equal(v,last['ema'][k]) for k,v in best['ema'].items()),
+        model_equal=all(torch.equal(v,last['model'][k]) for k,v in best['model'].items()))
+    # Episode balancing remains fixed. Quantify its unequal per-anchor exposure.
+    train=[r for r in rows if r['split']=='train'];anchors=[int(np.ceil(r['steps']/12)) for r in train]
+    report['sampling']=dict(episodes=len(train),anchors=sum(anchors),anchor_counts=stats(anchors),
+        per_anchor_probability_ratio_shortest_to_longest=max(anchors)/min(anchors),
+        explanation='Each episode equally likely; an anchor in the longest receives fewer selections than one in the shortest. No sampler change.')
+    report['original_student_motion']=[]
+    for p in sorted((parent/'evaluation').glob('*/result.json')):
+        result=read(p)
+        if not result['legal']:continue
+        with h5py.File(p.parent/'numeric.h5') as f:
+            report['original_student_motion'].append(dict(identity=p.parent.name,split=result['split'],**motion(f['episode'])))
+    write(root/'data_diagnosis.json',report)
+
+
+if __name__=='__main__':
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=('gpu','dataset'));p.add_argument('--root',type=Path,required=True)
+    a=p.parse_args();(gpu if a.mode=='gpu' else dataset)(a.root.resolve())

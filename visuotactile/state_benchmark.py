@@ -46,10 +46,19 @@ def dagger_configuration(configuration, spec, source):
         raise ValueError('Positive preregistered takeover tick required')
     if configuration.get('expert_speed') != ExpertPositionBridge.speed_scheme:
         raise ValueError('Existing validated expert speed scheme must be explicit')
-    if spec.get('cohort') != 'dagger_train' or spec.get('split') != 'train' or 'narrow_reset' not in spec:
+    diagnostic = configuration.get('diagnostic_takeover') is True
+    if diagnostic:
+        if (spec.get('diagnostic_only') is not True or spec.get('split') not in ('diagnostic_development','diagnostic_train')
+                or spec.get('cohort') != 'fresh' or 'narrow_reset' not in spec
+                or spec.get('training_expansion') is not None):
+            raise ValueError('Isolated development takeover needs explicit diagnostic scope')
+    elif spec.get('cohort') != 'dagger_train' or spec.get('split') != 'train' or 'narrow_reset' not in spec:
         raise ValueError('DAgger requires a fresh, explicitly train-only family reset')
     identity = spec.get('source_identity')
-    if spec.get('training_expansion') is not None:
+    if diagnostic:
+        if not identity or not spec.get('family'):
+            raise ValueError('Diagnostic prefix and family identity required')
+    elif spec.get('training_expansion') is not None:
         from .training_expansion import validate_expansion_spec
         validate_expansion_spec(spec, source)
     elif identity not in source['splits']['train']:

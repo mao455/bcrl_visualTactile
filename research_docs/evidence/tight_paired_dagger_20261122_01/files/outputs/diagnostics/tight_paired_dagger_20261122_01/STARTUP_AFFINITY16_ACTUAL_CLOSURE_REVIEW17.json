@@ -1,0 +1,191 @@
+{
+  "schema": "independent_affinity16_actual_closure_v1",
+  "utc": 1795500887.3612266,
+  "status": "helper_identity_closed_and_two_intervention_receipts_verified",
+  "helper_identity": {
+    "pid": 3445717,
+    "registered_created": 1795499527.26,
+    "registered_identity_absent": true,
+    "pid_absent_now": true
+  },
+  "helper_started_utc": 1795499528.2051184,
+  "helper_exit_utc": 1795500552.193866,
+  "helper_error": null,
+  "attempted_waves": [
+    "wave34",
+    "wave35"
+  ],
+  "interventions": [
+    {
+      "wave": "wave34",
+      "stage": 17,
+      "pid": 3446579,
+      "created": 1795499591.01,
+      "started": 1795499652.2719939,
+      "ended": 1795499692.3654447,
+      "wall_duration_s": 40.09345078468323,
+      "nominal_cap_s": 40,
+      "elapsed_above_nominal_cap_s": 0.09345078468322754,
+      "changed_thread_count": 135,
+      "restored_thread_count": 135,
+      "changed_threads_not_in_restored_count": 0,
+      "new_restored_thread_count": 0,
+      "recorded_restored": true,
+      "recorded_masks": [
+        [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23
+        ]
+      ],
+      "current_identity": {
+        "pid": 3446579,
+        "registered_created": 1795499591.01,
+        "registered_identity_absent": true,
+        "pid_absent_now": true
+      },
+      "live_surviving_target_mask_check": "No original worker identity survives; historical masks are receipt evidence, not an independent continuous observation.",
+      "recorded_environment_stage_at_restoration": "environment_constructor_started",
+      "recorded_native_initialized": false
+    },
+    {
+      "wave": "wave35",
+      "stage": 18,
+      "pid": 3455028,
+      "created": 1795500222.26,
+      "started": 1795500284.5091863,
+      "ended": 1795500294.0774467,
+      "wall_duration_s": 9.568260431289673,
+      "nominal_cap_s": 40,
+      "elapsed_above_nominal_cap_s": 0,
+      "changed_thread_count": 133,
+      "restored_thread_count": 133,
+      "changed_threads_not_in_restored_count": 1,
+      "new_restored_thread_count": 1,
+      "recorded_restored": true,
+      "recorded_masks": [
+        [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23
+        ]
+      ],
+      "current_identity": {
+        "pid": 3455028,
+        "registered_created": 1795500222.26,
+        "registered_identity_absent": true,
+        "pid_absent_now": true
+      },
+      "live_surviving_target_mask_check": "No original worker identity survives; historical masks are receipt evidence, not an independent continuous observation.",
+      "recorded_environment_stage_at_restoration": "environment_ready",
+      "recorded_native_initialized": true
+    }
+  ],
+  "source_sha256": "cab175e633b7c485f8169f40ca55cfbe16977a8acf787655ca3a4af46e1c1aa1",
+  "source_review_still_failed": true,
+  "source_review_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/STARTUP_AFFINITY16_INDEPENDENT_SOURCE_REVIEW.md",
+  "service_name": "tight-paired-startup-affinity16.service",
+  "service_current": {
+    "MainPID": "0",
+    "Result": "success",
+    "ControlGroup": "",
+    "LoadState": "not-found",
+    "ActiveState": "inactive",
+    "InvocationID": ""
+  },
+  "service_current_text": "MainPID=0\nResult=success\nControlGroup=\nLoadState=not-found\nActiveState=inactive\nInvocationID=\n",
+  "service_history_limit": "Transient unit already unloaded; current LoadState=not-found, Result=success is not retained proof of the old invocation exit result.",
+  "original_cgroup": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/tight-paired-startup-affinity16.service",
+    "exists": false
+  },
+  "current_exact_helper_census": {
+    "matching_processes": [],
+    "errors": []
+  },
+  "invocation_journal": {
+    "invocation_id": "ad8547419d664bef83f4e22778d35003",
+    "raw_sha256": "584fa1022e5f516d120861a20af04b5059c6be7785ddd3f3b68ba40d611d4e34",
+    "records": [
+      {
+        "__REALTIME_TIMESTAMP": "1795499528158638",
+        "USER_INVOCATION_ID": "ad8547419d664bef83f4e22778d35003",
+        "USER_UNIT": "tight-paired-startup-affinity16.service",
+        "MESSAGE": "tight-paired-startup-affinity16.service: Failed to add control inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/tight-paired-startup-affinity16.service: No space left on device"
+      },
+      {
+        "__REALTIME_TIMESTAMP": "1795499528158986",
+        "USER_INVOCATION_ID": "ad8547419d664bef83f4e22778d35003",
+        "USER_UNIT": "tight-paired-startup-affinity16.service",
+        "MESSAGE": "tight-paired-startup-affinity16.service: Failed to add memory inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/tight-paired-startup-affinity16.service: No space left on device"
+      },
+      {
+        "__REALTIME_TIMESTAMP": "1795499528172991",
+        "USER_INVOCATION_ID": "ad8547419d664bef83f4e22778d35003",
+        "USER_UNIT": "tight-paired-startup-affinity16.service",
+        "MESSAGE": "Started tight-paired-startup-affinity16.service - /usr/bin/taskset -c 8-23 /home/CNS2025331827/miniconda3/envs/isaaclab/bin/python /home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/startup_affinity16.py.",
+        "JOB_RESULT": "done"
+      }
+    ],
+    "exit_message_retained": false
+  },
+  "stop_marker": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/startup_affinity16_actual01/STOP",
+    "bytes": 72,
+    "sha256": "b23559eebf7c714eebb9dce8b17129fb7c40c321322af88a9883cbb8c0e3b063"
+  },
+  "input_sha256": {
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/STARTUP_AFFINITY16_ACTIVATED.json": "0cff740435c78efdec79ccc2c4683011752b619322184cb6add7d3f1fba1f83c",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/startup_affinity16_actual01/started.json": "2aa15a041aa79362724da8a7ee88abf4e4647056e724c02c1c6f31f54a1558f1",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/startup_affinity16_actual01/exit.json": "e66b375cc3b55c169793fce41048395d32c5983000fcad9b0ce3e89eb25106ac",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/startup_affinity16_actual01/STOP": "b23559eebf7c714eebb9dce8b17129fb7c40c321322af88a9883cbb8c0e3b063",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/startup_affinity16.py": "cab175e633b7c485f8169f40ca55cfbe16977a8acf787655ca3a4af46e1c1aa1",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/startup_affinity16_actual01/wave34_intent.json": "a2208d62b9fdafc820a4d7399310fa951841347d7be10ebafc3132491473dbbe",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/startup_affinity16_actual01/wave34_exit.json": "d9cbd76be56095eccc35969c14cc9b18b583e7cb9d24e3b4b8c5c4655c617b6b",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/dispatches/wave34.json": "51408dbd5c7967c3845a70fde5e67ef1a5a94704d2a8a2a5f5aef49020545415",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/launches/wave34.json": "c88a715d52ab6f1e39aaf21f4bc5a3e4064cf51bd11b0aa58f3782a07d41dc46",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/startup_affinity16_actual01/wave35_intent.json": "2c3ec1f187317674295f2619e81e54bf1f0e8de60dbf25e105a5ee6423a60322",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_paired_dagger_20261122_01/startup_affinity16_actual01/wave35_exit.json": "f287b8daffc90c39668db4b495c8fd2a06925c5fb01e447ba0a55f67d9038764",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/dispatches/wave35.json": "9525d1f8c09d604ae4e04b5fa72660fe423dfce8ea2d50d88197e5cace2bddea",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_paired_dagger_20261122_01/owners/test_continuation15/launches/wave35.json": "52342de63669120dc419c017532c4d56b37f4a84ef70d8d0790a6e24ba4245c4"
+  },
+  "read_only_actual_verification": true,
+  "process_signals_issued": 0,
+  "affinity_writes": 0,
+  "outcomes_read": false,
+  "weights_read": false,
+  "cache_payloads_read": false,
+  "limits": [
+    "No causal performance claim.",
+    "Recorded no_external_mutations/signals_sent fields do not independently prove every historical mutation.",
+    "Wave34 wall duration exceeded nominal40s by about0.093s; no strict40s continuous bound claimed.",
+    "Wave35 thread population changed by one removed and one new TID; final mask receipt covers then-current threads. Both original workers are now absent."
+  ],
+  "independent_proof_name_amendment": "Exact root-requested review17 filename; all original verification facts retained."
+}

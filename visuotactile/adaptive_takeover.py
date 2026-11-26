@@ -5,10 +5,13 @@ VERSION = 'adaptive_stage_recovery_v1'
 STAGES = ('contact', 'transport', 'alignment', 'instability', 'post_subgoal')
 
 
-def profile(stage):
+def profile(stage, *, never_entered_only=False, observe_only=False):
     if stage not in STAGES:
         raise ValueError('Unknown adaptive collection stage')
-    return dict(version=VERSION, stage=stage, earliest_contact_tick=96,
+    options = {}
+    if never_entered_only: options["never_entered_only"] = True
+    if observe_only: options["observe_only"] = True
+    return dict(**options, version=VERSION, stage=stage, earliest_contact_tick=96,
                 contact_stall_window=36, held_window=12, confirm_ticks=2,
                 transport_travel_m=.035, near_root_m=.09,
                 alignment_window=36, alignment_progress_m=.0015,
@@ -17,7 +20,10 @@ def profile(stage):
 
 
 def validate(value, fallback):
-    if value != profile(value.get('stage')) or fallback != 10**9:
+    if any(type(value.get(k, False)) is not bool for k in ('never_entered_only', 'observe_only')):
+        raise ValueError('Explicit boolean collection options required')
+    if value != profile(value.get('stage'), never_entered_only=value.get('never_entered_only', False),
+                        observe_only=value.get('observe_only', False)) or fallback != 10**9:
         raise ValueError('Exact adaptive screen and no fixed-time fallback required')
     return dict(value)
 
@@ -32,6 +38,8 @@ class AdaptiveTrigger:
         self.candidate = None
         self.trigger_completed_tick = self.at_trigger = self.last = None
         self.reason = 'requested_stage_not_reached'
+        self.ever_entered_15mm = False
+        self.first_eligible_completed_tick = None
 
     def observe(self, tick, pose, palm, force, *, keypoint_max_distance_m,
                 goal_index_before, goal_index_after, goal_pose_before, goal_pose_after):
@@ -51,6 +59,8 @@ class AdaptiveTrigger:
                    key=float(keypoint_max_distance_m), root=float(np.linalg.norm(pose[:3]-goal[:3])),
                    goal=int(goal_index_before),
                    changed=int(goal_index_before) != int(goal_index_after) or not np.array_equal(goal_pose_before, goal_pose_after))
+        # Match native float32 keypoint distance and inclusive 15 mm gate.
+        self.ever_entered_15mm = bool(self.ever_entered_15mm or (row["goal"] == 0 and np.float32(row["key"]) <= np.float32(.015)))
         self.rows.append(row); n = len(self.rows); p = self.configuration
         if n == 48:
             self.height = float(np.median([r['z'] for r in self.rows[24:48]]))
@@ -77,12 +87,18 @@ class AdaptiveTrigger:
                           instability=instability,
                           post_subgoal=row['goal'] >= 1 and elevated and row['fingers'] >= 1)
         stage = p['stage']; qualifies = unchanged and conditions[stage]
+        if p.get('never_entered_only', False):
+            qualifies = qualifies and not self.ever_entered_15mm
         self.last = dict(completed_tick=n, stage=stage, held12=held, fingers=row['fingers'],
                          elevation_m=row['z']-self.height, root_m=row['root'], keypoint_m=row['key'],
                          height_loss12_m=loss, palm_slip12_m=slip, travel_xy_m=travel,
                          goal_index=row['goal'], qualifies=bool(qualifies))
         self.confirm = self.confirm+1 if qualifies else 0
         if self.confirm >= p['confirm_ticks']:
+            if self.first_eligible_completed_tick is None:
+                self.first_eligible_completed_tick = n
+            if p.get('observe_only', False):
+                return None
             self.trigger_completed_tick = self.scheduled_tick = n
             self.at_trigger = dict(self.last)
             self.reason = 'completed_student_'+stage
@@ -90,7 +106,11 @@ class AdaptiveTrigger:
         return None
 
     def receipt(self):
-        return dict(configuration=self.configuration, fallback_tick=self.fallback_tick,
+        options = {}
+        if self.configuration.get("never_entered_only") or self.configuration.get("observe_only"):
+            options = dict(ever_entered_15mm=self.ever_entered_15mm,
+                           first_eligible_completed_tick=self.first_eligible_completed_tick)
+        return dict(**options, configuration=self.configuration, fallback_tick=self.fallback_tick,
                     actual_scheduled_takeover_tick=self.scheduled_tick,
                     trigger_completed_tick=self.trigger_completed_tick,
                     first_held_completed_tick=self.first_held,
