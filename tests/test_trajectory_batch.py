@@ -189,7 +189,7 @@ def test_explicit_supervised_batch_keeps_labels_out_of_conditions_and_uses_maske
         ep.perception['patches'][1].add_(.5)  # An unsupervised true student history frame matters.
         history=supervised_trajectories(model,[record],[ep],selected_anchors=selected)[0]
         assert not torch.allclose(after['condition'][0],history['condition'][0],atol=1e-7,rtol=0)
-    with pytest.raises(ValueError,match='true action'):
+    with pytest.raises(ValueError,match='legal supervision'):
         supervised_trajectories(model,[record],[ep],selected_anchors=[torch.tensor([6,7])])
     with pytest.raises(ValueError,match='per trajectory'):
         encode_trajectories(model,[record],[ep],selected_anchors=[])

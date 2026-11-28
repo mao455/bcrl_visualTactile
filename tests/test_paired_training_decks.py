@@ -197,3 +197,17 @@ def test_explicit_finite_deck_preserves_default60_contract():
         legacy=copy.deepcopy(deck);legacy['version']='paired_complete_group_decks_v1'
         legacy['sha256']=digest({k:v for k,v in legacy.items() if k!='sha256'})
         with pytest.raises(ValueError):validate_deck(legacy,data[role])
+
+
+def test_curve_milestones_match_actual_updates_and_reject_unregistered_age():
+    data,records,specs=fixtures()
+    decks=build_pair(data,records,dict(A='A',B='B'),sampling_by_role=specs,epochs=30,curve=True,minimum_updates_per_epoch=100)
+    for role,d in decks.items():
+        assert d['version']=='paired_complete_group_decks_curve_v1'
+        assert len(d['epoch_groups'])==30 and d['updates_per_epoch']==100
+        assert all(sum(ns)==100 for ns in d['epoch_group_updates'])
+        validate_deck(d,data[role],records[role])
+    with pytest.raises(ValueError):
+        build_pair(data,records,dict(A='A',B='B'),sampling_by_role=specs,epochs=29,curve=True)
+    with pytest.raises(ValueError):
+        build_pair(data,records,dict(A='A',B='B'),sampling_by_role=specs,epochs=30)

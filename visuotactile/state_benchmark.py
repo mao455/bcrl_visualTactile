@@ -624,6 +624,9 @@ def prepare(env, isolated, spec, source, output):
     atomic_json(output/'initial_collision.json', legal)
     atomic_json(output/'restoration.json', restoration)
     atomic_json(output/'initial_observable.json', {k: v.cpu().tolist() for k, v in env._diagnostics().items()})
+    if spec.get('reset_admission') is not None:
+        from .paired_execution import verify_registered_layout
+        verify_registered_layout(env, [dict(name=spec['identity'], spec=spec)], output)
     return teacher, legal
 
 

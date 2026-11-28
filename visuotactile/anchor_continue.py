@@ -1383,7 +1383,8 @@ def residual_train(root, *, smoke=False, probe=False):
             data_sha256=configuration['data_sha256'],role=root.name)
         if rear_sampling!=paired_deck['sampling']:
             raise ValueError('Paired deck/rear sampling differs')
-    finite_deck = paired_deck is not None and paired_deck['version'] == 'paired_complete_group_decks_finite_v1'
+    finite_deck = paired_deck is not None and (paired_deck['version'] == 'paired_complete_group_decks_finite_v1'
+        or paired_deck['version'] == 'paired_complete_group_decks_curve_v1' and paired_deck['epochs'] < 50)
     from .effective_exposure import validate as validate_exposure_policy, Ledger
     exposure_policy=validate_exposure_policy(v.get('effective_exposure'))
     ledger=Ledger({i:records[i]['supervision_mask'] for i in ids}) if exposure_policy else None

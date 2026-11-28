@@ -5,6 +5,52 @@ FRESH_AGGREGATE_CONTRACT = 'fresh30_actual_takeover_aggregate_v1'
 FRESH_PAIRED_AGGREGATE_CONTRACT = 'fresh30_paired_full_and_own_takeover_aggregate_v1'
 
 
+
+def _curve_full_partition(data, configuration, full):
+    """Keep the historical24 strict; explicitly admit registered corrected replays."""
+    curve = data.get('full_curve')
+    if curve is None:
+        return full, []
+    from .paired_training_decks import CURVE_DECK_VERSION
+    corrected = curve.get('corrected_full_ids')
+    if (configuration['paired_group_deck']['version'] != CURVE_DECK_VERSION
+            or curve.get('condition') not in ('old_only', 'plus_corrected24')
+            or curve.get('old_corrections_preserved') is not True
+            or curve.get('terminal64_used') is not False
+            or not isinstance(corrected, list)
+            or len(corrected) != (24 if curve['condition'] == 'plus_corrected24' else 0)
+            or len(set(corrected)) != len(corrected)
+            or len(full) != 24 + len(corrected)
+            or full[24:] != corrected):
+        raise ValueError('Corrected full experts require an explicit fixed-curve partition')
+    return full[:24], corrected
+
+
+def _corrected_full_population(data, corrected, families, old_families, speed):
+    curve = data.get('full_curve')
+    if not corrected:
+        return
+    entries = data['entries']
+    corrected_families, seeds = {}, set()
+    for identity in corrected:
+        entry = entries[identity]
+        family, seed = entry.get('family'), entry.get('seed')
+        if (entry.get('trajectory_kind') != 'full_expert_demonstration_v1'
+                or entry.get('expert_speed') != speed or entry.get('split') != 'train'
+                or entry.get('layout_verified') is not True
+                or entry.get('actual_layout') != 'verified100mm'
+                or not family or family in old_families or family in corrected_families
+                or type(seed) is not int or seed in seeds
+                or family in families and families[family] != seed
+                or seed in families.values() and families.get(family) != seed
+                or curve.get('family_aliases', {}).get(entry.get('capture_family')) != family):
+            raise ValueError('Corrected experts require verified layout and unchanged family/seed labels')
+        corrected_families[family] = seed
+        seeds.add(seed)
+    if curve.get('physical_new_families') != len(set(corrected_families) - set(families)):
+        raise ValueError('Corrected replay independent-family count differs')
+
+
 def _paired_population(data, configuration):
     """Admit the explicit paired pool; historical takeover-only paths stay strict.
 
@@ -20,13 +66,14 @@ def _paired_population(data, configuration):
     pool = validate_pool(data, role=groups[0])
     validate_deck(configuration.get('paired_group_deck'), data, role=groups[0])
     original, full, own = (pool[k] for k in ('original_ids', 'shared_full_ids', 'own_correction_ids'))
+    historical_full, corrected = _curve_full_partition(data, configuration, full)
     affine = data['normalization_train_ids']
     aggregate = data['aggregation']
     provenance = data.get('paired_pool_provenance', {})
     expected_parts = dict(old_full=affine,
         old_correction=[i for i in original if i not in set(affine)],
         new_full=full, own_new_correction=own)
-    if (len(original) != 180 or len(full) != 24
+    if (len(original) != 180 or len(historical_full) != 24
             or data.get('normalization_scope') != 'unchanged original30 training affine; no aggregate refit'
             or aggregate.get('paired_pool_version') != 'paired_own_student_pool_v1'
             or aggregate.get('original_training_ids') != original
@@ -48,7 +95,7 @@ def _paired_population(data, configuration):
     speed = dict(kind='closed_loop', arm=.5, hand=1., phase='all', hand_target_cap_rad_s=2.)
     families = {}
     old_families = {entries[i].get('family') for i in original + data['splits']['validation']}
-    for identity in full:
+    for identity in historical_full:
         entry = entries[identity]
         family = entry.get('family')
         if (entry.get('trajectory_kind') != 'full_expert_demonstration_v1'
@@ -57,6 +104,7 @@ def _paired_population(data, configuration):
                 or type(entry.get('seed')) is not int):
             raise ValueError('Paired shared full experts require24 new families and the original speed contract')
         families[family] = entry['seed']
+    _corrected_full_population(data, corrected, families, old_families, speed)
     for identity in own:
         entry = entries[identity]
         if entry.get('split') != 'train' or families.get(entry.get('family')) != entry.get('seed'):

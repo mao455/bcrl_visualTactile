@@ -1,0 +1,73 @@
+{
+  "spec": {
+    "identity": "B_plus_corrected24_28911004",
+    "family": "physical_seed_28911004",
+    "seed": 28911004,
+    "event_seed": 29011004,
+    "split": "development",
+    "cohort": "fresh",
+    "collision_gate": "live_collision_mesh_bounds_v1",
+    "narrow_reset": {
+      "fixed_start_pose": [
+        -0.125703262404734,
+        0.026422736472033304,
+        0.6302826495385481,
+        0.13227876338532324,
+        0.8928188916232145,
+        -0.3775280730141102,
+        0.207001013597382
+      ],
+      "table_reset_z": 0.38025903370841724,
+      "table_reset_z_range": 0.0,
+      "reset_dof_pos_random_interval_arm": 0.0075,
+      "reset_dof_pos_random_interval_fingers": 0.0075,
+      "reset_dof_vel_random_interval": 0.03,
+      "hole_x_range": [
+        0.04030882161633128,
+        0.04030882161633128
+      ],
+      "hole_y_range": [
+        -0.035326794836258,
+        -0.035326794836258
+      ]
+    },
+    "layout": {
+      "version": "peg_spacing_reset_v1",
+      "distance_m": 0.1,
+      "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+    },
+    "reset_admission": {
+      "object_xy_m": [
+        -0.125703262404734,
+        0.026422736472033304
+      ],
+      "hole_xy_m": [
+        0.04030882161633128,
+        -0.035326794836258
+      ],
+      "unshifted_object_xy_m": [
+        -0.032302536548027304,
+        -0.009302666387001342
+      ],
+      "displacement_xy_m": [
+        -0.0934007258567067,
+        0.035725402859034645
+      ],
+      "tolerance_m": 1e-05,
+      "baseline_source": "Historical direct family reset"
+    }
+  },
+  "batch_execution": {
+    "version": "independent_lane_queue_v1",
+    "lanes": 2,
+    "vision_microbatch": 2,
+    "physics_seed": 28910000,
+    "event_seed": 29010000,
+    "native_rng": "Persistent batch event stream; native indexed reset without reseeding other lanes; no hidden-state parity claim",
+    "gpu_pipeline": "gpu_observation_history_control_v1",
+    "lane": 0,
+    "queue_ordinal": 2,
+    "global_start_tick": 601
+  },
+  "utc": 1795839377.1073549
+}

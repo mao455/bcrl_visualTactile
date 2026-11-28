@@ -315,6 +315,10 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
     from visuotactile.precision import state_fp32
     from visuotactile.trajectory_training import validate_registration,validate_exposure as validate_batch_exposure
     batch_profile=validate_registration(root,trajectory_batch_profile)
+    from visuotactile.recurrent_execution import load as load_recurrent_execution
+    recurrent_execution=load_recurrent_execution(root)
+    if recurrent_execution is not None and batch_profile is None:
+        raise ValueError('Packed GRU execution requires explicit full-trajectory batches')
     from visuotactile.frozen_visual_io import load_profile as load_visual_io
     visual_io=load_visual_io(root)
     from visuotactile.bounded_extension import load as load_extension,Plateau,admit_dp_restore,dp_diagnostics
@@ -350,6 +354,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         episodes_per_epoch=sum(multiplicities.values())
         sampling_exposure=dict.fromkeys(data['splits']['train'],0) if sampling or batch_profile else None
         model=new_model(role,stats)
+        if recurrent_execution is not None:model._offline_recurrent_execution=recurrent_execution
         if continuation:
             path=Path(continuation['path'])
             if sha256(path)!=continuation['sha256'] or sha256(dr/'statistics.pt')!=continuation['statistics_sha256']:
@@ -392,7 +397,14 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
     if visit_profile:
         config.update(training_sampling=visit_profile,training_sampling_sha256=sha256(root/'training_sampling.json'),
             exposure='Full real history once per visit; random legal starts with original anchor-count budget; actual visits, optimizer/EMA updates and distinct times recorded separately.')
+    if recurrent_execution is not None:config['recurrent_execution']=recurrent_execution
     if continuation:config['continuation']=continuation
+    milestone_path=root/'training_milestones.json'
+    milestones=read(milestone_path) if milestone_path.exists() else []
+    if (not isinstance(milestones,list) or any(type(e) is not int or not 1<=e<=epochs for e in milestones)
+            or milestones!=sorted(set(milestones))):
+        raise ValueError('Explicit sorted unique checkpoint epochs within the registered budget required')
+    if milestones:config['training_milestones']=milestones
     if (root/'visual_arithmetic.json').exists():
         from visuotactile.visual_arithmetic import validate as validate_visual_arithmetic,digest as visual_digest
         config['visual_arithmetic']=validate_visual_arithmetic(read(root/'visual_arithmetic.json'))
@@ -784,6 +796,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         improved=selection_eligible and val['selection']<best
         if selection_eligible:best=min(best,val['selection'])
         checkpoint(epoch+1)
+        if epoch+1 in milestones:
+            from visuotactile.checkpointing import promote_snapshot
+            promote_snapshot(out/'last.pt',out/f'milestone_epoch_{epoch+1}.pt')
         if improved:
             from visuotactile.checkpointing import promote_snapshot
             promote_snapshot(out/'last.pt',out/'best.pt')

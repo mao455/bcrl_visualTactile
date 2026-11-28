@@ -1,0 +1,49 @@
+{
+  "utc": 1795837013.1896205,
+  "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_full_curve_20261127_01/evaluation_e30_B",
+  "retry_owner": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_full_curve_20261127_01/evaluation_e30_B_retry01",
+  "completed_preserved": [
+    "B_old_only_28910000",
+    "B_plus_corrected24_28910000",
+    "B_plus_corrected24_28910002",
+    "B_old_only_28910002",
+    "B_old_only_28910003",
+    "B_plus_corrected24_28910003",
+    "B_plus_corrected24_28910004",
+    "B_old_only_28910004",
+    "B_old_only_28910006",
+    "B_plus_corrected24_28910006",
+    "B_plus_corrected24_28910013",
+    "B_old_only_28910013",
+    "B_old_only_28910014",
+    "B_plus_corrected24_28910014",
+    "B_plus_corrected24_28910015",
+    "B_old_only_28910015",
+    "B_old_only_28911000",
+    "B_plus_corrected24_28911000",
+    "B_plus_corrected24_28911001",
+    "B_old_only_28911001",
+    "B_old_only_28911002",
+    "B_plus_corrected24_28911002",
+    "B_plus_corrected24_28911003"
+  ],
+  "pending": [
+    "B_old_only_28911003",
+    "B_old_only_28911004",
+    "B_plus_corrected24_28911004",
+    "B_plus_corrected24_28911005",
+    "B_old_only_28911005",
+    "B_old_only_28911006",
+    "B_plus_corrected24_28911006",
+    "B_plus_corrected24_28911007",
+    "B_old_only_28911007"
+  ],
+  "failure": {
+    "error": "RuntimeError('VRAM reserve; no OOM retry')",
+    "utc": 1795836915.44718,
+    "traceback": "Traceback (most recent call last):\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_machine_review.py\", line 321, in main\n    try:worker(a.output,a.mode)\n        ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_machine_review.py\", line 138, in worker\n    with no_expert_scope(output,plan['batch']['lanes']):run(output)\n                                                        ^^^^^^^^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_evaluate.py\", line 16, in run\n    return run(output,allow_heldout=allow_heldout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_fresh_batch_run.py\", line 325, in run\n    finished,profile=run_queue(env,player,lease,output,cases,plan['pairs'],saved,dino,plan,capture_pool=capture_pool)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/site-packages/torch/utils/_contextlib.py\", line 116, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/visuotactile/queued_rollout.py\", line 299, in run_queue\n    with lease.block():\n  File \"/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/contextlib.py\", line 137, in __enter__\n    return next(self.gen)\n           ^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS/visuotactile/state_resources.py\", line 237, in block\n    raise RuntimeError('VRAM reserve; no OOM retry')\nRuntimeError: VRAM reserve; no OOM retry\n"
+  },
+  "wait": "Wait plus_corrected24 B60 cache before retry; both trainers continue",
+  "deadline": 1796066371.2612927,
+  "preparation11_failure": "Stale live22 count; completed final23. Assertion before owner creation; no scientific updates or steps. Launch logs11 retained."
+}

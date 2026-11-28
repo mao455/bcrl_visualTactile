@@ -14,6 +14,7 @@ import torch
 POOL_VERSION = 'paired_own_training_pool_v1'
 DECK_VERSION = 'paired_complete_group_decks_v1'
 FINITE_DECK_VERSION = 'paired_complete_group_decks_finite_v1'
+CURVE_DECK_VERSION = 'paired_complete_group_decks_curve_v1'
 SAMPLING_VERSION = 'paired_dagger_replay_v1'
 
 
@@ -134,12 +135,13 @@ def _counts(groups, ids):
     return {i:counts[i] for i in ids}
 
 
-def build_pair(data_by_role, records_by_role, data_sha256_by_role, *, sampling_by_role, epochs=60, seed=2026111404, finite=False, minimum_updates_per_epoch=None):
+def build_pair(data_by_role, records_by_role, data_sha256_by_role, *, sampling_by_role, epochs=60, seed=2026111404, finite=False, minimum_updates_per_epoch=None, curve=False):
     """Build60 fixed complete decks then add real singleton replays to match updates."""
     from .latest_takeover_sampling import sampling_plan, episode_deck
-    if (type(finite) is not bool or type(epochs) is not int or type(seed) is not int
-            or not (1 <= epochs <= 8 if finite else epochs == 60)
-            or minimum_updates_per_epoch is not None and (not finite or type(minimum_updates_per_epoch) is not int or minimum_updates_per_epoch < 1)):
+    if (type(finite) is not bool or type(curve) is not bool or finite and curve
+            or type(epochs) is not int or type(seed) is not int
+            or not (epochs in (30,60) if curve else 1 <= epochs <= 8 if finite else epochs == 60)
+            or minimum_updates_per_epoch is not None and (not (finite or curve) or type(minimum_updates_per_epoch) is not int or minimum_updates_per_epoch < 1)):
         raise ValueError('Register60 complete epochs, or explicit finite1..8epoch diagnostic and positive actual-update minimum')
     validate_pool_pair(data_by_role['A'], data_by_role['B'], role='A', enabled=True)
     decks, masks = {}, {}
@@ -155,7 +157,7 @@ def build_pair(data_by_role, records_by_role, data_sha256_by_role, *, sampling_b
         for _ in range(epochs):
             order = episode_deck(ids, counts, generator)
             groups.append([order[j:j+4] for j in range(0, len(order), 4)])
-        decks[role] = dict(version=FINITE_DECK_VERSION if finite else DECK_VERSION, role=role, epochs=epochs, seed=seed,
+        decks[role] = dict(version=CURVE_DECK_VERSION if curve else FINITE_DECK_VERSION if finite else DECK_VERSION, role=role, epochs=epochs, seed=seed,
             binding=_binding(data, records, data_sha256_by_role[role]), sampling=sampling, base_multiplicities=counts,
             epoch_groups=groups, base_group_counts=[len(gs) for gs in groups])
     budget = max(sum(group_updates(g, masks[r]) for g in gs) for r,d in decks.items() for gs in d['epoch_groups'])
@@ -184,10 +186,10 @@ def build_pair(data_by_role, records_by_role, data_sha256_by_role, *, sampling_b
 def validate_deck(deck, data, records=None, *, data_sha256=None, role=None):
     """Reject altered data, masks, group boundaries or deterministic base order."""
     from .latest_takeover_sampling import sampling_plan, episode_deck
-    if (not isinstance(deck, dict) or deck.get('version') not in (DECK_VERSION, FINITE_DECK_VERSION)
+    if (not isinstance(deck, dict) or deck.get('version') not in (DECK_VERSION, FINITE_DECK_VERSION, CURVE_DECK_VERSION)
             or deck.get('sha256') != digest({k:v for k,v in deck.items() if k!='sha256'})
             or type(deck.get('epochs')) is not int
-            or not (1 <= deck['epochs'] <= 8 if deck.get('version') == FINITE_DECK_VERSION else deck['epochs'] == 60)
+            or not (deck['epochs'] in (30,60) if deck.get('version') == CURVE_DECK_VERSION else 1 <= deck['epochs'] <= 8 if deck.get('version') == FINITE_DECK_VERSION else deck['epochs'] == 60)
             or type(deck.get('seed')) is not int
             or deck.get('role') != validate_pool(data, role=role)['role']):
         raise ValueError('Paired complete group deck identity/hash differs')

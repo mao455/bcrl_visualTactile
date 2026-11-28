@@ -79,3 +79,57 @@ def test_paired_contract_rejects_unregistered_or_mixed_population(paired, mutati
     elif mutation=='heldout': data['splits']['validation'][0]='new0'
     elif mutation=='source': data['entries']['new0']['source_sha256']='changed'
     with pytest.raises(ValueError): residual_normalization(data, config)
+
+
+@pytest.fixture(scope='module')
+def corrected_curve(paired):
+    source, _ = paired
+    data = {role:copy.deepcopy(d) for role,d in source.items()}
+    records, sampling = {}, {}
+    for role, d in data.items():
+        full = d['paired_pool']['shared_full_ids']
+        corrected = ['corrected'+str(j) for j in range(24)]
+        aliases = {}
+        for j, identity in enumerate(corrected):
+            e = copy.deepcopy(d['entries'][full[j]])
+            e.update(path='/corrected/'+identity, episode=identity, source_sha256=str(j)*64,
+                layout_verified=True, actual_layout='verified100mm', capture_family='capture'+str(j))
+            d['entries'][identity] = e
+            aliases[e['capture_family']] = e['family']
+        d['splits']['train'] += corrected
+        # These historical fields intentionally share the exact full list.
+        d['paired_pool']['shared_full_ids'] += corrected
+        d['full_curve'] = dict(condition='plus_corrected24', corrected_full_ids=corrected,
+            family_aliases=aliases, physical_new_families=0,
+            old_corrections_preserved=True, terminal64_used=False)
+        records[role] = {i:dict(robot=torch.zeros(3,1), supervision_mask=torch.tensor([False,True,True]))
+            for i in d['splits']['train']}
+        sampling[role] = dict(version='paired_dagger_replay_v1', extra_replays=dict.fromkeys(d['splits']['train'],0))
+    decks = build_pair(data, records, dict(A='curveA',B='curveB'), sampling_by_role=sampling, epochs=30, curve=True)
+    config = {r:dict(fresh_data_contract=FRESH_PAIRED_AGGREGATE_CONTRACT,
+        groups=[r], paired_group_deck=decks[r]) for r in 'AB'}
+    return data, config
+
+
+def test_corrected_curve_accepts_same_family_verified_layout_without_refitting(corrected_curve):
+    data, config = corrected_curve
+    for role in 'AB':
+        assert residual_normalization(data[role], config[role]) == 'u_expert_fresh_train_only_affine_v1'
+
+
+@pytest.mark.parametrize('mutation', ['implicit','wrong_condition','layout','speed','family','seed','alias','independence','sealed','lost_corrections'])
+def test_corrected_curve_rejects_unverified_or_mislabelled_extensions(corrected_curve, mutation):
+    ds, cs = corrected_curve
+    d, c = copy.deepcopy(ds['A']), copy.deepcopy(cs['A'])
+    e = d['entries']['corrected0']
+    if mutation=='implicit': d.pop('full_curve')
+    elif mutation=='wrong_condition': d['full_curve']['condition']='old_only'
+    elif mutation=='layout': e['layout_verified']=False
+    elif mutation=='speed': e['expert_speed']={}
+    elif mutation=='family': e['family']='family_old0'
+    elif mutation=='seed': e['seed']=1000
+    elif mutation=='alias': e['capture_family']='unknown'
+    elif mutation=='independence': d['full_curve']['physical_new_families']=24
+    elif mutation=='sealed': d['full_curve']['terminal64_used']=True
+    elif mutation=='lost_corrections': d['full_curve']['old_corrections_preserved']=False
+    with pytest.raises(ValueError): residual_normalization(d,c)

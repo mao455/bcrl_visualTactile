@@ -62,15 +62,22 @@ def encode_trajectories(model, records, episodes, *, selected_anchors=None):
         prepared.append(dict(n=n, robot=normalized, time=time, ct=ct, cv=cv,
             tokens=torch.cat(tokens), summaries=torch.cat(summaries),
             inputs=model.native_input(normalized), native=[], visual=[]))
-    for tick in range(max(part['n'] for part in prepared)):
-        active = [part for part in prepared if tick < part['n']]
-        native = model.native_gru(torch.cat([part['inputs'][tick:tick+1] for part in active]),
-            None if tick == 0 else torch.cat([part['native'][-1] for part in active]))
-        visual = model.visual_gru(torch.cat([part['summaries'][tick:tick+1] for part in active]),
-            None if tick == 0 else torch.cat([part['visual'][-1] for part in active]))
-        for lane, part in enumerate(active):
-            part['native'].append(native[lane:lane+1])
-            part['visual'].append(visual[lane:lane+1])
+    from .recurrent_execution import validate as validate_recurrent, sequences
+    recurrent=validate_recurrent(getattr(model,'_offline_recurrent_execution',None))
+    if recurrent is not None:
+        for key,cell,inputs in [('native',model.native_gru,'inputs'),('visual',model.visual_gru,'summaries')]:
+            outputs=sequences(cell,[part[inputs] for part in prepared])
+            for part,value in zip(prepared,outputs):part[key]=[value]
+    else:
+        for tick in range(max(part['n'] for part in prepared)):
+            active = [part for part in prepared if tick < part['n']]
+            native = model.native_gru(torch.cat([part['inputs'][tick:tick+1] for part in active]),
+                None if tick == 0 else torch.cat([part['native'][-1] for part in active]))
+            visual = model.visual_gru(torch.cat([part['summaries'][tick:tick+1] for part in active]),
+                None if tick == 0 else torch.cat([part['visual'][-1] for part in active]))
+            for lane, part in enumerate(active):
+                part['native'].append(native[lane:lane+1])
+                part['visual'].append(visual[lane:lane+1])
     results = []
     for lane,part in enumerate(prepared):
         time = part['time']

@@ -1,0 +1,35 @@
+{
+  "profile": {
+    "version": "paired_family_phase_diagnostics_v1",
+    "phase_labels": "recorded_geometry_sampling_phases_v1",
+    "training": "existing_forward_detached_legal_error_vectors",
+    "validation": "existing_evaluation_detached_legal_error_vectors",
+    "extra_model_forwards": false,
+    "affects_sampling": false,
+    "affects_selection": false
+  },
+  "component": "DP",
+  "role": "A",
+  "target": "q_reached",
+  "stages": [
+    "grasp_without_contact",
+    "contact_not_held",
+    "held_far",
+    "held_rotating",
+    "held_near_goal60",
+    "after_first_native_subgoal",
+    "contact_lost"
+  ],
+  "phase_source": "visuotactile.geometry_sampling.diagnostic_phases",
+  "labels_are_offline_only": true,
+  "test_trajectories_opened": 0,
+  "limitations": [
+    "Recorded diagnostic phase is descriptive; held-near60mm is not the15mm gate or native success.",
+    "DP training uses sample-prediction diffusion errors over H24 supervised windows; repeated windows count repeatedly.",
+    "DP validation uses existing DDIM16 native commit12 predictions. These differ from training noise errors.",
+    "Rear training uses actual composed final-command errors before its successful optimizer step; validation uses epoch-final weights.",
+    "Squared errors are diagnostics; geometry/FY/regularization components are not decomposed by phase.",
+    "A and B DP target spaces differ; these nominal error curves do not rank groups.",
+    "Train-evaluation is the trainer existing fixed first2 episodes, not the whole training pool."
+  ]
+}

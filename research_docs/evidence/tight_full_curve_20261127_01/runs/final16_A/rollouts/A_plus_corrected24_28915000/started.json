@@ -1,0 +1,73 @@
+{
+  "spec": {
+    "identity": "A_plus_corrected24_28915000",
+    "family": "physical_seed_28915000",
+    "seed": 28915000,
+    "event_seed": 29015000,
+    "split": "development",
+    "cohort": "fresh",
+    "collision_gate": "live_collision_mesh_bounds_v1",
+    "narrow_reset": {
+      "fixed_start_pose": [
+        -0.12522302057133092,
+        0.02619392191538178,
+        0.6282328768615086,
+        0.11878728868819666,
+        0.8936108535757445,
+        -0.3780780706046136,
+        0.21072803556189604
+      ],
+      "table_reset_z": 0.37910457793518765,
+      "table_reset_z_range": 0.0,
+      "reset_dof_pos_random_interval_arm": 0.0075,
+      "reset_dof_pos_random_interval_fingers": 0.0075,
+      "reset_dof_vel_random_interval": 0.03,
+      "hole_x_range": [
+        0.0415774507273728,
+        0.0415774507273728
+      ],
+      "hole_y_range": [
+        -0.038165614256494604,
+        -0.038165614256494604
+      ]
+    },
+    "layout": {
+      "version": "peg_spacing_reset_v1",
+      "distance_m": 0.1,
+      "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+    },
+    "reset_admission": {
+      "object_xy_m": [
+        -0.12522302057133092,
+        0.02619392191538178
+      ],
+      "hole_xy_m": [
+        0.0415774507273728,
+        -0.038165614256494604
+      ],
+      "unshifted_object_xy_m": [
+        -0.03182229471462422,
+        -0.009531480943652866
+      ],
+      "displacement_xy_m": [
+        -0.0934007258567067,
+        0.035725402859034645
+      ],
+      "tolerance_m": 1e-05,
+      "baseline_source": "Historical direct family reset"
+    }
+  },
+  "batch_execution": {
+    "version": "independent_lane_queue_v1",
+    "lanes": 2,
+    "vision_microbatch": 2,
+    "physics_seed": 28915000,
+    "event_seed": 29015000,
+    "native_rng": "Persistent batch event stream; native indexed reset without reseeding other lanes; no hidden-state parity claim",
+    "gpu_pipeline": "gpu_observation_history_control_v1",
+    "lane": 1,
+    "queue_ordinal": 1,
+    "global_start_tick": 0
+  },
+  "utc": 1795878246.1345568
+}

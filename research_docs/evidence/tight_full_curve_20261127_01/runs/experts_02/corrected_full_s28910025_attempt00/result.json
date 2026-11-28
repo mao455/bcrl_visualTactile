@@ -1,0 +1,117 @@
+{
+  "identity": "corrected_full_s28910025_attempt00",
+  "family": "paired_train_28910025",
+  "seed": 28910025,
+  "split": "train",
+  "cohort": "fresh",
+  "event_seed": 29010025,
+  "collision_gate": "live_collision_mesh_bounds_v1",
+  "narrow_reset": {
+    "fixed_start_pose": [
+      -0.12547252404079945,
+      0.024210119467933458,
+      0.6300658405209045,
+      0.12856603728526902,
+      0.8903327477742926,
+      -0.3764545205988793,
+      0.22149599600050401
+    ],
+    "table_reset_z": 0.3798540665996116,
+    "table_reset_z_range": 0.0,
+    "reset_dof_pos_random_interval_arm": 0.0075,
+    "reset_dof_pos_random_interval_fingers": 0.0075,
+    "reset_dof_vel_random_interval": 0.03,
+    "hole_x_range": [
+      0.04269548191541797,
+      0.04269548191541797
+    ],
+    "hole_y_range": [
+      -0.03799553210581771,
+      -0.03799553210581771
+    ]
+  },
+  "reset_admission": {
+    "object_xy_m": [
+      -0.12547252404079945,
+      0.024210119467933458
+    ],
+    "hole_xy_m": [
+      0.04269548191541797,
+      -0.03799553210581771
+    ],
+    "unshifted_object_xy_m": [
+      -0.03207179818409277,
+      -0.011515283391101189
+    ],
+    "displacement_xy_m": [
+      -0.09340072585670668,
+      0.035725402859034645
+    ],
+    "tolerance_m": 1e-05,
+    "baseline_source": "Historical direct family reset"
+  },
+  "layout": {
+    "version": "peg_spacing_reset_v1",
+    "distance_m": 0.1,
+    "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+  },
+  "software_complete": true,
+  "legal": true,
+  "success": true,
+  "reasons": {
+    "fall": false,
+    "max_successes": true,
+    "hand_far": false,
+    "dropped": false,
+    "timeout": false
+  },
+  "steps": 350,
+  "native_lift": false,
+  "native_subgoals": 2,
+  "native_alignment": true,
+  "actor_normalization_max_error": 0.0,
+  "environment_sha256": "e1c3208dc1638b521a204b297a71ce5c505a6272583b20a672312c044cf61115",
+  "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+  "action_exhausted": false,
+  "simulation_step_hz": 60,
+  "physics_hz": 120,
+  "plan_hz": 60,
+  "ever_complete_success": true,
+  "first_success_tick": 350,
+  "termination_tick": 350,
+  "duration_sim_s": 5.8333333309999995,
+  "tick_index": "1-based completed control transitions",
+  "post_success_actions": 0,
+  "action_control_mode": "native_command_clipped_pre_delay",
+  "actuator_target_max_error": 0.0,
+  "tracking_rmse_rad": 0.08098499476909637,
+  "expert_speed": {
+    "kind": "closed_loop",
+    "arm": 0.5,
+    "hand": 1.0,
+    "phase": "all",
+    "hand_target_cap_rad_s": 2.0
+  },
+  "rl_observation_source": "actual current simulator observations every 60Hz tick",
+  "replay_sequence_ticks": null,
+  "replay_final_hold_ticks": 0,
+  "trajectory_retiming_is_not_state_retiming": true,
+  "dataset_capture": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_full_curve_20261127_01/experts_02/corrected_full_s28910025_attempt00/demonstration/data.h5",
+    "verified_source_fields": 155,
+    "accepted_success": true,
+    "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990"
+  },
+  "expert_shadow_computed": true,
+  "expert_shadow_placeholder_zero": false,
+  "wall_profile": {
+    "expert_inference_s": 1.0624042255803943,
+    "environment_step_render_s": 19.986438808962703,
+    "numeric_write_s": 0.5910856234841049,
+    "compact_append_s": 6.8757917527109385,
+    "finalize_verify_s": 7.325368581805378,
+    "setup_s": 0.11739834491163492,
+    "through_result_s": 36.35960357123986,
+    "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+  }
+}

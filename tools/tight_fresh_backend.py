@@ -115,10 +115,10 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
             raise ValueError('Paired backend base replay differs from explicit group deck')
         v.update(paired_group_deck=paired_group_deck,minimum_control_tick_epochs=epochs,
             comparison_control_tick_epochs=[epochs])
-        if paired_group_deck['version'] == 'paired_complete_group_decks_finite_v1':
+        if paired_group_deck['version'] in ('paired_complete_group_decks_finite_v1', 'paired_complete_group_decks_curve_v1'):
             from visuotactile.effective_exposure import profile as exposure_profile
             v['effective_exposure'] = exposure_profile()
-            v['selection'] = 'Explicit finite diagnostic; owner deploys preregistered final update; actual exposure recorded without50step eligibility claim'
+            v['selection'] = 'Explicit fixed training milestone; owner deploys preregistered final update; actual exposure separately recorded'
         v.pop('bounded_extension',None)
     if data.get('aggregation'):
         v['dagger_round']=max(e.get('round_index',0) for e in data['entries'].values())
